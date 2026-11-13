@@ -136,6 +136,6 @@ Run instructions will be added here when the app exists.
 | [`PLAN-REVIEW-LOG.md`](PLAN-REVIEW-LOG.md) | The record of a second AI reviewing the plan and what we changed because of it |
 | [`docs/verified_problems.json`](docs/verified_problems.json) | The problem bank: 3,510 problems in 90 calculus topics. Echo uses levels 1 to 4 (3,450 problems), minus any problem that fails our audit |
 | [`docs/`](docs/) | Notes on progress, decisions, and known problems |
-| [`app/`](app/) | The checking code: per-topic checkers, the safe math reader, the sandbox, and sample problem generators. Reused from the author's existing AI math tutor |
+| [`app/`](app/) | The checking code, reused from the author's existing AI math tutor. It is sorted into `calc1/` (Calculus I), `calc2/` (Calculus II), `shared/` (helpers for both), and `api/` (a web layer Echo does not use). A file-by-file map is in [`docs/app-map.md`](docs/app-map.md) |
 | [`scripts/`](scripts/) and [`tests/`](tests/) | The bank audit script and its tests |
 | [`CLAUDE.md`](CLAUDE.md) | Instructions for the AI coding assistant used to build this |
