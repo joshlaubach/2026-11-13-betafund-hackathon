@@ -42,7 +42,13 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
   const aiBased = AI_METHODS.includes(grade.method);
   const referenceHeading =
     grade.method === "bank_key" ? "Verified answer" : verifiedMethod ? "SymPy's answer" : "AI's answer";
-  const tagText = verified ? "Verified mark" : verifiedMethod ? "Not verified" : "AI-graded";
+  const tagText = verified
+    ? "Verified mark"
+    : grade.method === "not_graded"
+      ? "Not marked"
+      : verifiedMethod
+        ? "Not verified"
+        : "AI-graded";
   const answers = studentAnswers(entry);
   return (
     <li className={`row ${verified ? "row-verified" : "row-ai"}`}>

@@ -71,6 +71,11 @@ SYMPY_METHOD: GradeMethod = "sympy_computed"
 JUDGE_METHOD: GradeMethod = "ai_judgment"
 DETERMINISTIC_METHODS = (BANK_METHOD, SYMPY_METHOD)
 NO_ANSWER_EXPLANATION = "no answer written"
+NOT_GRADED_METHOD: GradeMethod = "not_graded"
+LOW_CONFIDENCE_EXPLANATION = (
+    "The writing for this part was faint or unclear, so Echo did not mark it. "
+    "Compare the reading with the photo, then try a clearer photo."
+)
 DIFFERENT_PHOTO_MESSAGE = "saved reading is for a different photo"
 UNREADABLE_MESSAGE = "no problems were read from the worksheet"
 ITEM_CAP_NOTE = "the worksheet has {total} problems; only the first {kept} were kept"
@@ -86,7 +91,8 @@ WORKSHEET_SYSTEM_PROMPT = (
     "for example v'(t) = e^{-t} and then v'(0) = 1. Write the student's written sentence in "
     "explanation_text. Working steps may stay in student_answer_latex, or null when no answer is "
     "written. Do not solve, simplify, complete, or correct anything, even when it is wrong. If any "
-    "part is illegible, cut off, or ambiguous, say which part in notes and lower confidence. Choose "
+    "part is illegible, cut off, faint, smudged, or ambiguous, or you had to guess a character, say "
+    "which part in notes and set that part's confidence to low. Choose "
     "topic_guess only from the topic ids given in the request, or null if none fits. Return only "
     "the structured output requested."
 )
@@ -466,6 +472,8 @@ def grade_item(
 
     A single solver is used for every rung. Never raises for a solver failure.
     """
+    if item.confidence == "low":  # a misread part must never earn a verified-looking mark
+        return _grade_from_mark(Mark("unsure", NOT_GRADED_METHOD, LOW_CONFIDENCE_EXPLANATION))
     problems = _eligible_bank() if bank is None else tuple(bank)
     problem = _bank_match(item, problems)
     question = _question(item)
@@ -495,8 +503,9 @@ def grade_worksheet(
 def _regraded_grade(graded: GradedItem, rungs: Rungs, problems: tuple[dict, ...]) -> Grade:
     item = graded.item
     question = _question(item)
-    if graded.grade.method == SYMPY_METHOD:
-        # The cross-check outcome cannot be re-derived without an AI call, so the mark is kept.
+    if graded.grade.method in (SYMPY_METHOD, NOT_GRADED_METHOD):
+        # The cross-check outcome cannot be re-derived without an AI call, and an unclear reading
+        # is not fixed by grading again, so the mark is kept.
         return graded.grade
     if graded.grade.method == BANK_METHOD or question is None:
         return grade_item(item, rungs, bank=problems)

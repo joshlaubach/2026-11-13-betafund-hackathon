@@ -6,7 +6,8 @@ export type GradeMethod =
   | "sympy_computed"
   | "ai_ladder"
   | "ai_solve_sympy"
-  | "ai_judgment";
+  | "ai_judgment"
+  | "not_graded";
 export type SkillStatus = "solid" | "shaky" | "weak" | "not_enough_data";
 export type Mode = "live" | "replay" | "fake" | "bank";
 

@@ -326,3 +326,24 @@ def test_models_never_see_a_request_to_write_a_sentence() -> None:
     )
     assert "sentence" not in question.full
     assert "Compute v'(0)" in question.full
+
+
+def test_low_confidence_reading_is_never_marked() -> None:
+    from core.worksheet import grade_item
+    from core.worksheet_types import GRADE_LABELS, WorksheetItem
+    from core.solvers import FakeSolver
+
+    item = WorksheetItem(
+        number=2,
+        statement_latex="(b) Compute f'(1)",
+        student_answer_latex="-3",
+        final_answers_latex=("-3",),
+        context_latex="f(x) = x^3 - 3x^2 + 2",
+        confidence="low",
+    )
+    solver = FakeSolver()
+    grade = grade_item(item, solver)
+    assert grade.verdict == "unsure"
+    assert grade.method == "not_graded"
+    assert grade.label == GRADE_LABELS["not_graded"]
+    assert solver.solve_calls == () and solver.judge_calls == ()
