@@ -186,6 +186,15 @@ button:disabled {
   padding-left: 0.75rem;
 }
 
+/* Shown in place of the rows when no part could be marked. Same tokens as .disclaimer. */
+.banner {
+  margin: 1rem 0;
+}
+
+.all-parts {
+  margin: 1rem 0;
+}
+
 /* Ruled rows: the thick left edge says where a thing came from ---------- */
 .rows {
   list-style: none;

@@ -13,6 +13,7 @@ from fastapi import UploadFile
 from starlette.concurrency import run_in_threadpool
 
 from core.bank_fallback import REPO_ROOT
+from core.image_size import image_dimensions, too_small_message
 from core.photo_reader import (
     MAX_IMAGE_BYTES,
     TOO_LARGE_MESSAGE,
@@ -21,6 +22,8 @@ from core.photo_reader import (
     PhotoSource,
     PhotoSourceError,
     ReplayPhotoSource,
+    STATUS_ERROR,
+    check_image,
     read_photo,
     sha256_hex,
 )
@@ -38,6 +41,8 @@ NO_SAVED_READING_MESSAGE = (
     "that has a saved reading"
 )
 UNREADABLE_SAVED_MESSAGE = "the saved reading for this photo could not be read"
+NO_READING_LABEL = "No reading is available for this photo; no model was called"
+SIZE_CHECK_SOURCE = "size check"
 
 
 class UploadTooLarge(Exception):
@@ -66,6 +71,37 @@ async def read_capped(upload: UploadFile) -> bytes:
         buffer.extend(chunk)
         if len(buffer) > MAX_IMAGE_BYTES:
             raise UploadTooLarge(TOO_LARGE_MESSAGE)
+
+
+def size_error(image: bytes, mode: str) -> str | None:
+    """The message for a photo too small to read, checked before any reader call.
+
+    Fake mode is exempt so scripted demos and replay tests keep working with tiny images.
+    Only a usable image with a readable header is checked; an unreadable header is not blocked.
+    """
+    if mode == MODE_FAKE:
+        return None
+    _media_type, image_error = check_image(image)
+    if image_error is not None:
+        return None  # read_photo reports bad image bytes itself
+    dimensions = image_dimensions(image)
+    if dimensions is None:
+        return None
+    return too_small_message(dimensions)
+
+
+def small_photo_result(message: str, image: bytes) -> dict[str, Any]:
+    """The error result for a too-small photo, in the same shape as a read_photo error."""
+    return {
+        "status": STATUS_ERROR,
+        "source": SIZE_CHECK_SOURCE,
+        "label": NO_READING_LABEL,
+        "reading": None,
+        "topic_guess_valid": False,
+        "error": message,
+        "image_sha256": sha256_hex(image),
+        "tokens": None,
+    }
 
 
 def _replay_path(image: bytes) -> Path:
@@ -114,6 +150,9 @@ def _public_result(result: dict, label: str) -> dict[str, Any]:
 async def read_uploaded_photo(upload: UploadFile, mode: str) -> dict[str, Any]:
     """Read an uploaded photo with the source for mode. Raises UploadTooLarge past the cap."""
     image = await read_capped(upload)
+    too_small = size_error(image, mode)
+    if too_small is not None:
+        return small_photo_result(too_small, image)
     source = _photo_source(mode, image)
     result = await run_in_threadpool(read_photo, image, source)
     return _public_result(result, _label(source))

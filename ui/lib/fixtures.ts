@@ -8,6 +8,7 @@ export const LABELS = {
   ai_ladder: "AI-graded: independent AI solves agree. SymPy only compared answers; the AI's answer is unchecked. Not verified by Echo",
   ai_solve_sympy: "AI-graded: an AI solved it and SymPy compared the two answers. SymPy did not check the AI's answer. Not verified by Echo",
   ai_judgment: "AI-graded: AI judgment only. Not verified by Echo",
+  not_graded: "Not marked: Echo was not confident it read this part correctly",
 } as const;
 
 const DISCLAIMER =
@@ -119,4 +120,56 @@ export const fixtureProblems: ProblemsResponse = {
       id: "PR12",
     },
   ],
+};
+
+// A photo whose every part comes back "Not marked". Chosen by a file name containing UNMARKED_FILE_TAG.
+export const UNMARKED_FILE_TAG = "greek";
+export const UNMARKED_NOTES =
+  "The photo shows a list of Greek letters, not calculus problems, so no part could be read as a problem.";
+const UNMARKED_EXPLANATION =
+  "The writing for this part was faint or unclear, so Echo did not mark it. Compare the reading with the photo, then try a clearer photo.";
+
+export const fixtureReadUnmarked: ReadResponse = {
+  status: "ok",
+  source: "FAKE (scripted reading, no model call)",
+  label: "FAKE (scripted reading, no model call)",
+  error: null,
+  reading: {
+    notes: UNMARKED_NOTES,
+    shared_context: "",
+    items: [
+      {
+        number: 1, part_label: "a", statement_latex: "alpha beta gamma",
+        student_answer_latex: null, final_answers_latex: [], explanation_text: "",
+        context_latex: "", topic_guess: null, confidence: "low", notes: "",
+      },
+      {
+        number: 2, part_label: "b", statement_latex: "delta epsilon zeta",
+        student_answer_latex: null, final_answers_latex: [], explanation_text: "",
+        context_latex: "", topic_guess: null, confidence: "low", notes: "",
+      },
+    ],
+  },
+};
+
+export const fixtureGradeUnmarked: GradeResponse = {
+  disclaimer: DISCLAIMER,
+  unplaced: 0,
+  summary: { solid: 0, shaky: 0, weak: 0, not_enough_data: 0, problems_seen: 2, verified_marks: 0, ai_marks: 0 },
+  skills: [],
+  recommendations: [],
+  graded: fixtureReadUnmarked.reading!.items.map((item) => ({
+    regraded: false,
+    changed_on_regrade: false,
+    item,
+    grade: {
+      verdict: "unsure",
+      method: "not_graded",
+      label: LABELS.not_graded,
+      reference_answer_latex: null,
+      explanation: UNMARKED_EXPLANATION,
+      bank_topic: null,
+      bank_id: null,
+    },
+  })),
 };

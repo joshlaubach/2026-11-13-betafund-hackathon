@@ -289,9 +289,24 @@ def _source_label(source: WorksheetSource, mode: str) -> str:
     return reading_line
 
 
+def _too_small_result(message: str, image: bytes) -> dict[str, Any]:
+    """The worksheet error result for a too-small photo. No reader was called."""
+    return {
+        "status": photo_api.STATUS_ERROR,
+        "source": photo_api.SIZE_CHECK_SOURCE,
+        "label": photo_api.NO_READING_LABEL,
+        "reading": None,
+        "error": message,
+        "image_sha256": sha256_hex(image),
+    }
+
+
 async def read_uploaded_worksheet(upload: UploadFile, mode: str) -> dict[str, Any]:
     """Read an uploaded worksheet photo. Raises photo_api.UploadTooLarge past the cap."""
     image = await photo_api.read_capped(upload)
+    too_small = photo_api.size_error(image, mode)
+    if too_small is not None:
+        return _too_small_result(too_small, image)
     digest = sha256_hex(image)
     source = _worksheet_source(mode, digest)
     result = await run_in_threadpool(read_worksheet, image, source)

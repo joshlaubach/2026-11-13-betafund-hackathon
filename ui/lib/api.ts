@@ -1,5 +1,13 @@
 // One place that talks to the Python server. NEXT_PUBLIC_FIXTURES=1 swaps in fake data.
-import { fixtureGrade, fixtureProblems, fixtureRead } from "./fixtures";
+import {
+  UNMARKED_FILE_TAG,
+  UNMARKED_NOTES,
+  fixtureGrade,
+  fixtureGradeUnmarked,
+  fixtureProblems,
+  fixtureRead,
+  fixtureReadUnmarked,
+} from "./fixtures";
 import type {
   GradedItem,
   GradeResponse,
@@ -36,7 +44,7 @@ function jsonBody(body: unknown): RequestInit {
 }
 
 export function readWorksheet(file: File, mode: Mode): Promise<ReadResponse> {
-  if (USE_FIXTURES) return pause(fixtureRead);
+  if (USE_FIXTURES) return pause(file.name.includes(UNMARKED_FILE_TAG) ? fixtureReadUnmarked : fixtureRead);
   const form = new FormData();
   form.append("file", file);
   form.append("mode", mode);
@@ -44,7 +52,7 @@ export function readWorksheet(file: File, mode: Mode): Promise<ReadResponse> {
 }
 
 export function gradeWorksheet(reading: WorksheetReading, mode: Mode): Promise<GradeResponse> {
-  if (USE_FIXTURES) return pause(fixtureGrade);
+  if (USE_FIXTURES) return pause(reading.notes === UNMARKED_NOTES ? fixtureGradeUnmarked : fixtureGrade);
   return send<GradeResponse>("/api/worksheet/grade", jsonBody({ reading, mode }));
 }
 

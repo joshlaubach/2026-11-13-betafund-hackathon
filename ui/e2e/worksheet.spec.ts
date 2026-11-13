@@ -184,3 +184,14 @@ test("responsive: no horizontal scroll at 375x800 after the happy path", async (
   mkdirSync(SCREENSHOT_DIR, { recursive: true });
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "worksheet-375x800.png"), fullPage: true });
 });
+
+test("banner: when no part can be marked, one banner says so and the parts stay under a details", async ({ page }) => {
+  // The fixture reader picks the all-unmarked photo when the file name contains "greek".
+  await page.locator('input[type="file"]').setInputFiles({ name: "greek.png", mimeType: "image/png", buffer: PNG_BYTES });
+  await submitButton(page).click();
+
+  await expect(page.getByText("Echo could not mark anything on this photo.")).toBeVisible({ timeout: 15_000 });
+  const parts = page.locator("details.all-parts");
+  await expect(parts.locator("summary")).toHaveText("Show the parts Echo read");
+  await expect(parts.locator("li.row")).toHaveCount(2);
+});

@@ -13,9 +13,13 @@ const VERDICT_GLYPH: Record<Verdict, string> = { correct: "✓", incorrect: "✗
 const VERIFIED_METHODS: readonly GradeMethod[] = ["bank_key", "sympy_computed"];
 const AI_METHODS: readonly GradeMethod[] = ["ai_ladder", "ai_solve_sympy", "ai_judgment"];
 
+const NOT_MARKED_FALLBACK =
+  "It may not be a calculus worksheet, or the photo may be too unclear to read. Try a clearer, closer photo.";
+
 interface Props {
   graded: GradedItem[];
   setup: string;
+  notes: string;
   disclaimer: string;
   busyNumber: number | null;
   onRegrade: (item: GradedItem) => void;
@@ -103,7 +107,33 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
   );
 }
 
-export function WorksheetResults({ graded, setup, disclaimer, busyNumber, onRegrade }: Props) {
+// True only when there is at least one item and every item is "Not marked".
+function allNotMarked(graded: GradedItem[]): boolean {
+  return graded.length > 0 && graded.every((entry) => entry.grade.method === "not_graded");
+}
+
+function NotMarkedBanner({ notes }: { notes: string }) {
+  const reason = notes.trim() || NOT_MARKED_FALLBACK;
+  return (
+    <p className="disclaimer banner" role="status">
+      Echo could not mark anything on this photo. {reason}
+    </p>
+  );
+}
+
+export function WorksheetResults({ graded, setup, notes, disclaimer, busyNumber, onRegrade }: Props) {
+  const rows = (
+    <ol className="rows">
+      {graded.map((entry) => (
+        <MarkRow
+          key={entry.item.number}
+          entry={entry}
+          busy={busyNumber === entry.item.number}
+          onRegrade={onRegrade}
+        />
+      ))}
+    </ol>
+  );
   return (
     <section aria-labelledby="marks-heading">
       <h2 id="marks-heading">Marks</h2>
@@ -115,16 +145,17 @@ export function WorksheetResults({ graded, setup, disclaimer, busyNumber, onRegr
       <p className="disclaimer" role="note">
         {disclaimer}
       </p>
-      <ol className="rows">
-        {graded.map((entry) => (
-          <MarkRow
-            key={entry.item.number}
-            entry={entry}
-            busy={busyNumber === entry.item.number}
-            onRegrade={onRegrade}
-          />
-        ))}
-      </ol>
+      {allNotMarked(graded) ? (
+        <>
+          <NotMarkedBanner notes={notes} />
+          <details className="all-parts">
+            <summary>Show the parts Echo read</summary>
+            {rows}
+          </details>
+        </>
+      ) : (
+        rows
+      )}
     </section>
   );
 }
