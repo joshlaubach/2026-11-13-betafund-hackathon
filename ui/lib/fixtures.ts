@@ -7,6 +7,7 @@ import type {
   GradeMethod,
   GradeReason,
   GradeResponse,
+  PracticeProblem,
   ProblemsResponse,
   ReadResponse,
   WorksheetItem,
@@ -179,6 +180,23 @@ export const fixtureProblems: ProblemsResponse = {
     },
   ],
 };
+
+// A count (streak pools ask for one) gets the scripted problems first, padded with distinct bank-style ones up to it.
+export function fixtureProblemsFor(count?: number): PracticeProblem[] {
+  const problems = [...fixtureProblems.problems];
+  for (let k = problems.length; count !== undefined && problems.length < count; k++) {
+    problems.push({
+      statement: `Find $f'(x)$ for $f(x) = ${k + 1}x^{2} + ${k}$.`,
+      answer_latex: `${2 * (k + 1)} x`,
+      steps: [],
+      origin: "bank_fallback",
+      label: "bank-verified, not Echo-checked",
+      level: 2,
+      id: `PRF${k}`,
+    });
+  }
+  return problems;
+}
 
 // A photo whose every part comes back "Not marked". Chosen by a file name containing UNMARKED_FILE_TAG.
 export const UNMARKED_FILE_TAG = "greek";

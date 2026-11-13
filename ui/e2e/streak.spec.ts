@@ -50,9 +50,25 @@ test("a wrong answer resets the progress bar to 0 with a friendly note", async (
   await expect(bar(page)).toHaveAttribute("aria-valuenow", "1", { timeout: 10_000 });
   await answer(page, "7");
   await expect(bar(page)).toHaveAttribute("aria-valuenow", "0", { timeout: 10_000 });
-  // The fixture has three problems, so no run of three can follow a reset: the streak says so instead of repeating.
-  await expect(panel(page).getByRole("heading", { name: "Not enough problems for this topic yet" })).toBeVisible();
+  // The fixture pool has ten problems, so the streak restarts on a new one instead of ending.
+  await expect(panel(page).getByRole("heading", { name: "Not enough problems for this topic yet" })).toHaveCount(0);
+  await expect(panel(page).getByText("Not quite. The streak starts again with a new problem.")).toBeVisible();
   await expect(panel(page).getByText(/SymPy|verdict|method/)).toHaveCount(0);
+});
+
+test("a wrong answer on the first problem resets the bar to 0 and shows the next problem", async ({ page }) => {
+  await markWorksheet(page);
+  await streakButton(partRow(page, "b")).click();
+  await expect(bar(page)).toHaveAttribute("aria-valuenow", "0", { timeout: 10_000 });
+  const statement = panel(page).locator(".streak .statement");
+  const first = await statement.textContent();
+  await answer(page, "7");
+  await expect(bar(page)).toHaveAttribute("aria-valuenow", "0", { timeout: 10_000 });
+  await expect(panel(page).getByRole("heading", { name: "Not enough problems for this topic yet" })).toHaveCount(0);
+  // The next problem replaces the first one on screen.
+  await expect(statement).not.toHaveText(first ?? "");
+  await expect(panel(page).getByLabel("Your answer")).toBeVisible();
+  await expect(panel(page).getByText("Not quite. The streak starts again with a new problem.")).toBeVisible();
 });
 
 test("completing every answer in the streak shows Streak complete", async ({ page }) => {
@@ -150,6 +166,8 @@ test("showing the full solution keeps the hints and shows the steps", async ({ p
 });
 
 test("completing a streak is announced and moves focus to the completion heading", async ({ page }) => {
+  // A streak of 3 makes three correct answers complete it (the default 5 needs five).
+  await page.addInitScript(() => window.localStorage.setItem("echo-streak-length", "3"));
   await markWorksheet(page);
   await streakButton(partRow(page, "b")).click();
   await expect(bar(page)).toBeVisible({ timeout: 10_000 });

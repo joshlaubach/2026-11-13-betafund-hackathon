@@ -2,6 +2,7 @@
 import { expect, test } from "@playwright/test";
 import {
   STREAK_DEFAULT_LENGTH,
+  STREAK_POOL_SIZE,
   answerCorrect,
   buildPool,
   clampLevel,
@@ -87,7 +88,7 @@ test("buildPool takes each problem's real level: same-level first, neighbours on
   // The request was for level 2, but the server filled it with level 1 and level 3 problems and one level 4 problem.
   const own = { level: 2, problems: [problem("a", 2), problem("b", 1), problem("x", 4)] };
   const fill = { level: 3, problems: [problem("c", 3), problem("d", 2)] };
-  const short = buildPool(2, 5, [own, fill]);
+  const short = buildPool(2, [own, fill]);
   expect(short.map((entry) => [entry.problem.statement, entry.nearby])).toEqual([
     ["a", false],
     ["d", false],
@@ -95,21 +96,48 @@ test("buildPool takes each problem's real level: same-level first, neighbours on
     ["c", true],
   ]);
   // A problem with no level is taken as the level it was requested for.
-  const untagged = buildPool(2, 5, [{ level: 2, problems: [problem("u")] }]);
+  const untagged = buildPool(2, [{ level: 2, problems: [problem("u")] }]);
   expect(untagged).toEqual([{ problem: problem("u"), nearby: false }]);
-  // Neighbours are not added once the same-level problems are enough.
-  const enough = buildPool(2, 2, [own, fill]);
+  // Neighbours are not added once the same-level problems fill the pool.
+  const ownFull = { level: 2, problems: Array.from({ length: STREAK_POOL_SIZE }, (_, i) => problem(`f${i}`, 2)) };
+  const enough = buildPool(2, [ownFull, fill]);
   expect(enough.every((entry) => !entry.nearby)).toBe(true);
-  expect(enough.length).toBe(2);
+  expect(enough.length).toBe(STREAK_POOL_SIZE);
+});
+
+test("buildPool keeps up to STREAK_POOL_SIZE distinct problems and fills from a neighbour only while short of it", () => {
+  // More than the pool size at the own level: the pool stops at STREAK_POOL_SIZE and takes no neighbour.
+  const many = Array.from({ length: STREAK_POOL_SIZE + 2 }, (_, i) => problem(`s${i}`, 2));
+  const capped = buildPool(2, [{ level: 2, problems: many }, { level: 3, problems: [problem("n0", 3)] }]);
+  expect(capped.length).toBe(STREAK_POOL_SIZE);
+  expect(capped.every((entry) => !entry.nearby)).toBe(true);
+  // Two short at the own level: the neighbour fills exactly the gap, and the rest of its problems are left out.
+  const own = Array.from({ length: STREAK_POOL_SIZE - 2 }, (_, i) => problem(`o${i}`, 2));
+  const neighbour = Array.from({ length: 6 }, (_, i) => problem(`n${i}`, 3));
+  const filled = buildPool(2, [{ level: 2, problems: own }, { level: 3, problems: neighbour }]);
+  expect(filled.length).toBe(STREAK_POOL_SIZE);
+  expect(filled.filter((entry) => entry.nearby).map((entry) => entry.problem.statement)).toEqual(["n0", "n1"]);
+  // The fill decision uses the pool size: eight distinct is short, ten is not.
+  expect(needsFill(own)).toBe(true);
+  expect(needsFill(many)).toBe(false);
 });
 
 test("buildPool never repeats a statement", () => {
-  const pool = buildPool(2, 5, [{ level: 2, problems: [problem("a"), problem("a")] }]);
+  const pool = buildPool(2, [{ level: 2, problems: [problem("a"), problem("a")] }]);
   expect(pool.map((entry) => entry.problem.statement)).toEqual(["a"]);
 });
 
+test("one wrong answer keeps a streak running with a pool of 10, but a pool of exactly 5 is still exhausted", () => {
+  const ten = Array.from({ length: 10 }, (_, i) => problem(`p${i}`, 2));
+  const state10 = startStreak({ level: 2, length: 5, completedStreaks: 0, pool: buildPool(2, [{ level: 2, problems: ten }]) });
+  expect(resetStreak(state10).phase).toBe("running");
+  const state5 = startStreak({ level: 2, length: 5, completedStreaks: 0, pool: buildPool(2, [{ level: 2, problems: ten.slice(0, 5) }]) });
+  expect(state5.length).toBe(5);
+  expect(resetStreak(state5).phase).toBe("exhausted");
+});
+
 test("a streak is shortened to the distinct problems available, and never reuses one", () => {
-  const pool = buildPool(2, 5, [{ level: 2, problems: [problem("a"), problem("b"), problem("c")] }]);
+  const pool = buildPool(2, [{ level: 2, problems: [problem("a"), problem("b"), problem("c")] }]);
   const state = startStreak({ level: 2, length: 5, completedStreaks: 0, pool });
   expect(state.length).toBe(3);
   expect(currentProblem(state)?.problem.statement).toBe("a");
@@ -119,7 +147,7 @@ test("a streak is shortened to the distinct problems available, and never reuses
 });
 
 test("a streak keeps going while the problems left can still make up the run", () => {
-  const pool = buildPool(2, 2, [{ level: 2, problems: [problem("a"), problem("b"), problem("c")] }]);
+  const pool = buildPool(2, [{ level: 2, problems: [problem("a"), problem("b"), problem("c")] }]);
   let state = startStreak({ level: 2, length: 2, completedStreaks: 0, pool });
   state = resetStreak(state);
   expect(state.phase).toBe("running");
@@ -132,7 +160,7 @@ test("a streak keeps going while the problems left can still make up the run", (
 });
 
 test("a correct answer counts, a wrong answer resets and keeps the level, and a solution ends without counting", () => {
-  const pool = buildPool(2, 2, [{ level: 2, problems: [problem("a"), problem("b"), problem("c"), problem("d")] }]);
+  const pool = buildPool(2, [{ level: 2, problems: [problem("a"), problem("b"), problem("c"), problem("d")] }]);
   let state = startStreak({ level: 2, length: 2, completedStreaks: 0, pool });
   expect(currentProblem(state)?.problem.statement).toBe("a");
 
@@ -155,12 +183,12 @@ test("a correct answer counts, a wrong answer resets and keeps the level, and a 
   expect(ended.completedStreaks).toBe(0);
 });
 
-test("the fill decision counts distinct statements, so a duplicate at level 4 still fills the pool to 3", () => {
+test("the fill decision counts distinct statements, so a duplicate at level 4 still fills the pool", () => {
   // Level-4 strategy case: ST38, ST16 and ST12 come back, but ST16 and ST12 share a statement, so only two are distinct.
   const own = { level: 4, problems: [problem("ST38", 4), problem("ST16", 4), problem("ST16", 4)] };
-  expect(needsFill(own.problems, 3)).toBe(true);
+  expect(needsFill(own.problems)).toBe(true);
   const fill = { level: 3, problems: [problem("ST05", 3)] };
-  const pool = buildPool(4, 3, [own, fill]);
+  const pool = buildPool(4, [own, fill]);
   expect(pool.length).toBe(3);
   expect(pool.map((entry) => entry.problem.statement)).toEqual(["ST38", "ST16", "ST05"]);
   expect(pool.map((entry) => entry.nearby)).toEqual([false, false, true]);
@@ -169,8 +197,8 @@ test("the fill decision counts distinct statements, so a duplicate at level 4 st
 test("a topic with only two distinct problems starts a streak of 2 and says so, without repeating", () => {
   // ST16 and ST12 share a statement and ST38 is the only other distinct problem: two distinct, so length 3 cannot run.
   const own = { level: 4, problems: [problem("ST16", 4), problem("ST16", 4), problem("ST38", 4)] };
-  expect(needsFill(own.problems, 3)).toBe(true);
-  const pool = buildPool(4, 3, [own]);
+  expect(needsFill(own.problems)).toBe(true);
+  const pool = buildPool(4, [own]);
   expect(pool.map((entry) => entry.problem.statement)).toEqual(["ST16", "ST38"]);
   const state = startStreak({ level: 4, length: 3, completedStreaks: 0, pool });
   expect(state.length).toBe(2);
