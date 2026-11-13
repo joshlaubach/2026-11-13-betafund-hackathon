@@ -1,6 +1,7 @@
 // Fake data for design work and for running the page without the Python server.
 // Labels here are copied from core/worksheet_types.py so the page shows the same words.
 import type {
+  AskResponse,
   ClarifyResponse,
   GradedItem,
   GradeMethod,
@@ -244,6 +245,14 @@ export function fixtureClarify(text: string): ClarifyResponse {
   if (latex) return { status: "ok", latex, notes: "" };
   const plain = text.replace(/[{}\\]/g, "");
   return { status: "ok", latex: "\\text{" + plain + "}", notes: FIXTURE_CLARIFY_NOTE };
+}
+
+// Ask Echo in fixture mode: a scripted note that shows the question, so a test can see it.
+export function fixtureAsk(question: string): AskResponse {
+  return {
+    status: "ok",
+    answer: `Echo's note on this part: scripted reply to "${question}". Nothing here changes the mark.`,
+  };
 }
 
 // A corrected row gets a verified-looking mark: SymPy computes the reference, so the method is

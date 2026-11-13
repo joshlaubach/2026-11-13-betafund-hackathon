@@ -45,6 +45,8 @@ async function openFirstReceipt(page: Page): Promise<Locator> {
   await skillsRegion(page).locator("li.row button").first().click();
   const practice = practiceRegion(page);
   await expect(practice).toBeVisible({ timeout: 15_000 });
+  // The key and the checker's numbers stay hidden until the student asks for the solution.
+  await practice.getByRole("button", { name: "Show solution" }).first().click();
   const receipt = practice.locator("details.receipt").first();
   await receipt.locator("summary").click();
   await expect(receipt.locator("table")).toBeVisible();
@@ -65,7 +67,8 @@ test("happy path: marks show verified and AI rows, AI rows can be regraded", asy
     // Unsure AI rows also carry the clarify controls, so only the Regrade button is counted here.
     await expect(aiRows.nth(index).getByRole("button", { name: "Regrade" })).toHaveCount(1);
   }
-  await expect(marks.locator(".row-verified button")).toHaveCount(0);
+  // Verified marks are never regraded. Their Ask Echo toggle is a button too, so only Regrade is counted.
+  await expect(marks.locator(".row-verified").getByRole("button", { name: "Regrade" })).toHaveCount(0);
 
   await expect(marks.getByRole("note")).toBeVisible();
 });
@@ -95,7 +98,7 @@ test("skill picture lists recommendations and opens practice with a checker rece
   for (let index = 0; index < recommendationCount; index += 1) {
     const button = recommendations.nth(index).locator("button");
     await expect(button).toHaveCount(1);
-    await expect(button).toHaveText(/\d/);
+    await expect(button).toHaveText("Practice this topic");
   }
 
   const receipt = await openFirstReceipt(page);
@@ -108,7 +111,8 @@ test("skill picture lists recommendations and opens practice with a checker rece
 test("regrade shows a busy state, then returns without an error", async ({ page }) => {
   await markWorksheet(page);
   // Anchored on the first AI row, so the button stays the same element while its label reads "Regrading…".
-  const regradeButton = marksRegion(page).locator(".row-ai").first().locator("button");
+  // Regrade is the last button in an AI row (the Ask Echo toggle comes before it). Its label changes while busy, so a name cannot anchor it.
+  const regradeButton = marksRegion(page).locator(".row-ai").first().locator("button").last();
   await expect(regradeButton).toBeEnabled();
 
   await regradeButton.click();
@@ -127,10 +131,11 @@ test("empty state: submit stays disabled until a file is chosen", async ({ page 
   await expect(submit).toBeEnabled();
 });
 
-test("keyboard: tab reaches file input, mode select and submit, each with a visible outline", async ({ page }) => {
+test("keyboard: tab reaches the file input, the analyze button and the advanced options, each with a visible outline", async ({ page }) => {
   await page.locator('input[type="file"]').setInputFiles(pngPath);
-  // Clicking the heading moves the sequential focus starting point to the top of the page.
-  await page.locator("h1").click();
+  // Clicking the intro text moves the sequential focus starting point to just before the form
+  // (the theme toggle in the masthead comes earlier in the tab order).
+  await page.locator(".intro").click();
 
   const outlineOfFocused = (): Promise<string> =>
     page.evaluate(() => getComputedStyle(document.activeElement as HTMLElement).outlineStyle);
@@ -139,12 +144,17 @@ test("keyboard: tab reaches file input, mode select and submit, each with a visi
   await expect(page.locator("#worksheet")).toBeFocused();
   expect(await outlineOfFocused()).not.toBe("none");
 
-  await page.keyboard.press("Tab");
-  await expect(page.locator("#mode")).toBeFocused();
-  expect(await outlineOfFocused()).not.toBe("none");
-
-  await page.keyboard.press("Tab");
+  // Tab on past the dropzone's Replace and Remove buttons to the primary action, checking every stop is visible.
+  for (let step = 0; step < 4; step += 1) {
+    await page.keyboard.press("Tab");
+    expect(await outlineOfFocused()).not.toBe("none");
+    if (await submitButton(page).evaluate((button) => button === document.activeElement)) break;
+  }
   await expect(submitButton(page)).toBeFocused();
+
+  // The data source sits behind the Advanced summary, which is the next stop.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("details.advanced > summary")).toBeFocused();
   expect(await outlineOfFocused()).not.toBe("none");
 });
 
@@ -194,6 +204,6 @@ test("banner: when no part can be marked, one banner says so and the parts stay 
 
   await expect(page.getByText("Echo could not mark anything on this photo.")).toBeVisible({ timeout: 15_000 });
   const parts = page.locator("details.all-parts");
-  await expect(parts.locator("summary")).toHaveText("Show the parts Echo read");
+  await expect(parts.locator(":scope > summary")).toHaveText("Show the parts Echo read");
   await expect(parts.locator("li.row")).toHaveCount(2);
 });

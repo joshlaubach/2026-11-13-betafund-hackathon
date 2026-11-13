@@ -2,7 +2,7 @@
 
 import katex from "katex";
 import { useMemo } from "react";
-import { wrapBareLatex } from "@/lib/mathtext";
+import { splitMath, wrapBareLatex } from "@/lib/mathtext";
 
 function render(latex: string, display: boolean): string {
   return katex.renderToString(latex, {
@@ -22,17 +22,15 @@ export function Tex({ latex, display = false }: { latex: string; display?: boole
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-const MATH_SPLIT = /(\$\$[^$]+\$\$|\$[^$]+\$)/g;
-
-// Text with $...$ segments, such as a problem statement. Plain text stays plain text.
+// Text with $...$, $$...$$, \(...\) or \[...\] segments, such as a problem statement. Plain text stays plain text.
 export function MathText({ text }: { text: string }) {
-  const parts = useMemo(() => wrapBareLatex(text).split(MATH_SPLIT).filter((part) => part !== ""), [text]);
+  const segments = useMemo(() => splitMath(wrapBareLatex(text)), [text]);
   return (
     <>
-      {parts.map((part, index) => {
-        if (part.startsWith("$$")) return <Tex key={index} latex={part.slice(2, -2)} display />;
-        if (part.startsWith("$")) return <Tex key={index} latex={part.slice(1, -1)} />;
-        return <span key={index}>{part}</span>;
+      {segments.map((segment, index) => {
+        if (segment.kind === "display") return <Tex key={index} latex={segment.value} display />;
+        if (segment.kind === "inline") return <Tex key={index} latex={segment.value} />;
+        return <span key={index}>{segment.value}</span>;
       })}
     </>
   );

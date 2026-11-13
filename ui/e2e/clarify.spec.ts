@@ -22,13 +22,31 @@ test.beforeEach(async ({ page }) => {
   await page.locator('input[type="file"]').setInputFiles({ name: "worksheet.png", mimeType: "image/png", buffer: PNG_BYTES });
   await page.locator('form.upload button[type="submit"]').click();
   await expect(marksRegion(page)).toBeVisible({ timeout: 15_000 });
+  // The clarify box sits behind a disclosure on each unsure row; these tests work inside it.
+  await page.evaluate(() => {
+    document.querySelectorAll<HTMLDetailsElement>("details.clarify-wrap").forEach((wrap) => {
+      wrap.open = true;
+    });
+  });
+});
+
+test("the clarify box starts closed behind a disclosure and opens on click", async ({ page }) => {
+  await page.evaluate(() => {
+    document.querySelectorAll<HTMLDetailsElement>("details.clarify-wrap").forEach((wrap) => {
+      wrap.open = false;
+    });
+  });
+  const row = unsureRow(page);
+  await expect(row.getByLabel(TEXT_LABEL)).toBeHidden();
+  await row.locator("summary", { hasText: "Fix what Echo read" }).click();
+  await expect(row.getByLabel(TEXT_LABEL)).toBeVisible();
 });
 
 test("an unsure row is clarified, confirmed, and then graded as corrected", async ({ page }) => {
   const row = unsureRow(page);
   await expect(row).toHaveCount(1);
   await row.getByLabel(TEXT_LABEL).fill(DERIVATIVE_TEXT);
-  await row.getByRole("button", { name: "Ask Echo" }).click();
+  await row.getByRole("button", { name: "Show Echo's reading", exact: true }).click();
   await expect(row.getByText("Echo understood:")).toBeVisible();
 
   await row.getByRole("button", { name: "Use this" }).click();
@@ -43,7 +61,7 @@ test("an unsure row is clarified, confirmed, and then graded as corrected", asyn
 test("Cancel leaves the unsure row unchanged", async ({ page }) => {
   const row = unsureRow(page);
   await row.getByLabel(TEXT_LABEL).fill(DERIVATIVE_TEXT);
-  await row.getByRole("button", { name: "Ask Echo" }).click();
+  await row.getByRole("button", { name: "Show Echo's reading", exact: true }).click();
   await expect(row.getByText("Echo understood:")).toBeVisible();
 
   await row.getByRole("button", { name: "Cancel" }).click();
@@ -58,7 +76,7 @@ test("the answer choice shows Echo's note and corrects the student's answer", as
   const row = unsureRow(page);
   await row.getByRole("radio", { name: "This is my answer" }).check();
   await row.getByLabel(TEXT_LABEL).fill("two");
-  await row.getByRole("button", { name: "Ask Echo" }).click();
+  await row.getByRole("button", { name: "Show Echo's reading", exact: true }).click();
 
   await expect(row.getByText(FIXTURE_NOTE)).toBeVisible();
   await row.getByRole("button", { name: "Use this" }).click();
@@ -67,7 +85,7 @@ test("the answer choice shows Echo's note and corrects the student's answer", as
 
 test("Ask Echo stays disabled until something is typed", async ({ page }) => {
   const row = unsureRow(page);
-  const ask = row.getByRole("button", { name: "Ask Echo" });
+  const ask = row.getByRole("button", { name: "Show Echo's reading", exact: true });
   await expect(ask).toBeDisabled();
 
   await row.getByLabel(TEXT_LABEL).fill(DERIVATIVE_TEXT);
@@ -76,7 +94,7 @@ test("Ask Echo stays disabled until something is typed", async ({ page }) => {
 
 test("the microphone button is hidden when the browser has no speech recognition", async ({ page }) => {
   const row = unsureRow(page);
-  await expect(row.getByRole("button", { name: "Ask Echo" })).toBeVisible();
+  await expect(row.getByRole("button", { name: "Show Echo's reading", exact: true })).toBeVisible();
 
   const hasSpeech = await page.evaluate(() => {
     const scope = window as unknown as Record<string, unknown>;
@@ -90,7 +108,7 @@ test("at 375 px the open clarify box fits with no horizontal scroll", async ({ p
   await page.setViewportSize({ width: 375, height: 800 });
   const row = unsureRow(page);
   await row.getByLabel(TEXT_LABEL).fill(DERIVATIVE_TEXT);
-  await row.getByRole("button", { name: "Ask Echo" }).click();
+  await row.getByRole("button", { name: "Show Echo's reading", exact: true }).click();
   await expect(row.getByText("Echo understood:")).toBeVisible();
 
   const widths = await page.evaluate(() => ({

@@ -172,7 +172,7 @@ export function ClarifyBox({ mode, busy, onUse }: Props) {
           </button>
         )}
         <button type="button" className="primary" onClick={() => void askEcho()} disabled={!canAsk}>
-          {pending ? "Asking Echo…" : "Ask Echo"}
+          {pending ? "Reading…" : "Show Echo's reading"}
         </button>
       </div>
       {voiceSupported && (

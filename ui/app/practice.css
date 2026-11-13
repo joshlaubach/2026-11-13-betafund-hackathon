@@ -1,0 +1,87 @@
+/* Practice workspace: one card per problem. Tokens only, so both themes follow globals.css. */
+
+.practice-card {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+/* The answer field is full width on phones and keeps a 44px touch target. */
+.practice-answer {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.practice-answer input {
+  font: inherit;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--graphite);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.practice-preview {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.practice-actions button {
+  min-height: 2.75rem;
+}
+
+.practice-verdict {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--surface-2);
+  border-left: var(--edge) solid var(--pen);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.practice-verdict > p {
+  margin: 0;
+}
+
+.practice-verdict .verdict {
+  justify-self: start;
+}
+
+.practice-steps-label {
+  margin: 0.4rem 0 0;
+  color: var(--graphite);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.practice-steps {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.practice-key {
+  margin: 0.5rem 0 0;
+}
+
+.practice-card .receipt {
+  margin-top: 0.4rem;
+}

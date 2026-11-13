@@ -1,7 +1,18 @@
 "use client";
 
-import type { ClarifyField, FirstRead, GradedItem, GradeMethod, GradeReason, Mode, Verdict } from "@/lib/types";
+import type {
+  AskRow,
+  ClarifyField,
+  FirstRead,
+  GradedItem,
+  GradeMethod,
+  GradeReason,
+  Mode,
+  Verdict,
+} from "@/lib/types";
+import { AskBox } from "./AskBox";
 import { ClarifyBox } from "./ClarifyBox";
+import { StaggerItem } from "./Motion";
 import { MathText, Tex } from "./Tex";
 
 const VERDICT_WORDS: Record<Verdict, string> = {
@@ -29,6 +40,41 @@ function reasonText(reason: GradeReason, canRegrade: boolean): string | undefine
   return REASON_LINES[reason];
 }
 
+// What each way of marking can and cannot show. Written from how core/grading actually works.
+const LIMITS: Record<GradeMethod, string> = {
+  bank_key:
+    "The answer matched the stored key for a verified bank problem. Echo did not re-derive the key, and the mark is only as good as Echo's reading of the photo.",
+  sympy_computed:
+    "SymPy computed the answer from the problem as Echo read it. If the handwriting was misread, this mark is wrong too.",
+  ai_ladder:
+    "Independent AI solves agreed. SymPy only compared the answers; it did not check the AI's answer. AI can be wrong.",
+  ai_solve_sympy:
+    "An AI solved it and SymPy compared the two answers. SymPy did not check the AI's answer. AI can be wrong.",
+  ai_judgment: "An AI judged this answer. Echo has not computed it, so treat it as a second opinion.",
+  not_graded: "Echo did not mark this part, so nothing here is a result.",
+};
+
+// How sure the AI reader was about the handwriting. Kept apart from the math check: a correct calculation on a
+// misread line proves nothing about what the student wrote.
+const READING_WORDS: Record<"low" | "medium" | "high", string> = {
+  high: "The AI reader was confident it read this part correctly.",
+  medium: "The AI reader was fairly confident it read this part correctly. Compare it with the photo.",
+  low: "The AI reader was not confident it read this part correctly. Compare it with the photo.",
+};
+
+function readingLine(item: GradedItem["item"]): string {
+  const base = item.corrected_by_user ? "You confirmed this reading yourself." : READING_WORDS[item.confidence];
+  return `${base} This is separate from the math check below.`;
+}
+
+// A glyph for each status, so a status never depends on color alone.
+const STATUS_GLYPH: Record<string, string> = {
+  "Echo verified": "✓",
+  "Bank confirmed": "✓",
+  "AI-graded, unverified": "◐",
+  "Unable to verify": "?",
+};
+
 const NOT_MARKED_FALLBACK =
   "It may not be a calculus worksheet, or the photo may be too unclear to read. Try a clearer, closer photo.";
 
@@ -45,6 +91,7 @@ interface Props {
 }
 
 interface RowProps {
+  index: number;
   entry: GradedItem;
   busy: boolean;
   mode: Mode;
@@ -60,6 +107,21 @@ function studentAnswers(entry: GradedItem): string[] {
   return item.student_answer_latex ? [item.student_answer_latex] : [];
 }
 
+// What Ask Echo sees about one row. Read-only: it is never used to change the mark.
+function askRowOf(entry: GradedItem): AskRow {
+  const { item, grade } = entry;
+  return {
+    statement_latex: item.statement_latex,
+    student_answer_latex: studentAnswers(entry).join("; "),
+    reference_answer_latex: grade.reference_answer_latex ?? "",
+    method: grade.method,
+    verdict: grade.verdict,
+    reason: grade.reason ?? "",
+    explanation: grade.explanation,
+    label: grade.label,
+  };
+}
+
 function FirstReadLine({ read }: { read: FirstRead }) {
   return (
     <p className="first-read">
@@ -69,7 +131,7 @@ function FirstReadLine({ read }: { read: FirstRead }) {
   );
 }
 
-function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProps) {
+function MarkRow({ index, entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProps) {
   const { item, grade } = entry;
   const verifiedMethod = VERIFIED_METHODS.includes(grade.method);
   // An unsure mark is never shown as verified, even when its method is a verified one.
@@ -78,13 +140,17 @@ function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProp
   const unsure = grade.verdict === "unsure" || grade.method === "not_graded";
   const referenceHeading =
     grade.method === "bank_key" ? "Verified answer" : verifiedMethod ? "SymPy's answer" : "AI's answer";
+  // Status names: Echo verified (SymPy computed it), Bank confirmed (matched the bank's verified key),
+  // AI-graded, unverified (an AI decided), Unable to verify (Echo could not reach a reliable conclusion).
   const tagText = verified
-    ? "Verified mark"
-    : grade.method === "not_graded"
-      ? "Not marked"
-      : verifiedMethod
-        ? "Not verified"
-        : "AI-graded";
+    ? grade.method === "bank_key"
+      ? "Bank confirmed"
+      : "Echo verified"
+    : grade.method === "not_graded" || grade.verdict === "unsure"
+      ? "Unable to verify"
+      : "AI-graded, unverified";
+  // Correct verified marks need no reading to trust, so their proof starts closed. Everything else starts open.
+  const proofOpen = !(verified && grade.verdict === "correct");
   const answers = studentAnswers(entry);
   // Only AI-graded rows get the AI edge. A SymPy or unmarked row that is not verified keeps the plain edge.
   const edgeClass = verified ? "row-verified" : aiBased ? "row-ai" : "row-plain";
@@ -92,13 +158,15 @@ function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProp
   const offerRegrade = aiBased;
   const reasonLine = grade.verdict === "unsure" && grade.reason ? reasonText(grade.reason, offerRegrade) : undefined;
   return (
-    <li className={`row ${edgeClass}`}>
+    <StaggerItem index={index} className={`row ${edgeClass}`}>
       <div className="row-head">
         <span className={`verdict verdict-${grade.verdict}`}>
           <span aria-hidden="true">{VERDICT_GLYPH[grade.verdict]}</span> {VERDICT_WORDS[grade.verdict]}
         </span>
         {item.part_label && <span className="part-label">Part {item.part_label}</span>}
-        <span className="source-tag">{tagText}</span>
+        <span className="source-tag">
+          <span aria-hidden="true">{STATUS_GLYPH[tagText]}</span> {tagText}
+        </span>
         {item.corrected_by_user && <span className="corrected-tag">Corrected by you</span>}
       </div>
       <p className="statement">
@@ -134,11 +202,36 @@ function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProp
           <Tex latex={item.student_answer_latex} />
         </details>
       )}
-      <p className="explain">
-        <MathText text={grade.explanation} />
-      </p>
       {reasonLine && <p className="explain">{reasonLine}</p>}
-      <p className="label">{grade.label}</p>
+      <details className="proof" open={proofOpen}>
+        <summary>How this was checked</summary>
+        <dl className="proof-list">
+          <div>
+            <dt>Reading the handwriting</dt>
+            <dd>{readingLine(item)}</dd>
+          </div>
+          <div>
+            <dt>Checked by</dt>
+            <dd>{grade.label}</dd>
+          </div>
+          <div>
+            <dt>What was compared</dt>
+            <dd>
+              <MathText text={grade.explanation} />
+            </dd>
+          </div>
+          <div>
+            <dt>What this does not prove</dt>
+            <dd>{LIMITS[grade.method]}</dd>
+          </div>
+        </dl>
+      </details>
+      <AskBox
+        // Keyed by the grade and the corrected flag, so an old reply never explains a changed mark.
+        key={`${item.corrected_by_user ? "corrected" : "original"}-${grade.method}-${grade.verdict}`}
+        row={askRowOf(entry)}
+        mode={mode}
+      />
       {item.explanation_text && (
         <p className="written">
           <span>Written explanation (not graded):</span> {item.explanation_text}
@@ -150,20 +243,23 @@ function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProp
         </p>
       )}
       {unsure && (
-        // Keyed by the corrected flag, so a box for a row that was just corrected starts empty.
-        <ClarifyBox
-          key={item.corrected_by_user ? "corrected" : "original"}
-          mode={mode}
-          busy={busy}
-          onUse={(field, latex) => onCorrect(entry, field, latex)}
-        />
+        <details className="clarify-wrap">
+          <summary>Fix what Echo read: type it or say it</summary>
+          {/* Keyed by the corrected flag, so a box for a row that was just corrected starts empty. */}
+          <ClarifyBox
+            key={item.corrected_by_user ? "corrected" : "original"}
+            mode={mode}
+            busy={busy}
+            onUse={(field, latex) => onCorrect(entry, field, latex)}
+          />
+        </details>
       )}
       {offerRegrade && (
         <button className="quiet" onClick={() => onRegrade(entry)} disabled={busy}>
           {busy ? "Regrading…" : "Regrade"}
         </button>
       )}
-    </li>
+    </StaggerItem>
   );
 }
 
@@ -197,9 +293,10 @@ export function WorksheetResults({
 }: Props) {
   const rows = (
     <ol className="rows">
-      {graded.map((entry) => (
+      {graded.map((entry, index) => (
         <MarkRow
           key={entry.item.number}
+          index={index}
           entry={entry}
           busy={busyNumber === entry.item.number}
           mode={mode}

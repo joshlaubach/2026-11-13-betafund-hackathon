@@ -1,24 +1,96 @@
+/* Echo design system.
+   Idea: a marked worksheet. Cool paper, pen-blue actions, and a thick left edge that says where
+   every mark came from (green = Echo checked it, amber = AI only, grey = not marked).
+   Tokens first; dark theme redefines the same names. */
+
 :root {
-  --paper: #f2f5f3;
-  --surface: #fbfcfb;
-  --ink: #15232b;
-  --graphite: #4d5c64;
-  --rule: #cdd6d2;
-  --pen: #2440c8;
+  color-scheme: light;
+  --paper: #f5f6fb;
+  --surface: #ffffff;
+  --surface-2: #eef0f7;
+  --ink: #121826;
+  --graphite: #4a5567;
+  --rule: #dde1ec;
+  --pen: #4b52d9;
+  --pen-strong: #3a40b8;
   --pen-ink: #ffffff;
-  --verified: #0b7a5f;
-  --verified-wash: #e3f1ec;
-  --ai: #8a5200;
-  --ai-wash: #f6ecda;
-  --wrong: #a3262a;
-  --font-ui: "Instrument Sans Variable", system-ui, sans-serif;
-  --font-text: "Literata Variable", Georgia, serif;
-  --measure: 44rem;
+  --pen-wash: #ecedfd;
+  --verified: #0e7a5c;
+  --verified-wash: #e1f3ec;
+  --ai: #8a5300;
+  --ai-wash: #fbf0dc;
+  --wrong: #b42330;
+  --wrong-wash: #fbe6e8;
+  --shadow: 0 1px 2px rgb(18 24 38 / 0.05), 0 8px 24px rgb(18 24 38 / 0.06);
+  /* Geist for everything a student reads or clicks; Instrument Serif only for the wordmark and section heads. */
+  --font-ui: var(--font-geist-sans), system-ui, sans-serif;
+  --font-text: var(--font-geist-sans), system-ui, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
+  /* Type scale (1.2 ratio) */
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.25rem;
+  --measure: 72rem;
   --edge: 0.3rem;
+  --radius: 0.75rem;
+  --radius-sm: 0.45rem;
+  --space: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+}
+
+/* Dark: same names, different values. An explicit data-theme wins over the system setting. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0b1017;
+  --surface: #151d28;
+  --surface-2: #202b38;
+  --ink: #e8ecf2;
+  --graphite: #a3aebd;
+  --rule: #2a3646;
+  --pen: #929bff;
+  --pen-strong: #b3b9ff;
+  --pen-ink: #0b1017;
+  --pen-wash: #232b52;
+  --verified: #58c7a0;
+  --verified-wash: #12352b;
+  --ai: #e6b15e;
+  --ai-wash: #3a2e15;
+  --wrong: #ff8f95;
+  --wrong-wash: #45191d;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 18px rgb(0 0 0 / 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0b1017;
+    --surface: #151d28;
+    --surface-2: #202b38;
+    --ink: #e8ecf2;
+    --graphite: #a3aebd;
+    --rule: #2a3646;
+    --pen: #929bff;
+    --pen-strong: #b3b9ff;
+    --pen-ink: #0b1017;
+    --pen-wash: #232b52;
+    --verified: #58c7a0;
+    --verified-wash: #12352b;
+    --ai: #e6b15e;
+    --ai-wash: #3a2e15;
+    --wrong: #ff8f95;
+    --wrong-wash: #45191d;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 18px rgb(0 0 0 / 0.3);
+  }
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
 }
 
 body {
@@ -28,64 +100,146 @@ body {
   font-family: var(--font-ui);
   font-size: 1rem;
   line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
-main {
-  max-width: var(--measure);
-  margin: 0 auto;
-  padding: 2.5rem 1rem 6rem;
-}
-
-h1 {
-  font-family: var(--font-text);
-  font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
-  line-height: 1.1;
-  margin: 0 0 0.5rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
+h1,
 h2 {
-  font-family: var(--font-text);
-  font-size: 1.5rem;
-  margin: 3rem 0 0.75rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  line-height: 1.1;
 }
 
 h3 {
-  font-family: var(--font-text);
-  font-size: 1.15rem;
-  margin: 0.25rem 0 0.25rem;
+  font-family: var(--font-ui);
   font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--text-2xl);
+  margin: 0 0 0.75rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+  margin: 0.25rem 0;
 }
 
 p {
   margin: 0.4rem 0;
 }
 
-.lede {
+a {
+  color: var(--pen);
+}
+
+/* Masthead and layout ------------------------------------------------ */
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.masthead-inner {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0.9rem var(--space);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.wordmark {
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.tagline {
+  margin: 0;
   color: var(--graphite);
-  max-width: 38rem;
+  flex: 1 1 12rem;
+}
+
+.masthead-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.workspace {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--space) var(--space) 6rem;
+  display: grid;
+  gap: var(--space);
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.intake,
+.results {
+  min-width: 0;
+}
+
+.results > section,
+.results > p,
+.results > details {
+  margin-top: 0;
+}
+
+.results section + section {
+  margin-top: 2.5rem;
 }
 
 .intro {
   color: var(--graphite);
   max-width: 36rem;
-  margin-bottom: 1.5rem;
+  margin: 0 0 1rem;
 }
 
-/* Upload ------------------------------------------------------------ */
+.lede {
+  color: var(--graphite);
+  max-width: 40rem;
+}
+
+/* The workspace adapts to its own pane, which narrows when the tutor is docked beside it. */
+.workspace-pane {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+@container (min-width: 56rem) {
+  .workspace {
+    grid-template-columns: 21rem minmax(0, 1fr);
+  }
+  /* The photo stays on screen so each part can be compared with it. */
+  .intake {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+/* Upload ------------------------------------------------------------- */
 .upload {
   display: grid;
-  gap: 0.75rem;
-  padding: 1.25rem 0 0;
-  border-top: 1px solid var(--rule);
+  gap: 0.9rem;
+  padding: 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .field {
   display: grid;
   gap: 0.3rem;
-  max-width: 24rem;
   min-width: 0;
 }
 
@@ -99,31 +253,44 @@ select {
   max-width: 100%;
   min-width: 0;
   font: inherit;
-  padding: 0.55rem 0.6rem;
+  padding: 0.5rem 0.6rem;
   border: 1px solid var(--graphite);
-  border-radius: 0.35rem;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
 }
 
-.preview {
-  max-width: 100%;
-  max-height: 16rem;
-  border: 1px solid var(--rule);
-  border-radius: 0.35rem;
-  object-fit: contain;
-  background: var(--surface);
+input[type="file"]::file-selector-button {
+  font: inherit;
+  font-weight: 600;
+  margin-right: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--pen);
+  border-radius: var(--radius-sm);
+  background: var(--pen-wash);
+  color: var(--pen);
+  cursor: pointer;
 }
 
-/* Buttons ----------------------------------------------------------- */
+.preview {
+  width: 100%;
+  max-height: 22rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  background: var(--surface-2);
+}
+
+/* Buttons ------------------------------------------------------------ */
 button {
   font: inherit;
   font-weight: 600;
-  border-radius: 0.35rem;
+  border-radius: var(--radius-sm);
   padding: 0.6rem 1rem;
+  min-height: 2.75rem;
   cursor: pointer;
   border: 1px solid var(--pen);
-  transition: background-color 120ms ease-out, transform 80ms ease-out;
+  transition: background-color 140ms ease-out, transform 90ms ease-out, box-shadow 140ms ease-out;
 }
 
 button:active:not(:disabled) {
@@ -132,7 +299,7 @@ button:active:not(:disabled) {
 
 button:disabled {
   cursor: progress;
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 .primary {
@@ -141,7 +308,7 @@ button:disabled {
 }
 
 .primary:hover:not(:disabled) {
-  background: #1b34a8;
+  background: var(--pen-strong);
 }
 
 .quiet {
@@ -150,7 +317,7 @@ button:disabled {
 }
 
 .quiet:hover:not(:disabled) {
-  background: #e4e9fb;
+  background: var(--pen-wash);
 }
 
 :focus-visible {
@@ -158,21 +325,96 @@ button:disabled {
   outline-offset: 2px;
 }
 
-/* Status and errors ------------------------------------------------- */
+/* Theme toggle (rendered by ThemeToggle) -------------------------------- */
+.theme-toggle {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0.15rem;
+  background: var(--surface-2);
+  gap: 0.1rem;
+}
+
+.theme-toggle button {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--graphite);
+  font-size: 0.9rem;
+}
+
+.theme-toggle button[aria-pressed="true"] {
+  background: var(--pen);
+  color: var(--pen-ink);
+}
+
+/* Status, errors, loading ---------------------------------------------- */
 .progress,
 .error {
   padding: 0.75rem 1rem;
-  border-radius: 0.35rem;
-  margin: 1rem 0 0;
+  border-radius: var(--radius-sm);
+  margin: 0 0 1rem;
 }
 
 .progress {
-  background: #e4e9fb;
+  background: var(--pen-wash);
+  animation: fade-in 200ms ease-out both;
 }
 
 .error {
-  background: #f7e2e2;
-  color: #6f1a1d;
+  background: var(--wrong-wash);
+  color: var(--wrong);
+  font-weight: 600;
+}
+
+.skeleton {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: var(--edge) solid var(--rule);
+  border-radius: var(--radius);
+}
+
+.bar {
+  display: block;
+  height: 0.85rem;
+  border-radius: 999px;
+  width: 70%;
+  background: linear-gradient(90deg, var(--surface-2), var(--rule), var(--surface-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.bar-wide {
+  width: 92%;
+}
+
+.bar-short {
+  width: 40%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .note,
@@ -183,10 +425,13 @@ button:disabled {
 
 .disclaimer {
   border-left: var(--edge) solid var(--ai);
-  padding-left: 0.75rem;
+  padding: 0.25rem 0 0.25rem 0.75rem;
+  background: var(--ai-wash);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--ink);
 }
 
-/* Shown in place of the rows when no part could be marked. Same tokens as .disclaimer. */
+/* Shown in place of the rows when no part could be marked. */
 .banner {
   margin: 1rem 0;
 }
@@ -195,20 +440,82 @@ button:disabled {
   margin: 1rem 0;
 }
 
-/* Ruled rows: the thick left edge says where a thing came from ---------- */
+.mode-note {
+  font-size: 0.85rem;
+  color: var(--graphite);
+}
+
+/* Landing guide: how to read a result ------------------------------------ */
+.guide {
+  padding: var(--space);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: fade-in 320ms ease-out both;
+}
+
+.guide-steps {
+  margin: 0 0 1.25rem;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.kinds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.kind {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.65rem 0.85rem;
+  border-left: var(--edge) solid var(--rule);
+  background: var(--surface-2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.kind span {
+  color: var(--graphite);
+}
+
+.kind-verified {
+  border-left-color: var(--verified);
+}
+
+.kind-verified strong {
+  color: var(--verified);
+}
+
+.kind-ai {
+  border-left-color: var(--ai);
+}
+
+.kind-ai strong {
+  color: var(--ai);
+}
+
+/* Ruled rows: the thick left edge says where a thing came from -------------- */
 .rows {
   list-style: none;
   margin: 1rem 0 0;
   padding: 0;
   display: grid;
-  gap: 0.25rem;
+  gap: 0.75rem;
 }
 
 .row {
   background: var(--surface);
+  border: 1px solid var(--rule);
   border-left: var(--edge) solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  padding: 0.9rem 1rem 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.9rem 1.1rem 1rem;
+  min-width: 0;
 }
 
 .row-verified {
@@ -222,51 +529,73 @@ button:disabled {
 .row-head {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  align-items: baseline;
-  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+  align-items: center;
 }
 
 .verdict,
 .status {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
   font-weight: 700;
+  padding: 0.1rem 0.65rem;
+  border-radius: 999px;
+  background: var(--surface-2);
 }
 
 .verdict-correct {
   color: var(--verified);
+  background: var(--verified-wash);
 }
 
 .verdict-incorrect {
   color: var(--wrong);
+  background: var(--wrong-wash);
 }
 
 .verdict-unsure {
   color: var(--ai);
+  background: var(--ai-wash);
 }
 
-.source-tag {
-  font-size: 0.9rem;
+.part-label {
   color: var(--graphite);
+  font-weight: 600;
+}
+
+/* The badge sits at the end of the header line. */
+.source-tag {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--graphite);
+  padding: 0.1rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
 }
 
 .row-verified .source-tag {
   color: var(--verified);
+  border-color: var(--verified);
 }
 
 .row-ai .source-tag {
   color: var(--ai);
+  border-color: var(--ai);
 }
 
 .statement {
   font-family: var(--font-text);
   font-size: 1.1rem;
-  margin: 0.5rem 0;
+  margin: 0.6rem 0;
+  overflow-wrap: anywhere;
 }
 
 .answers {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 2rem;
+  gap: 0.5rem 2.5rem;
   margin: 0.5rem 0;
 }
 
@@ -277,16 +606,14 @@ button:disabled {
 
 .answers dd {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .explain {
   margin-top: 0.5rem;
-}
-
-.label {
-  font-size: 0.85rem;
-  color: var(--graphite);
+  font-weight: 500;
 }
 
 .changed {
@@ -294,16 +621,62 @@ button:disabled {
   font-weight: 600;
 }
 
-/* Receipt ----------------------------------------------------------- */
-.receipt {
+/* How this was checked: a short status first, the evidence one click away ------- */
+.proof,
+.working,
+.gloss,
+.clarify-wrap {
   margin-top: 0.6rem;
+  border-top: 1px dashed var(--rule);
+  padding-top: 0.5rem;
 }
 
-.receipt summary,
-.all-topics summary {
+.proof summary,
+.clarify-wrap summary,
+.working summary,
+.gloss summary,
+.all-topics summary,
+.receipt summary {
   cursor: pointer;
   color: var(--pen);
   font-weight: 600;
+  min-height: 1.75rem;
+}
+
+.proof-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.6rem 0 0;
+}
+
+.proof-list dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--graphite);
+}
+
+.proof-list dd {
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.gloss p {
+  color: var(--graphite);
+  font-size: 0.95rem;
+}
+
+.written {
+  color: var(--graphite);
+  font-size: 0.95rem;
+}
+
+.written span {
+  font-weight: 600;
+}
+
+/* Receipt: the checker's own numbers ------------------------------------ */
+.receipt {
+  margin-top: 0.6rem;
 }
 
 .receipt table,
@@ -312,6 +685,11 @@ button:disabled {
   margin-top: 0.5rem;
   width: 100%;
   font-variant-numeric: tabular-nums;
+}
+
+.receipt,
+.all-topics {
+  overflow-x: auto;
 }
 
 caption {
@@ -324,7 +702,7 @@ caption {
 th,
 td {
   text-align: left;
-  padding: 0.25rem 0.75rem 0.25rem 0;
+  padding: 0.3rem 0.75rem 0.3rem 0;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -348,18 +726,11 @@ td {
   font-size: 0.95rem;
 }
 
-.mode-note {
-  font-size: 0.85rem;
-  color: var(--graphite);
-}
-
-/* Clarify: the student says what an unsure row means. Same tokens as the rest of the page. */
+/* Clarify: the student says what an unsure row means ---------------------- */
 .clarify {
   display: grid;
   gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--rule);
+  margin-top: 0.6rem;
   min-width: 0;
 }
 
@@ -403,7 +774,7 @@ td {
   min-height: 3.5rem;
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--graphite);
-  border-radius: 0.35rem;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
   resize: vertical;
@@ -413,9 +784,9 @@ td {
   display: grid;
   gap: 0.35rem;
   padding: 0.6rem 0.8rem;
-  background: var(--surface);
+  background: var(--surface-2);
   border-left: var(--edge) solid var(--pen);
-  border-radius: 0.35rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -434,8 +805,8 @@ td {
   font-weight: 600;
   color: var(--verified);
   background: var(--verified-wash);
-  padding: 0.1rem 0.5rem;
-  border-radius: 0.35rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
 }
 
 .first-read {
@@ -445,17 +816,125 @@ td {
   overflow-wrap: anywhere;
 }
 
+/* Ask Echo: a read-only explanation of one row ----------------------------- */
+.ask {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  min-width: 0;
+}
+
+/* The toggle is a small action, not a full-width bar. */
+.ask > button {
+  justify-self: start;
+  min-height: 2.25rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.ask-panel {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ask-chips,
+.ask-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ask-chip {
+  font-size: 0.9rem;
+}
+
+.ask-form input {
+  font: inherit;
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--graphite);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.ask-reply {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ask-reply:not(:empty) {
+  padding: 0.6rem 0.8rem;
+  background: var(--surface-2);
+  border-left: var(--edge) solid var(--pen);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  animation: fade-in 200ms ease-out both;
+}
+
+.ask-reply p {
+  margin: 0;
+}
+
+.ask-label {
+  color: var(--graphite);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* KaTeX: long expressions scroll inside their own box instead of the page. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Motion off when asked --------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  .receipt[open] tbody tr {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
-  button {
-    transition: none;
+}
+
+
+@media (max-width: 61.99rem) {
+  .preview {
+    max-height: 14rem;
   }
 }
 
 @media (max-width: 30rem) {
-  main {
-    padding-top: 1.5rem;
+  .row {
+    padding: 0.8rem 0.85rem 0.9rem;
   }
+  .source-tag {
+    margin-left: 0;
+  }
+}
+
+/* Advanced options: the data source, collapsed by default but always named in the summary. */
+.advanced summary {
+  cursor: pointer;
+  color: var(--graphite);
+  font-size: var(--text-sm);
+  min-height: 2rem;
+}
+
+.advanced[open] summary {
+  margin-bottom: 0.5rem;
+}
+
+.analyze {
+  width: 100%;
+}
+
+/* The hidden attribute always wins over a component's display rule. */
+[hidden] {
+  display: none !important;
 }

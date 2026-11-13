@@ -1,0 +1,479 @@
+/* Tutor and split workspace. Docked column on desktop, bottom tabs below 62rem. Tokens only, so both themes work. */
+
+/* The hidden attribute must win over the display rules below. */
+.split [hidden] {
+  display: none !important;
+}
+
+/* Layout: phones show one view at a time; the tab bar is fixed at the bottom. */
+.split {
+  --tab-bar-h: 3.75rem;
+  display: block;
+}
+
+.split-pane {
+  min-width: 0;
+}
+
+.split-pane-tutor {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.split-pane-slide {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+@media (max-width: 61.99rem) {
+  .split-pane-workspace {
+    padding-bottom: calc(var(--tab-bar-h) + env(safe-area-inset-bottom));
+  }
+
+  /* On a phone the tutor is a full-screen view above the tab bar, so its input is never under the bar. */
+  .split-pane-tutor {
+    position: fixed;
+    inset: 0 0 calc(var(--tab-bar-h) + env(safe-area-inset-bottom)) 0;
+    height: auto;
+    z-index: 5;
+    background: var(--paper);
+  }
+}
+
+/* Desktop: workspace, separator and tutor side by side. The tutor column is sticky to the viewport. */
+@media (min-width: 62rem) {
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--split-sep, 0px) var(--split-tutor, 0px);
+    align-items: start;
+  }
+
+  .split-pane-workspace {
+    grid-column: 1;
+  }
+
+  .split-separator {
+    grid-column: 2;
+  }
+
+  .split-pane-tutor {
+    grid-column: 3;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+/* Separator: 8px hit area, 1px visible line. */
+.split-separator {
+  position: relative;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.split-separator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--rule);
+}
+
+.split-separator:hover::before {
+  background: var(--graphite);
+}
+
+.split-separator:focus {
+  outline: none;
+}
+
+.split-separator:focus-visible::before {
+  width: 2px;
+  background: var(--pen);
+}
+
+/* Bottom tab bar (phones and tablets only). */
+.split-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--rule);
+}
+
+.split-tab {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--graphite);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.split-tab[aria-selected="true"] {
+  color: var(--pen-strong);
+}
+
+.split-tab:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
+}
+
+.split-tab-pill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--pen-wash);
+}
+
+.split-tab-label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Panel shell. Docked fills its column; overlay is the old fixed drawer, kept until page wiring changes. */
+.tutor-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.tutor-panel-docked {
+  height: 100%;
+}
+
+.tutor-panel-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  width: min(26rem, 100vw);
+  height: 100vh;
+  height: 100dvh;
+  border-left: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+}
+
+/* A closed overlay stays mounted but cannot be hit or focused. */
+.tutor-panel-overlay[inert] {
+  pointer-events: none;
+}
+
+@media (max-width: 61.99rem) {
+  .tutor-panel-overlay {
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 85vh;
+    height: 85dvh;
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+}
+
+.tutor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.tutor-heading {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.tutor-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.35rem;
+}
+
+.tutor-context {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.tutor-close {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.8rem;
+}
+
+/* The log is the only thing that scrolls inside the panel. */
+.tutor-log {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 0.25rem 0.15rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tutor-empty {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.9rem;
+}
+
+.tutor-turn {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tutor-turn-student {
+  align-items: flex-end;
+}
+
+.tutor-bubble {
+  min-width: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow-wrap: anywhere;
+}
+
+/* Student: a compact pen-tinted bubble on the right. Tutor: full width, no heavy bubble, airy text. */
+.tutor-turn-student .tutor-bubble {
+  max-width: 88%;
+  background: var(--pen-wash);
+  border-color: transparent;
+}
+
+.tutor-turn-tutor .tutor-bubble {
+  max-width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 0;
+  line-height: 1.6;
+}
+
+.tutor-bubble p {
+  margin: 0 0 0.75rem;
+}
+
+.tutor-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.tutor-bubble ol,
+.tutor-bubble ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.tutor-bubble li + li {
+  margin-top: 0.25rem;
+}
+
+/* Inline math scrolls inside its own box. Display math is a centered block that scrolls sideways if long. */
+.tutor-bubble .katex {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  vertical-align: middle;
+}
+
+.tutor-bubble .katex-display {
+  display: block;
+  margin: 0.6rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+}
+
+.tutor-bubble .tutor-provenance {
+  margin: 0.5rem 0 0;
+  color: var(--graphite);
+  font-size: 0.8rem;
+}
+
+.tutor-sources {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.tutor-sources summary {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--pen);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tutor-sources ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1rem;
+}
+
+.tutor-sources code {
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+.tutor-topic {
+  color: var(--graphite);
+}
+
+/* Typing indicator: three dots. The pulse is a motion token, so it stops under reduced motion. */
+.tutor-typing {
+  display: flex;
+  gap: 0.3rem;
+  width: fit-content;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.tutor-dot {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--graphite);
+}
+
+.tutor-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: var(--wrong-wash);
+  color: var(--wrong);
+  font-weight: 600;
+}
+
+.tutor-error p {
+  margin: 0;
+}
+
+/* Suggested actions: compact pills that wrap, never scroll sideways. */
+.tutor-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.tutor-chip {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.875rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tutor-chip:hover:not(:disabled) {
+  border-color: var(--pen);
+  background: var(--pen-wash);
+}
+
+.tutor-chip:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.tutor-chip:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
+}
+
+.tutor-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Touch screens get larger targets. */
+@media (pointer: coarse) {
+  .tutor-chip {
+    min-height: 2.75rem;
+  }
+}
+
+.tutor-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.tutor-form label {
+  width: 100%;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Auto-grows from one line to six (see fitInputHeight in TutorPanel.tsx). */
+.tutor-input {
+  font: inherit;
+  line-height: 1.5;
+  flex: 1 1 10rem;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--graphite);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  resize: none;
+  overflow-y: hidden;
+}
+
+.tutor-hint {
+  width: 100%;
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.8rem;
+}

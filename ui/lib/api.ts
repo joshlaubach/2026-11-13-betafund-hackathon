@@ -2,6 +2,7 @@
 import {
   UNMARKED_FILE_TAG,
   UNMARKED_NOTES,
+  fixtureAsk,
   fixtureClarify,
   fixtureGrade,
   fixtureGradeCorrected,
@@ -12,6 +13,8 @@ import {
 } from "./fixtures";
 import { UNPREPARED_MESSAGE, prepareUpload } from "./photo";
 import type {
+  AskResponse,
+  AskRow,
   ClarifyField,
   ClarifyResponse,
   GradedItem,
@@ -79,6 +82,17 @@ export function gradeWorksheet(reading: WorksheetReading, mode: Mode): Promise<G
 export function clarifyText(field: ClarifyField, text: string, mode: Mode): Promise<ClarifyResponse> {
   if (USE_FIXTURES) return pause(fixtureClarify(text));
   return send<ClarifyResponse>("/api/worksheet/clarify", jsonBody({ field, text, mode }));
+}
+
+// The route reads the row's fields at the top level of the body, next to question and mode.
+export function askBody(question: string, row: AskRow, mode: Mode): Record<string, string> {
+  return { ...row, question, mode };
+}
+
+// Echo's read-only explanation of one row. It never grades, and the mark does not change.
+export function askEcho(question: string, row: AskRow, mode: Mode): Promise<AskResponse> {
+  if (USE_FIXTURES) return pause(fixtureAsk(question));
+  return send<AskResponse>("/api/worksheet/ask", jsonBody(askBody(question, row, mode)));
 }
 
 export function regradeItem(graded: GradedItem, mode: Mode): Promise<GradedItem> {

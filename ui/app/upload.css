@@ -1,0 +1,358 @@
+/* Upload experience: dropzone, photo preview, analysis progress.
+   Tokens only (from globals.css), so light and dark follow the theme. Motion lives in the components (motion tokens). */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Dropzone ------------------------------------------------------------------ */
+.upload-dropzone {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.dropzone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 11rem;
+  padding: 1.25rem 1rem;
+  border: 2px dashed var(--graphite);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.dropzone.is-drag-over {
+  border-style: solid;
+  border-color: var(--pen);
+  background: var(--pen-wash);
+}
+
+.dropzone.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* The real file input stays in the tab order and in the DOM, but is out of sight. */
+.upload-dropzone .dropzone-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* The focus ring is drawn on the visible face, since the input itself is hidden. */
+.upload-dropzone .dropzone-input:focus-visible + .dropzone-face {
+  outline: 3px solid var(--pen);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.dropzone-face {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dropzone-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--pen);
+}
+
+.dropzone-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.dropzone-sub {
+  color: var(--graphite);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.upload-error {
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--wrong-wash);
+  color: var(--wrong);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Chosen file: name, size, and the two actions (each a 44px target). */
+.chosen-file {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--rule);
+  border-left: var(--edge) solid var(--verified);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.chosen-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.chosen-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.chosen-size {
+  color: var(--graphite);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.chosen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.upload-dropzone .chosen-actions button {
+  min-height: 2.75rem;
+}
+
+/* Preview ------------------------------------------------------------------- */
+.worksheet-preview {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.preview-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.preview-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--surface);
+  color: var(--pen);
+  font-size: var(--text-sm);
+}
+
+.preview-tool:hover:not(:disabled) {
+  background: var(--pen-wash);
+}
+
+.preview-tool svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+}
+
+.preview-status {
+  margin: 0;
+  color: var(--graphite);
+  font-size: var(--text-sm);
+}
+
+/* The frame scrolls, so a zoomed photo can be panned with the scrollbars or keyboard. */
+.preview-frame {
+  max-height: 60vh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+.preview-reveal {
+  min-width: 0;
+}
+
+/* Layout size is the photo's natural size, capped to the frame. Zoom and rotate are transforms
+   from the component; the origin is the top-left so everything stays reachable by scrolling. */
+.preview-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 60vh;
+  margin: 0 auto;
+  transform-origin: 0 0;
+  user-select: none;
+}
+
+/* Full screen dialog --------------------------------------------------------- */
+.preview-dialog {
+  width: min(96vw, 110rem);
+  max-width: 96vw;
+  max-height: 92vh;
+  padding: 1rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.preview-dialog::backdrop {
+  background: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.preview-dialog .preview-frame {
+  max-height: 74vh;
+}
+
+.preview-dialog .preview-image {
+  max-height: 74vh;
+}
+
+/* Analysis progress ---------------------------------------------------------- */
+.analysis {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--pen-wash);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.analysis-summary {
+  margin: 0;
+  font-weight: 600;
+}
+
+.analysis-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.analysis-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  min-height: 2.75rem;
+  color: var(--graphite);
+}
+
+.analysis-step[data-state="active"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.analysis-step[data-state="done"] {
+  color: var(--verified);
+  font-weight: 600;
+}
+
+.step-mark {
+  flex: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid var(--graphite);
+  border-radius: 999px;
+  background: transparent;
+}
+
+.analysis-step[data-state="active"] .step-mark {
+  border-color: var(--pen);
+  background: var(--pen);
+}
+
+.analysis-step[data-state="done"] .step-mark {
+  border-color: var(--verified);
+  background: var(--verified);
+}
+
+.step-state {
+  color: var(--graphite);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+/* Narrow screens: the dropzone and toolbars wrap; nothing is sized in fixed pixels. */
+@media (max-width: 30rem) {
+  .dropzone {
+    min-height: 9.5rem;
+    padding: 1rem 0.75rem;
+  }
+
+  .preview-dialog {
+    padding: 0.6rem;
+  }
+}
+
+/* Once a photo is chosen the dropzone shrinks to a slim strip: the preview and Analyze matter now. */
+.dropzone.has-file .dropzone-face {
+  padding-block: 0.6rem;
+  gap: 0.1rem;
+}
+
+.dropzone.has-file .dropzone-icon,
+.dropzone.has-file .dropzone-sub {
+  display: none;
+}
+
+.dropzone.has-file .dropzone-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+/* Preview tools: one compact row of small controls, not a stack of full-size buttons. */
+.preview-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.preview-tool {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.55rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+@media (pointer: coarse) {
+  .preview-tool {
+    min-height: 2.75rem;
+  }
+}
+
+.dropzone.has-file {
+  min-height: 0;
+  padding-block: 0.25rem;
+}

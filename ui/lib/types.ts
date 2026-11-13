@@ -41,6 +41,20 @@ export type ClarifyResponse =
   | { status: "ok"; latex: string; notes: string }
   | { status: "error"; error: string };
 
+// The row Ask Echo explains. Every field is a string; "" means none. Read-only: it never changes a mark.
+export interface AskRow {
+  statement_latex: string;
+  student_answer_latex: string;
+  reference_answer_latex: string;
+  method: GradeMethod;
+  verdict: Verdict;
+  reason: string;
+  explanation: string;
+  label: string;
+}
+
+export type AskResponse = { status: "ok"; answer: string } | { status: "error"; error: string };
+
 export interface WorksheetReading {
   items: WorksheetItem[];
   notes: string;

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import "@fontsource-variable/instrument-sans";
-import "@fontsource-variable/literata";
+import { GeistSans } from "geist/font/sans";
+import "@fontsource/instrument-serif/400.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+import "./practice.css";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "Echo",
@@ -11,8 +13,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={GeistSans.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body>
+        {children}
+      </body>
     </html>
   );
 }

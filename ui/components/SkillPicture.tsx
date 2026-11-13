@@ -30,6 +30,21 @@ export function SkillPicture({ result, activeTopic, onPractice }: Props) {
         {plural(summary.ai_marks, "AI-graded mark")}. {unplaced > 0 && `${plural(unplaced, "problem")} could not be placed in a topic.`}
       </p>
 
+      <details className="gloss">
+        <summary>What do &quot;Echo verified&quot; and &quot;Bank confirmed&quot; mean?</summary>
+        <p>
+          <strong>Echo verified:</strong> Echo wrote the problem and a math program (SymPy) computed and confirmed the
+          answer key. A topic only counts after its checker accepted every real key and rejected every deliberately
+          wrong key in a test. Today that is the power rule.
+        </p>
+        <p>
+          <strong>Bank confirmed:</strong> the problem and its worked solution come from a bank that was verified
+          before Echo and then filtered by an audit script. Echo&apos;s own checker has not passed its test for this
+          topic yet, so Echo does not claim to have re-derived the key. When you check an answer, SymPy still compares
+          it with the bank&apos;s key.
+        </p>
+      </details>
+
       <ol className="rows">
         {recommendations.map((rec) => (
           <li key={rec.topic} className={`row ${rec.echo_checked ? "row-verified" : "row-ai"}`}>
@@ -38,7 +53,7 @@ export function SkillPicture({ result, activeTopic, onPractice }: Props) {
                 <span aria-hidden="true">{STATUS_GLYPH[rec.status]}</span> {STATUS_WORDS[rec.status]}
               </span>
               <span className="source-tag">
-                {rec.echo_checked ? "Problems are Echo-checked" : "Problems come from the verified bank"}
+                {rec.echo_checked ? "Echo verified problems" : "Bank confirmed problems"}
               </span>
             </div>
             <h3>{rec.title}</h3>
@@ -48,7 +63,7 @@ export function SkillPicture({ result, activeTopic, onPractice }: Props) {
               onClick={() => onPractice(rec.topic, rec.suggested_level)}
               aria-pressed={activeTopic === rec.topic}
             >
-              Make level {rec.suggested_level} problems
+              Practice this topic
             </button>
           </li>
         ))}
