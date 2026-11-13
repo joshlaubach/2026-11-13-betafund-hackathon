@@ -40,3 +40,6 @@ Thumbs.db
 # Review runner diagnostics and scratch output (may contain private code or plans)
 claudex-*/
 *.log
+
+# Generated knowledge-graph output
+graphify-out/
