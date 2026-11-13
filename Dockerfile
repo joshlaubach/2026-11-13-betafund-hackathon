@@ -21,7 +21,7 @@ RUN pip install -r requirements.txt
 COPY core/ ./core/
 COPY server/ ./server/
 COPY scripts/audit_bank.py scripts/demo_worksheet.py scripts/gate_power_rule.py ./scripts/
-COPY docs/verified_problems.json ./docs/
+COPY docs/verified_problems.json docs/echo_checked_problems.json ./docs/
 COPY --chown=echoapp:echoapp replay/ ./replay/
 
 # One-time gate: writes build/gate_power_rule.json bound to the bank's SHA-256.
