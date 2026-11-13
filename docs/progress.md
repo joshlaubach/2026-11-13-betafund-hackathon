@@ -73,3 +73,12 @@ Submission deadline: Friday 2026-11-13, 4:00 PM Pacific.
 - Repeated statement text: 11 groups / 22 rows (one within-topic: `strategy::ST12/ST16`; ten cross-topic). Review candidates only, no deletions. 250 reused ID values involve 500 rows; no duplicate `(topic,id)` keys. All 190 absent SymPy strings belong to enum-answer rows.
 - Power-rule consistency tests: 40/40 bank keys accepted and 120/120 constructed wrong keys rejected using the existing three mutations. Not independent proof or all-calculus accuracy.
 - Validation: 92 relevant tests passed; 8 English notebook code cells executed. Browser report search/filter verified. The analyzed bank and audit/checker dependencies are unchanged at base `482b966`.
+
+## 2026-11-13 — Experimental level-guesser contribution
+
+- Added standalone `levels/guesser.py`, English README and executed notebook, `scripts/evaluate_levels.py`, 10 behavior tests, and recorded summary/prediction snapshots under `levels/results/`.
+- Five nearest same-topic references, strict 3/5 majority, and explicit abstention for ambiguous votes, tied neighbor cutoffs, unsupported input or insufficient reference pools. Requested level never selects the winning label.
+- Evaluation: fixed five-fold number-masked-statement-family holdout; scales and neighbors use training-fold references only. Tested 3,318 bank problems in 86 topics. Returned 1,459 estimates (43.97%); 746 correct (51.13% among returned estimates; 22.48% over all test problems); 1,859 abstentions. Targets are existing one-tutor ratings, not independent difficulty truth. No live AI-generated problems tested.
+- Plan gap: bounded LaTeX source-token size/nesting are proxies, not the final typed semantic expression features. Typed per-topic and task/answer-type adapters remain to be built. Do not treat this as the completed PLAN.md level gate.
+- Validation: 10 targeted tests passed; five notebook code cells executed. Source bank and audit script unchanged at upload base `b6c400c`.
+- No changes to bank keys/ratings, core checker, drafting, UI/server or approved plan; no production integration. Bank Analysis is a separate contribution.
