@@ -43,3 +43,6 @@ claudex-*/
 
 # Generated knowledge-graph output
 graphify-out/
+
+# Browser test scratch
+.playwright-mcp/
