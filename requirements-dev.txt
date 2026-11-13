@@ -1,3 +1,5 @@
 # Adds the test runner on top of the runtime packages.
 -r requirements.txt
 pytest==7.4.3
+# Needed by fastapi.testclient
+httpx==0.28.1
