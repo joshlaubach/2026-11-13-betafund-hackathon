@@ -89,3 +89,11 @@ See [the English analysis notebook](analysis/Echo_Bank_Analysis.ipynb) and
 coverage, duplicate review candidates, and constructed power-rule negative tests.
 This read-only analysis retains the existing difficulty ratings and does not
 change the bank, grading, or practice-generation behavior.
+
+## Experimental level guesser
+
+See [Level Guesser documentation and measured limitations](levels/README.md) and
+[the executed English evaluation notebook](levels/Echo_Level_Guesser_Evaluation.ipynb).
+This five-neighbor baseline estimates difficulty from bank ratings using source-structure
+proxies. It is not connected to drafting, does not verify answers, and is not ready
+as a reliable automatic difficulty gate. Reproduce with `python scripts/evaluate_levels.py`.

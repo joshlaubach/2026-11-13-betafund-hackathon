@@ -1,0 +1,1450 @@
+{
+  "method": "Frozen source-structure 5-neighbor baseline; 5-fold number-masked-statement-family holdout; same-topic neighbors; strict 3/5 majority; cutoff-distance ties abstain.",
+  "limitations": [
+    "Source tokens and delimiter nesting are proxies, not semantic expression ASTs required by the final plan.",
+    "Eligibility reuses heuristic audit only; per-topic task/answer-type adapters are not implemented.",
+    "Same-family variants are held together, but undetected mathematical equivalents may still cross folds.",
+    "Targets are one tutor\u2019s bank ratings, not independent ground truth.",
+    "No accuracy claim is made for new AI-generated problems.",
+    "This module is not wired into core.entry or drafting; bank eligibility/checker behavior is unchanged."
+  ],
+  "summary": {
+    "bank_rows": 3510,
+    "feature_supported": 3318,
+    "feature_topics": 86,
+    "excluded_rows": 192,
+    "predicted": 1459,
+    "abstained": 1859,
+    "correct": 746,
+    "coverage": 0.4397227245328511,
+    "accuracy_all": 0.22483423749246534,
+    "accuracy_when_predicted": 0.5113091158327622,
+    "within_one_when_predicted": 0.8567511994516792,
+    "majority_baseline_accuracy_all": 0.06630500301386377
+  },
+  "abstention_reasons": {
+    "neighbor_boundary_tie": 1427,
+    "no_majority": 432
+  },
+  "confusion_matrix": {
+    "row_true_levels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "column_predicted_levels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "counts": [
+      [
+        242,
+        76,
+        34,
+        16
+      ],
+      [
+        84,
+        158,
+        72,
+        37
+      ],
+      [
+        56,
+        76,
+        125,
+        98
+      ],
+      [
+        29,
+        37,
+        98,
+        221
+      ]
+    ],
+    "note": "Abstentions are reported separately, not hidden in accuracy_all."
+  },
+  "per_topic": [
+    {
+      "topic": "absolute_conditional",
+      "tested": 40,
+      "predicted": 30,
+      "correct": 23,
+      "accuracy_all": 0.575
+    },
+    {
+      "topic": "absolute_extrema",
+      "tested": 40,
+      "predicted": 29,
+      "correct": 17,
+      "accuracy_all": 0.425
+    },
+    {
+      "topic": "algebraic",
+      "tested": 40,
+      "predicted": 7,
+      "correct": 5,
+      "accuracy_all": 0.125
+    },
+    {
+      "topic": "alternating_error",
+      "tested": 40,
+      "predicted": 21,
+      "correct": 10,
+      "accuracy_all": 0.25
+    },
+    {
+      "topic": "arc_length",
+      "tested": 40,
+      "predicted": 19,
+      "correct": 17,
+      "accuracy_all": 0.425
+    },
+    {
+      "topic": "area_between_curves",
+      "tested": 40,
+      "predicted": 9,
+      "correct": 2,
+      "accuracy_all": 0.05
+    },
+    {
+      "topic": "at_infinity",
+      "tested": 40,
+      "predicted": 24,
+      "correct": 12,
+      "accuracy_all": 0.3
+    },
+    {
+      "topic": "average_value",
+      "tested": 30,
+      "predicted": 12,
+      "correct": 3,
+      "accuracy_all": 0.1
+    },
+    {
+      "topic": "basic_antiderivatives",
+      "tested": 30,
+      "predicted": 23,
+      "correct": 12,
+      "accuracy_all": 0.4
+    },
+    {
+      "topic": "binomial_series",
+      "tested": 40,
+      "predicted": 21,
+      "correct": 4,
+      "accuracy_all": 0.1
+    },
+    {
+      "topic": "by_parts",
+      "tested": 40,
+      "predicted": 18,
+      "correct": 4,
+      "accuracy_all": 0.1
+    },
+    {
+      "topic": "chain_rule",
+      "tested": 40,
+      "predicted": 24,
+      "correct": 14,
+      "accuracy_all": 0.35
+    },
+    {
+      "topic": "classify_discontinuity",
+      "tested": 40,
+      "predicted": 21,
+      "correct": 13,
+      "accuracy_all": 0.325
+    },
+    {
+      "topic": "concavity_inflection",
+      "tested": 40,
+      "predicted": 27,
+      "correct": 21,
+      "accuracy_all": 0.525
+    },
+    {
+      "topic": "convergence_tests",
+      "tested": 40,
+      "predicted": 21,
+      "correct": 2,
+      "accuracy_all": 0.05
+    },
+    {
+      "topic": "critical_numbers",
+      "tested": 40,
+      "predicted": 20,
+      "correct": 16,
+      "accuracy_all": 0.4
+    },
+    {
+      "topic": "curve_sketching",
+      "tested": 30,
+      "predicted": 21,
+      "correct": 10,
+      "accuracy_all": 0.3333333333333333
+    },
+    {
+      "topic": "definite_properties",
+      "tested": 20,
+      "predicted": 12,
+      "correct": 11,
+      "accuracy_all": 0.55
+    },
+    {
+      "topic": "dhyperbolic",
+      "tested": 40,
+      "predicted": 27,
+      "correct": 15,
+      "accuracy_all": 0.375
+    },
+    {
+      "topic": "difference_quotient",
+      "tested": 40,
+      "predicted": 21,
+      "correct": 14,
+      "accuracy_all": 0.35
+    },
+    {
+      "topic": "differentiability",
+      "tested": 40,
+      "predicted": 16,
+      "correct": 9,
+      "accuracy_all": 0.225
+    },
+    {
+      "topic": "epsilon_delta",
+      "tested": 40,
+      "predicted": 10,
+      "correct": 3,
+      "accuracy_all": 0.075
+    },
+    {
+      "topic": "error_bounds",
+      "tested": 40,
+      "predicted": 3,
+      "correct": 0,
+      "accuracy_all": 0.0
+    },
+    {
+      "topic": "euler_formula",
+      "tested": 40,
+      "predicted": 23,
+      "correct": 17,
+      "accuracy_all": 0.425
+    },
+    {
+      "topic": "exponential_log",
+      "tested": 40,
+      "predicted": 22,
+      "correct": 15,
+      "accuracy_all": 0.375
+    },
+    {
+      "topic": "ftc_evaluate",
+      "tested": 30,
+      "predicted": 12,
+      "correct": 11,
+      "accuracy_all": 0.36666666666666664
+    },
+    {
+      "topic": "ftc_part1",
+      "tested": 40,
+      "predicted": 20,
+      "correct": 8,
+      "accuracy_all": 0.2
+    },
+    {
+      "topic": "geometric",
+      "tested": 40,
+      "predicted": 1,
+      "correct": 1,
+      "accuracy_all": 0.025
+    },
+    {
+      "topic": "higher_order",
+      "tested": 40,
+      "predicted": 25,
+      "correct": 17,
+      "accuracy_all": 0.425
+    },
+    {
+      "topic": "hyperbolic",
+      "tested": 40,
+      "predicted": 19,
+      "correct": 5,
+      "accuracy_all": 0.125
+    },
+    {
+      "topic": "implicit",
+      "tested": 40,
+      "predicted": 21,
+      "correct": 9,
+      "accuracy_all": 0.225
+    },
+    {
+      "topic": "improper",
+      "tested": 40,
+      "predicted": 20,
+      "correct": 12,
+      "accuracy_all": 0.3
+    },
+    {
+      "topic": "increasing_decreasing",
+      "tested": 40,
+      "predicted": 24,
+      "correct": 13,
+      "accuracy_all": 0.325
+    },
+    {
+      "topic": "infinite",
+      "tested": 40,
+      "predicted": 3,
+      "correct": 3,
+      "accuracy_all": 0.075
+    },
+    {
+      "topic": "initial_value_problems",
+      "tested": 30,
+      "predicted": 16,
+      "correct": 10,
+      "accuracy_all": 0.3333333333333333
+    },
+    {
+      "topic": "integral_test_remainder",
+      "tested": 40,
+      "predicted": 15,
+      "correct": 11,
+      "accuracy_all": 0.275
+    },
+    {
+      "topic": "inverse_functions",
+      "tested": 40,
+      "predicted": 1,
+      "correct": 1,
+      "accuracy_all": 0.025
+    },
+    {
+      "topic": "inverse_trig",
+      "tested": 40,
+      "predicted": 27,
+      "correct": 15,
+      "accuracy_all": 0.375
+    },
+    {
+      "topic": "ivt",
+      "tested": 40,
+      "predicted": 0,
+      "correct": 0,
+      "accuracy_all": 0.0
+    },
+    {
+      "topic": "lhopital",
+      "tested": 40,
+      "predicted": 8,
+      "correct": 1,
+      "accuracy_all": 0.025
+    },
+    {
+      "topic": "limit_definition",
+      "tested": 40,
+      "predicted": 16,
+      "correct": 11,
+      "accuracy_all": 0.275
+    },
+    {
+      "topic": "limits",
+      "tested": 40,
+      "predicted": 22,
+      "correct": 8,
+      "accuracy_all": 0.2
+    },
+    {
+      "topic": "linear_approximation",
+      "tested": 30,
+      "predicted": 4,
+      "correct": 1,
+      "accuracy_all": 0.03333333333333333
+    },
+    {
+      "topic": "logarithmic",
+      "tested": 40,
+      "predicted": 26,
+      "correct": 9,
+      "accuracy_all": 0.225
+    },
+    {
+      "topic": "make_continuous",
+      "tested": 40,
+      "predicted": 10,
+      "correct": 5,
+      "accuracy_all": 0.125
+    },
+    {
+      "topic": "marginal_analysis",
+      "tested": 40,
+      "predicted": 19,
+      "correct": 4,
+      "accuracy_all": 0.1
+    },
+    {
+      "topic": "monotone_bounded",
+      "tested": 40,
+      "predicted": 10,
+      "correct": 7,
+      "accuracy_all": 0.175
+    },
+    {
+      "topic": "motion",
+      "tested": 40,
+      "predicted": 25,
+      "correct": 20,
+      "accuracy_all": 0.5
+    },
+    {
+      "topic": "net_change_total_distance",
+      "tested": 40,
+      "predicted": 33,
+      "correct": 9,
+      "accuracy_all": 0.225
+    },
+    {
+      "topic": "newtons_method",
+      "tested": 40,
+      "predicted": 11,
+      "correct": 3,
+      "accuracy_all": 0.075
+    },
+    {
+      "topic": "one_sided",
+      "tested": 35,
+      "predicted": 7,
+      "correct": 4,
+      "accuracy_all": 0.11428571428571428
+    },
+    {
+      "topic": "operations",
+      "tested": 40,
+      "predicted": 20,
+      "correct": 9,
+      "accuracy_all": 0.225
+    },
+    {
+      "topic": "p_series",
+      "tested": 40,
+      "predicted": 4,
+      "correct": 1,
+      "accuracy_all": 0.025
+    },
+    {
+      "topic": "parametric_arc_length",
+      "tested": 40,
+      "predicted": 18,
+      "correct": 4,
+      "accuracy_all": 0.1
+    },
+    {
+      "topic": "parametric_area",
+      "tested": 40,
+      "predicted": 28,
+      "correct": 12,
+      "accuracy_all": 0.3
+    },
+    {
+      "topic": "parametric_surface_area",
+      "tested": 40,
+      "predicted": 7,
+      "correct": 7,
+      "accuracy_all": 0.175
+    },
+    {
+      "topic": "partial_fractions",
+      "tested": 40,
+      "predicted": 25,
+      "correct": 12,
+      "accuracy_all": 0.3
+    },
+    {
+      "topic": "polar_arc_length",
+      "tested": 40,
+      "predicted": 20,
+      "correct": 14,
+      "accuracy_all": 0.35
+    },
+    {
+      "topic": "polar_area",
+      "tested": 40,
+      "predicted": 22,
+      "correct": 17,
+      "accuracy_all": 0.425
+    },
+    {
+      "topic": "power_rule",
+      "tested": 40,
+      "predicted": 22,
+      "correct": 11,
+      "accuracy_all": 0.275
+    },
+    {
+      "topic": "product_rule",
+      "tested": 40,
+      "predicted": 28,
+      "correct": 9,
+      "accuracy_all": 0.225
+    },
+    {
+      "topic": "quotient_rule",
+      "tested": 40,
+      "predicted": 32,
+      "correct": 19,
+      "accuracy_all": 0.475
+    },
+    {
+      "topic": "radius_interval",
+      "tested": 33,
+      "predicted": 19,
+      "correct": 14,
+      "accuracy_all": 0.42424242424242425
+    },
+    {
+      "topic": "rate_of_change",
+      "tested": 40,
+      "predicted": 7,
+      "correct": 3,
+      "accuracy_all": 0.075
+    },
+    {
+      "topic": "recursive",
+      "tested": 40,
+      "predicted": 19,
+      "correct": 0,
+      "accuracy_all": 0.0
+    },
+    {
+      "topic": "relative_extrema",
+      "tested": 30,
+      "predicted": 16,
+      "correct": 8,
+      "accuracy_all": 0.26666666666666666
+    },
+    {
+      "topic": "riemann_sums",
+      "tested": 30,
+      "predicted": 0,
+      "correct": 0,
+      "accuracy_all": 0.0
+    },
+    {
+      "topic": "rolle_mvt",
+      "tested": 40,
+      "predicted": 13,
+      "correct": 5,
+      "accuracy_all": 0.125
+    },
+    {
+      "topic": "rules",
+      "tested": 40,
+      "predicted": 0,
+      "correct": 0,
+      "accuracy_all": 0.0
+    },
+    {
+      "topic": "second_derivatives",
+      "tested": 40,
+      "predicted": 24,
+      "correct": 11,
+      "accuracy_all": 0.275
+    },
+    {
+      "topic": "slopes",
+      "tested": 40,
+      "predicted": 17,
+      "correct": 10,
+      "accuracy_all": 0.25
+    },
+    {
+      "topic": "squeeze",
+      "tested": 40,
+      "predicted": 19,
+      "correct": 13,
+      "accuracy_all": 0.325
+    },
+    {
+      "topic": "strategy",
+      "tested": 40,
+      "predicted": 24,
+      "correct": 10,
+      "accuracy_all": 0.25
+    },
+    {
+      "topic": "symmetry",
+      "tested": 30,
+      "predicted": 17,
+      "correct": 7,
+      "accuracy_all": 0.23333333333333334
+    },
+    {
+      "topic": "tangent_normal_lines",
+      "tested": 40,
+      "predicted": 20,
+      "correct": 14,
+      "accuracy_all": 0.35
+    },
+    {
+      "topic": "tangents",
+      "tested": 40,
+      "predicted": 22,
+      "correct": 7,
+      "accuracy_all": 0.175
+    },
+    {
+      "topic": "taylor_maclaurin",
+      "tested": 40,
+      "predicted": 20,
+      "correct": 7,
+      "accuracy_all": 0.175
+    },
+    {
+      "topic": "taylor_remainder",
+      "tested": 40,
+      "predicted": 13,
+      "correct": 6,
+      "accuracy_all": 0.15
+    },
+    {
+      "topic": "telescoping",
+      "tested": 40,
+      "predicted": 0,
+      "correct": 0,
+      "accuracy_all": 0.0
+    },
+    {
+      "topic": "trig",
+      "tested": 40,
+      "predicted": 24,
+      "correct": 13,
+      "accuracy_all": 0.325
+    },
+    {
+      "topic": "trig_integrals",
+      "tested": 40,
+      "predicted": 14,
+      "correct": 6,
+      "accuracy_all": 0.15
+    },
+    {
+      "topic": "trig_substitution",
+      "tested": 40,
+      "predicted": 18,
+      "correct": 8,
+      "accuracy_all": 0.2
+    },
+    {
+      "topic": "u_substitution",
+      "tested": 40,
+      "predicted": 10,
+      "correct": 3,
+      "accuracy_all": 0.075
+    },
+    {
+      "topic": "volume_cross_sections",
+      "tested": 40,
+      "predicted": 14,
+      "correct": 10,
+      "accuracy_all": 0.25
+    },
+    {
+      "topic": "volume_disk_washer",
+      "tested": 40,
+      "predicted": 17,
+      "correct": 5,
+      "accuracy_all": 0.125
+    },
+    {
+      "topic": "volume_shell",
+      "tested": 40,
+      "predicted": 10,
+      "correct": 4,
+      "accuracy_all": 0.1
+    }
+  ],
+  "excluded": [
+    {
+      "reference": "one_sided::OS19",
+      "reason": "undefined_function"
+    },
+    {
+      "reference": "one_sided::OS22",
+      "reason": "undefined_function"
+    },
+    {
+      "reference": "one_sided::OS29",
+      "reason": "undefined_function"
+    },
+    {
+      "reference": "one_sided::OS35",
+      "reason": "undefined_function"
+    },
+    {
+      "reference": "one_sided::OS39",
+      "reason": "undefined_function"
+    },
+    {
+      "reference": "chain_rule::CR03",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR09",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR12",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR20",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR24",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR26",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR27",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR28",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR31",
+      "reason": "level_5"
+    },
+    {
+      "reference": "chain_rule::CR49",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM10",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM18",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM22",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM24",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM30",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM31",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM32",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM38",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM47",
+      "reason": "level_5"
+    },
+    {
+      "reference": "implicit::IM50",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF05",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF08",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF09",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF15",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF16",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF17",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF19",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF37",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF45",
+      "reason": "level_5"
+    },
+    {
+      "reference": "inverse_functions::IF49",
+      "reason": "level_5"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG01",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG02",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG03",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG04",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG05",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG06",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG07",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG08",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG09",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG10",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG11",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG12",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG13",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG14",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG15",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG16",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG17",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG18",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG19",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "increasing_decreasing/variants/graph::IG20",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "optimization::OP01",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP02",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP03",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP04",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP05",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP06",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP07",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP08",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP09",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP10",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP11",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP12",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP13",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP14",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP15",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP16",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP17",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP18",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP19",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP20",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP21",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP22",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP23",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP24",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP25",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP26",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP27",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP28",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP29",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP30",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP31",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP32",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP33",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP34",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP35",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP36",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP37",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP38",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP39",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "optimization::OP40",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR01",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR02",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR03",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR04",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR05",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR06",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR07",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR08",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR09",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR10",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR11",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR12",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR13",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR14",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR15",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR16",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR17",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR18",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR19",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR20",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR21",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR22",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR23",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR24",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR25",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR26",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR27",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR28",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR29",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR30",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR31",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR32",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR33",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR34",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR35",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR36",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR37",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR38",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR39",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "related_rates::RR40",
+      "reason": "Problem needs explicit dollar-delimited math"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG01",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG02",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG03",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG04",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG05",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG06",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG07",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG08",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG09",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG10",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG11",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG12",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG13",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG14",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG15",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG16",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG17",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG18",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG19",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "relative_extrema/variants/graph::RG20",
+      "reason": "figure_reference"
+    },
+    {
+      "reference": "u_substitution::C410-18",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-19",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-20",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-23",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-27",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-28",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-33",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-35",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-46",
+      "reason": "level_5"
+    },
+    {
+      "reference": "u_substitution::C410-50",
+      "reason": "level_5"
+    },
+    {
+      "reference": "radius_interval::RV09",
+      "reason": "Unbalanced math delimiters"
+    },
+    {
+      "reference": "radius_interval::RV10",
+      "reason": "Unbalanced math delimiters"
+    },
+    {
+      "reference": "radius_interval::RV13",
+      "reason": "Unbalanced math delimiters"
+    },
+    {
+      "reference": "radius_interval::RV21",
+      "reason": "Unbalanced math delimiters"
+    },
+    {
+      "reference": "radius_interval::RV25",
+      "reason": "Unbalanced math delimiters"
+    },
+    {
+      "reference": "radius_interval::RV35",
+      "reason": "Unbalanced math delimiters"
+    },
+    {
+      "reference": "radius_interval::RV39",
+      "reason": "Unbalanced math delimiters"
+    },
+    {
+      "reference": "improper::IM03",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM06",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM09",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM18",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM31",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM32",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM36",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM42",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM43",
+      "reason": "level_5"
+    },
+    {
+      "reference": "improper::IM44",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST09",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST14",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST19",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST21",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST29",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST31",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST35",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST37",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST41",
+      "reason": "level_5"
+    },
+    {
+      "reference": "strategy::ST46",
+      "reason": "level_5"
+    }
+  ],
+  "bank_sha256": "b254e1cb2e55be28740a37f88cb167de72391ff52fb06861107f4f04e72f2007",
+  "provenance": {
+    "analysis_source_commit": "bc58c8aef0daf55e566176436895ee707197e7bf",
+    "upload_base_commit": "b6c400c0733e183c967003b1384e8e840dfc4aa7",
+    "note": "Source bank and audit script are unchanged at upload base. Snapshot results are not live."
+  }
+}
