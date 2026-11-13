@@ -2,6 +2,19 @@
 
 Submission deadline: Friday 2026-11-13, 4:00 PM Pacific.
 
+## 2026-11-13 midday — tutor layout, Socratic tutoring, verification vs correctness
+
+**Built** (commit `c7334ab`)
+
+- **Tutor clipping fixed at the cause.** The docked tutor column was `100dvh` tall but started below the masthead, so its bottom and the composer hung off-screen at scroll 0. On desktop the masthead now lives inside the worksheet column and the tutor column spans the full viewport height. Phones get `interactive-widget=resizes-content`, a `visualViewport` keyboard inset (`--kb-inset`) and safe-area handling.
+- **`core/evidence.py` is the one boundary between grading and tutoring.** `verification_of` (verified, unverified, unavailable), `stance_of` (confirmed, likely, or not known), `help_level` (ask, hint, step, solution) and `leaks_internals`. `Grade.verification` is a derived field, so saved grades gain it without a migration. Stored verdicts are unchanged.
+- **Ask Echo and the tutor tutor from a stance, not the grading record.** The model no longer receives the record's explanation, reason or label. A mark that was not verified is never described as wrong. The first reply is a question, help gets more specific each round, and the full solution comes on request or after five rounds. A reply that uses grading vocabulary, or is empty or malformed, is replaced by guided questions. A service failure shows a plain message with Retry, and the technical cause goes to the log.
+- **Regression caught and fixed before the demo.** The first version answered "Show me a worked example" and "Explain this topic" with another question. Explicit requests for an example, a solution or an explanation now get one.
+
+**Verified** (2026-11-13, final code): backend `pytest` 1544 passed, 9 skipped, 0 failed (was 1468 passed, 9 skipped); browser `npx playwright test` 112 passed, 0 failed (was 104). The 8 new layout tests fail on the old layout (tutor bottom at 978px in a 900px viewport) and pass on the fix. Not verified: the new tutor against the real model (every test used a fake), and a real phone keyboard.
+
+**Next:** rebuild the Docker images (the running copy is the old build), try the tutor in Live mode, update the demo script's tutor beat (it still describes the old behavior), rehearse twice with wifi off, record the backup video, make the repo visible to judges before 4:00 PM Pacific. Known limits are in `docs/known-issues.md` under "Tutor and verification".
+
 ## 2026-11-13 morning — learning loop, tutor, redesign
 
 **Built**
