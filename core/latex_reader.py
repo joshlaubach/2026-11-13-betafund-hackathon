@@ -21,6 +21,7 @@ DEFAULT_VARIABLES = ("x",)
 _NUMBER = "number"
 _LETTER = "letter"
 _COMMAND = "command"
+_ROOT = "root"
 _OP = "op"
 _LPAREN = "("
 _RPAREN = ")"
@@ -54,8 +55,12 @@ _FUNCTION_NAMES = {
 }
 _FRACTION_COMMANDS = frozenset({"frac", "dfrac"})
 _FACTOR_COMMANDS = frozenset(_FUNCTION_NAMES) | _FRACTION_COMMANDS | {"sqrt", "pi"}
-_FACTOR_KINDS = frozenset({_NUMBER, _LETTER, _LPAREN, _LBRACE})
-_BARE_ARGUMENT_BREAKS = frozenset({_NUMBER, _LETTER, _COMMAND, _LPAREN, _LBRACE})
+_FACTOR_KINDS = frozenset({_NUMBER, _LETTER, _LPAREN, _LBRACE, _ROOT})
+_BARE_ARGUMENT_BREAKS = frozenset({_NUMBER, _LETTER, _COMMAND, _LPAREN, _LBRACE, _ROOT})
+MIN_ROOT_INDEX = 2
+MAX_ROOT_INDEX = 20
+SQUARE_ROOT_INDEX = 2
+_MAX_ROOT_INDEX_DIGITS = len(str(MAX_ROOT_INDEX))
 
 # Precedence of a translated piece: higher binds tighter.
 _ADD = 0
@@ -145,6 +150,20 @@ def _scan_delimiter(latex: str, end: int, name: str) -> tuple[_Token, int]:
     return _PLAIN_TOKENS[delimiter], position + 1
 
 
+def _scan_root_index(latex: str, open_bracket: int) -> tuple[_Token, int]:
+    """Read the index of \\sqrt[n]: plain decimal digits, 2 to 20, in one pair of brackets."""
+    start = open_bracket + 1
+    end = _run_end(latex, start, _DIGITS)
+    if end == start or end >= len(latex) or latex[end] != "]":
+        raise BoundaryError("root index must be a whole number in square brackets")
+    if end - start > _MAX_ROOT_INDEX_DIGITS:
+        raise BoundaryError(f"root index must be from {MIN_ROOT_INDEX} to {MAX_ROOT_INDEX}")
+    index = int(latex[start:end])
+    if not MIN_ROOT_INDEX <= index <= MAX_ROOT_INDEX:
+        raise BoundaryError(f"root index must be from {MIN_ROOT_INDEX} to {MAX_ROOT_INDEX}")
+    return _Token(_ROOT, str(index)), end + 1
+
+
 def _scan_command(latex: str, start: int) -> tuple[_Token | None, int]:
     end = _run_end(latex, start + 1, _LETTERS)
     name = latex[start + 1 : end]
@@ -155,6 +174,8 @@ def _scan_command(latex: str, start: int) -> tuple[_Token | None, int]:
         raise BoundaryError("LaTeX backslash command is not supported")
     if name in ("left", "right"):
         return _scan_delimiter(latex, end, name)
+    if name == "sqrt" and latex[end : end + 1] == "[":
+        return _scan_root_index(latex, end)
     if name in _IGNORED_COMMANDS:
         return None, end
     if name in _OPERATOR_COMMANDS:
@@ -335,7 +356,28 @@ class _Translator:
         if token.kind == _COMMAND:
             self._take()
             return self._command(token.text, depth)
+        if token.kind == _ROOT:
+            self._take()
+            return self._root(int(token.text), depth)
         raise BoundaryError("unexpected token in LaTeX")
+
+    def _root(self, index: int, depth: int) -> _Piece:
+        """Read \\sqrt[n]{a}. A negative radicand reads as the principal complex root, so the checker skips such points as non-real."""
+        radicand = self._root_radicand(depth)
+        if index == SQUARE_ROOT_INDEX:
+            return _Piece(f"sqrt({radicand.text})", _ATOM)
+        return _Piece(f"{_as_atom(radicand).text}^(1/{index})", _POW)
+
+    def _root_radicand(self, depth: int) -> _Piece:
+        token = self._peek()
+        if token is None:
+            raise BoundaryError("missing root argument")
+        if token.kind == _LBRACE:
+            return self._group(depth)
+        if _is_single_symbol(token):
+            self._take()
+            return _leaf(token)
+        raise BoundaryError("root argument must be braced or a single symbol")
 
     def _group(self, depth: int) -> _Piece:
         closer = _RPAREN if self._take().kind == _LPAREN else _RBRACE

@@ -33,6 +33,11 @@ CONSTRUCT_CASES = [
     ("\\frac{x}{2}", X / 2),
     ("\\dfrac{1}{x}", 1 / X),
     ("\\sqrt{x}", sp.sqrt(X)),
+    ("\\sqrt[2]{x}", sp.sqrt(X)),
+    ("\\sqrt[3]{x}", sp.cbrt(X)),
+    ("\\sqrt[3] x", sp.cbrt(X)),
+    ("\\sqrt[4]{x}", X ** sp.Rational(1, 4)),
+    ("\\sqrt[20]{x}", X ** sp.Rational(1, 20)),
     ("\\sqrt{x^{2}}", sp.sqrt(X**2)),
     ("\\left(x+1\\right)\\left(x-1\\right)", (X + 1) * (X - 1)),
     ("\\displaystyle 2\\,x\\;+\\!1\\ ", 2 * X + 1),
@@ -99,7 +104,24 @@ PRECEDENCE_CASES = [
 REJECTED_CASES = [
     "\\int x \\, dx",
     "\\log x",
-    "\\sqrt[3]{x}",
+    "\\sqrt[1.5]{x}",
+    "\\sqrt[1]{x}",
+    "\\sqrt[0]{x}",
+    "\\sqrt[21]{x}",
+    "\\sqrt[100]{x}",
+    "\\sqrt[9999999999999999999]{x}",
+    "\\sqrt[]{x}",
+    "\\sqrt[-2]{x}",
+    "\\sqrt[x]{2}",
+    "\\sqrt[ 3 ]{x}",
+    "\\sqrt[[3]]{x}",
+    "\\sqrt[3]]{x}",
+    "\\sqrt[3[]{x}",
+    "\\sqrt[3]",
+    "\\sqrt[3](x)",
+    "\\sqrt[3]{}",
+    "\\sqrt[3]{x",
+    "\\sqrt [3]{x}",
     "x_1",
     "\\frac{1}{",
     "x^{99}",
@@ -214,6 +236,22 @@ def test_translation_is_plain_grammar_text():
     assert latex_to_text("- \\frac{1}{8}") == "-(1/8)"
     assert latex_to_text("3 e^{\\sqrt{x}}") == "3*exp(sqrt(x))"
     assert latex_to_text("\\sin^{3}{\\left(x \\right)}") == "sin(x)^(3)"
+
+
+def test_cube_root_at_eight_is_two():
+    assert read_latex("\\sqrt[3]{x}").subs(X, 8) == 2
+
+
+def test_root_index_two_translates_to_sqrt_text():
+    assert latex_to_text("\\sqrt[2]{x}") == "sqrt(x)"
+
+
+def test_root_index_three_translates_to_fractional_power_text():
+    assert latex_to_text("\\sqrt[3]{x}") == "x^(1/3)"
+
+
+def test_root_is_an_implicit_factor():
+    assert read_latex("2 \\sqrt[3]{x}") == 2 * sp.cbrt(X)
 
 
 def test_module_source_avoids_eval_style_calls():
