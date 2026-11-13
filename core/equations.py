@@ -25,6 +25,7 @@ from core.derivative_checker import (
     SAMPLE_POINTS,
     X,
 )
+from core.answer_chain import chain_mismatch, chain_unsure
 from core.input_boundary import BoundaryError
 from core.latex_reader import read_latex
 from core.solvers import (
@@ -468,6 +469,8 @@ def _line_mark(value: sp.Basic, answers: tuple[str, ...]) -> Optional[Mark]:
 def _slope_mark(value: sp.Basic, answers: tuple[str, ...]) -> Optional[Mark]:
     if len(answers) != 1:
         return None
+    if chain_mismatch(value, answers[0], read_or_none):
+        return chain_unsure(SYMPY_METHOD, sp.latex(value))
     student = read_or_none(answers[0].rsplit("=", 1)[-1].strip())
     if student is None:
         return None

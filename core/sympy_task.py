@@ -11,6 +11,7 @@ confirm the SymPy mark or make it unsure.
 
 from __future__ import annotations
 
+import logging
 import math
 import multiprocessing
 import queue
@@ -21,6 +22,7 @@ from typing import Any, Callable, NamedTuple, Optional
 import sympy as sp
 
 from core import antiderivatives, equations, solution_sets
+from core.answer_chain import chain_mismatch, chain_unsure
 from core.definitions import (
     ASK_VERBS,
     Definition,
@@ -45,8 +47,11 @@ from core.solvers import (
     ask_solve,
     compare_expressions,
     comparison_mark,
+    log_failure,
 )
 from core.worksheet_types import GradeMethod, Verdict, join_statement
+
+logger = logging.getLogger(__name__)
 
 SYMPY_TIMEOUT_S = 5.0  # hard limit on the SymPy computation itself, after the child is ready
 STARTUP_TIMEOUT_S = 60.0  # bound on a child that never starts; interpreter start-up is not timed
@@ -88,6 +93,8 @@ _NAMED_INTEGRAL = re.compile(
     ASK_VERBS + r" \\int_\{?(" + _NUMBER + r")\}?\^\{?(" + _NUMBER + r")\}?\s*(.+?)\s*(?:\\[,;!]\s*)?d([A-Za-z])"
 )
 _INTEGRAND_CALL = re.compile(r"([A-Za-z])\(([A-Za-z])\)")
+_EXACT_ASK = re.compile(r"exact answer|exact value|in exact form", re.IGNORECASE)
+_DECIMAL_NUMERAL = re.compile(r"\d\.\d")
 
 
 class Task(NamedTuple):
@@ -422,11 +429,38 @@ def _sub_verdict(comparison: Comparison) -> Optional[Verdict]:
     return None
 
 
+def _asks_exact(statement: str) -> bool:
+    """True when the statement asks for an exact answer, so a decimal approximation is not the answer asked for."""
+    return _EXACT_ASK.search(plain_text(statement)) is not None
+
+
+def _terminating_decimal(value: sp.Basic) -> bool:
+    """True when a constant is a rational whose decimal ends, or a stored decimal (a float) rather than an exact irrational."""
+    if isinstance(value, sp.Float):
+        return True
+    if not value.is_Rational:
+        return False
+    denominator = int(value.q)
+    for prime in (2, 5):
+        while denominator % prime == 0:
+            denominator //= prime
+    return denominator == 1
+
+
+def _inexact_decimal(value: sp.Basic, student: str) -> bool:
+    """True when the student wrote a decimal numeral and the constant reference does not end as a decimal."""
+    if value.free_symbols or not _DECIMAL_NUMERAL.search(student):
+        return False
+    return not _terminating_decimal(value)
+
+
 def _sub_mark(
-    task: Task, value: sp.Basic, student: str, label: str, single: bool
+    task: Task, value: sp.Basic, student: str, label: str, single: bool, exact: bool
 ) -> Optional[Mark]:
     """The mark for one sub-answer, or None when SymPy cannot compare it with the student's answer."""
     reference = _displayed(value, task.variable)
+    if exact and _inexact_decimal(value, student):
+        return Mark(UNSURE, SYMPY_METHOD, ROUNDED_EXPLANATION, reference, WHY_RULE)
     student_value = _read_in_x(student, task.variable)
     if student_value is None:
         return None
@@ -461,8 +495,20 @@ def _combined_mark(marks: list[Mark]) -> Mark:
     return Mark(verdict, SYMPY_METHOD, explanation, reference, reason)
 
 
+def _step_reader(variable: str) -> Callable[[str], Optional[sp.Basic]]:
+    return lambda text: _read_in_x(text, variable)
+
+
+def _chain_mark(tasks: tuple[Task, ...], values: list[sp.Basic], answers: tuple[str, ...]) -> Optional[Mark]:
+    """The unsure mark when a sub-answer is a chain of equal signs with a step that does not match, else None."""
+    for task, value, answer in zip(tasks, values, answers):
+        if chain_mismatch(value, answer, _step_reader(task.variable)):
+            return chain_unsure(SYMPY_METHOD, _displayed(value, task.variable))
+    return None
+
+
 def _computed(
-    tasks: tuple[Task, ...], answers: tuple[str, ...], labels: tuple[str, ...]
+    tasks: tuple[Task, ...], answers: tuple[str, ...], labels: tuple[str, ...], exact: bool = False
 ) -> Optional[Computed]:
     """SymPy's values and the part's mark. None when any answer cannot be computed or matched."""
     students = _sub_answers(len(tasks), answers)
@@ -474,10 +520,13 @@ def _computed(
         if value is None:
             return None
         values.append(value)
+    chained = _chain_mark(tasks, values, answers)
+    if chained is not None:
+        return Computed(tasks, tuple(values), chained)
     single = len(tasks) == 1
     marks: list[Mark] = []
     for task, value, student, label in zip(tasks, values, students, labels):
-        mark = _sub_mark(task, value, student, label, single)
+        mark = _sub_mark(task, value, student, label, single, exact)
         if mark is None:
             return None
         marks.append(mark)
@@ -495,7 +544,7 @@ def deterministic_mark(statement: str, student: str, context: str = "") -> Optio
     tasks = parse_tasks(statement, context)
     if tasks is None:
         return None
-    computed = _computed(tasks, (student,), _labels(statement, len(tasks)))
+    computed = _computed(tasks, (student,), _labels(statement, len(tasks)), _asks_exact(statement))
     return None if computed is None else computed.mark
 
 
@@ -580,8 +629,8 @@ def sympy_mark(
     """
     tasks = parse_tasks(statement, context)
     if tasks is None:
-        return _kind_mark(statement, answers, fast, ledger, context)
-    computed = _computed(tasks, answers, _labels(statement, len(tasks)))
+        return _guarded_kind_mark(statement, answers, fast, ledger, context)
+    computed = _computed(tasks, answers, _labels(statement, len(tasks)), _asks_exact(statement))
     if computed is None:
         return None
     if computed.mark.verdict == UNSURE:
@@ -638,6 +687,17 @@ def _kind_cross_check(
     if reply is not None and reply.verdict == "correct":
         return _agreed(mark)
     return _disagreed(mark, attempt.answer)
+
+
+def _guarded_kind_mark(
+    statement: str, answers: tuple[str, ...], fast: AnswerSolver, ledger: CallLedger, context: str
+) -> Optional[Mark]:
+    """_kind_mark, where any unexpected failure returns None so the part falls through to the AI ladder."""
+    try:
+        return _kind_mark(statement, answers, fast, ledger, context)
+    except Exception as error:  # an unexpected SymPy-path failure is a fall-through, never a crash
+        log_failure(logger, "SymPy set, equation, or antiderivative mark failed", error)
+        return None
 
 
 def _kind_mark(

@@ -129,6 +129,14 @@ def _endpoint(text: str) -> Optional[sp.Basic]:
     return constant_or_none(text)
 
 
+def _interval(low: sp.Basic, high: sp.Basic, left_open: bool, right_open: bool) -> Optional[sp.Basic]:
+    """A SymPy interval, or None when the endpoints cannot form one (for example a non-real endpoint such as I)."""
+    try:
+        return sp.Interval(low, high, left_open=left_open, right_open=right_open)
+    except (ValueError, TypeError):
+        return None
+
+
 def _interval_piece(piece: str) -> Optional[sp.Basic]:
     """(a,b), [a,b], (a,b], or [a,b) with a or b possibly \\infty, or None when the piece is not an interval."""
     if len(piece) < 2 or piece[0] not in _INTERVAL_OPEN or piece[-1] not in _INTERVAL_CLOSE:
@@ -140,7 +148,7 @@ def _interval_piece(piece: str) -> Optional[sp.Basic]:
     high = _endpoint(bounds[1])
     if low is None or high is None:
         return None
-    return sp.Interval(low, high, left_open=piece[0] == "(", right_open=piece[-1] == ")")
+    return _interval(low, high, left_open=piece[0] == "(", right_open=piece[-1] == ")")
 
 
 def _relation_piece(piece: str) -> Optional[sp.Basic]:
@@ -160,8 +168,8 @@ def _relation_piece(piece: str) -> Optional[sp.Basic]:
         return None
     closed = op in _CLOSED_OPS
     if less:
-        return sp.Interval(-sp.oo, bound, left_open=True, right_open=not closed)
-    return sp.Interval(bound, sp.oo, left_open=not closed, right_open=True)
+        return _interval(-sp.oo, bound, left_open=True, right_open=not closed)
+    return _interval(bound, sp.oo, left_open=not closed, right_open=True)
 
 
 def _values(text: str) -> Optional[tuple[sp.Basic, ...]]:
