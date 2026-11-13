@@ -59,7 +59,8 @@ async function prepareForUpload(file: File): Promise<File> {
 
 export async function readWorksheet(file: File, mode: Mode): Promise<ReadResponse> {
   if (USE_FIXTURES) return pause(file.name.includes(UNMARKED_FILE_TAG) ? fixtureReadUnmarked : fixtureRead);
-  const prepared = await prepareForUpload(file);
+  // Replay finds a saved run by the hash of the photo's bytes, so only a live read may re-encode the photo.
+  const prepared = mode === "live" ? await prepareForUpload(file) : file;
   const form = new FormData();
   form.append("file", prepared);
   form.append("mode", mode);

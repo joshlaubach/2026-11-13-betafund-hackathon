@@ -2,6 +2,7 @@
 
 import katex from "katex";
 import { useMemo } from "react";
+import { wrapBareLatex } from "@/lib/mathtext";
 
 function render(latex: string, display: boolean): string {
   return katex.renderToString(latex, {
@@ -25,7 +26,7 @@ const MATH_SPLIT = /(\$\$[^$]+\$\$|\$[^$]+\$)/g;
 
 // Text with $...$ segments, such as a problem statement. Plain text stays plain text.
 export function MathText({ text }: { text: string }) {
-  const parts = useMemo(() => text.split(MATH_SPLIT).filter((part) => part !== ""), [text]);
+  const parts = useMemo(() => wrapBareLatex(text).split(MATH_SPLIT).filter((part) => part !== ""), [text]);
   return (
     <>
       {parts.map((part, index) => {
