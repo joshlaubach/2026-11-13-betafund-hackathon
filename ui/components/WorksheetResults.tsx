@@ -108,7 +108,16 @@ function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProp
       <dl className="answers">
         <div>
           <dt>Student&apos;s answer</dt>
-          <dd>{answers.length > 0 ? answers.map((answer, index) => <Tex key={index} latex={answer} />) : "Nothing"}</dd>
+          <dd>
+            {answers.length > 0
+              ? answers.map((answer, index) => (
+                  <span key={index} className="answer-item">
+                    <Tex latex={answer} />
+                    {index < answers.length - 1 && <span aria-hidden="true">;&nbsp;</span>}
+                  </span>
+                ))
+              : "Nothing"}
+          </dd>
         </div>
         {grade.reference_answer_latex && (
           <div>
@@ -125,7 +134,9 @@ function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProp
           <Tex latex={item.student_answer_latex} />
         </details>
       )}
-      <p className="explain">{grade.explanation}</p>
+      <p className="explain">
+        <MathText text={grade.explanation} />
+      </p>
       {reasonLine && <p className="explain">{reasonLine}</p>}
       <p className="label">{grade.label}</p>
       {item.explanation_text && (
