@@ -1,6 +1,14 @@
 // Fake data for design work and for running the page without the Python server.
 // Labels here are copied from core/worksheet_types.py so the page shows the same words.
-import type { GradeResponse, ProblemsResponse, ReadResponse } from "./types";
+import type {
+  GradedItem,
+  GradeMethod,
+  GradeReason,
+  GradeResponse,
+  ProblemsResponse,
+  ReadResponse,
+  WorksheetItem,
+} from "./types";
 
 export const LABELS = {
   bank_key: "Marked against a verified bank answer, compared by SymPy",
@@ -53,6 +61,50 @@ export const fixtureRead: ReadResponse = {
   },
 };
 
+// A part for the reason rows below. Its statement and answer are plain text, not LaTeX.
+function reasonItem(number: number, partLabel: string, statement: string, answer: string): WorksheetItem {
+  return {
+    number, part_label: partLabel, statement_latex: statement,
+    student_answer_latex: answer, final_answers_latex: [answer], explanation_text: "",
+    context_latex: DRONE_CONTEXT, topic_guess: null, confidence: "high", notes: "",
+  };
+}
+
+// One unsure row for a reason. Its explanation is the wording the server sends for that case.
+function reasonRow(
+  number: number,
+  partLabel: string,
+  statement: string,
+  answer: string,
+  method: GradeMethod,
+  reason: GradeReason,
+  explanation: string,
+): GradedItem {
+  return {
+    regraded: false,
+    changed_on_regrade: false,
+    item: reasonItem(number, partLabel, statement, answer),
+    grade: {
+      verdict: "unsure", method, label: LABELS[method], reference_answer_latex: null,
+      explanation, bank_topic: null, bank_id: null, reason,
+    },
+  };
+}
+
+// Fixture mode shows one row of each reason, so every reason line and Regrade case is visible.
+const REASON_ROWS: GradedItem[] = [
+  reasonRow(5, "e", "Find the total distance.", "3", "not_graded", "reading",
+    "The writing for this part was faint or unclear, so Echo did not mark it. Compare the reading with the photo, then try a clearer photo."),
+  reasonRow(6, "f", "Describe the shape of the velocity.", "a curve", "ai_judgment", "format",
+    "the student's answer could not be read by SymPy, so this mark is unsure."),
+  reasonRow(7, "g", "Find the slope at the end.", "2", "ai_ladder", "disagreement",
+    "The three AI solves gave 2, 3, and 4; no two agree, so this mark is unsure."),
+  reasonRow(8, "h", "Explain the velocity trend.", "rising", "ai_judgment", "no_verdict",
+    "the AI judge could not give a verdict, so this mark is unsure."),
+  reasonRow(9, "i", "Find the antiderivative of 3.", "3x", "sympy_computed", "rule",
+    "answers differ by a constant; check for + C"),
+];
+
 export const fixtureGrade: GradeResponse = {
   disclaimer: DISCLAIMER,
   unplaced: 3,
@@ -68,10 +120,11 @@ export const fixtureGrade: GradeResponse = {
     { rank: 3, topic: "power_rule", title: "Power rule", status: "shaky", reason: "Got 1 of 2 problems right on this topic (2 verified marks).", suggested_level: 2, echo_checked: true },
   ],
   graded: [
-    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[0], grade: { verdict: "correct", method: "sympy_computed", label: LABELS.sympy_computed, reference_answer_latex: "0", explanation: "The student's answer 0 matches SymPy's computed answer 0 at 10 sample points, checked by SymPy. An independent AI solve agreed with SymPy's answer.", bank_topic: null, bank_id: null } },
-    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[1], grade: { verdict: "incorrect", method: "sympy_computed", label: LABELS.sympy_computed, reference_answer_latex: "4 + e^{-5}", explanation: "The student's answer 6 - e^{5} does not match SymPy's computed answer 4 + e^{-5}: SymPy found different values at a sample point.", bank_topic: null, bank_id: null } },
-    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[2], grade: { verdict: "correct", method: "sympy_computed", label: LABELS.sympy_computed, reference_answer_latex: "e^{- t}; 1", explanation: "v'(t): SymPy computes e^{- t}; the student wrote e^{-t}. v'(0): SymPy computes 1; the student wrote 1. An independent AI solve agreed with SymPy's answer.", bank_topic: null, bank_id: null } },
-    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[3], grade: { verdict: "correct", method: "ai_ladder", label: LABELS.ai_ladder, reference_answer_latex: "1", explanation: "The student's answer 1 matches the agreed AI answer 1 at 10 sample points, checked by SymPy. 2 of 2 independent AI solves agree.", bank_topic: null, bank_id: null } },
+    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[0], grade: { verdict: "correct", method: "sympy_computed", label: LABELS.sympy_computed, reference_answer_latex: "0", explanation: "The student's answer 0 matches SymPy's computed answer 0 at 10 sample points, checked by SymPy. An independent AI solve agreed with SymPy's answer.", bank_topic: null, bank_id: null, reason: null } },
+    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[1], grade: { verdict: "incorrect", method: "sympy_computed", label: LABELS.sympy_computed, reference_answer_latex: "4 + e^{-5}", explanation: "The student's answer 6 - e^{5} does not match SymPy's computed answer 4 + e^{-5}: SymPy found different values at a sample point.", bank_topic: null, bank_id: null, reason: null } },
+    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[2], grade: { verdict: "correct", method: "sympy_computed", label: LABELS.sympy_computed, reference_answer_latex: "e^{- t}; 1", explanation: "v'(t): SymPy computes e^{- t}; the student wrote e^{-t}. v'(0): SymPy computes 1; the student wrote 1. An independent AI solve agreed with SymPy's answer.", bank_topic: null, bank_id: null, reason: null } },
+    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[3], grade: { verdict: "correct", method: "ai_ladder", label: LABELS.ai_ladder, reference_answer_latex: "1", explanation: "The student's answer 1 matches the agreed AI answer 1 at 10 sample points, checked by SymPy. 2 of 2 independent AI solves agree.", bank_topic: null, bank_id: null, reason: null } },
+    ...REASON_ROWS,
   ],
 };
 
@@ -170,6 +223,7 @@ export const fixtureGradeUnmarked: GradeResponse = {
       explanation: UNMARKED_EXPLANATION,
       bank_topic: null,
       bank_id: null,
+      reason: "reading",
     },
   })),
 };

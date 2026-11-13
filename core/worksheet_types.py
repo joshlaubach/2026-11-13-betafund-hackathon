@@ -16,6 +16,8 @@ GradeMethod = Literal[
     "bank_key", "sympy_computed", "ai_ladder", "ai_solve_sympy", "ai_judgment", "not_graded"
 ]
 SkillStatus = Literal["solid", "shaky", "weak", "not_enough_data"]
+# Why an unsure or not-marked grade is unsure. None for correct and incorrect grades.
+UnsureReason = Literal["reading", "format", "disagreement", "no_verdict", "rule"]
 
 # Plain-words labels shown to the user next to every mark. One place, so the page and the
 # server never disagree about what a mark claims.
@@ -82,6 +84,7 @@ class Grade(Frozen):
     explanation: str = ""  # one or two plain sentences
     bank_topic: Optional[str] = None  # set only when method == "bank_key"
     bank_id: Optional[str] = None
+    reason: Optional[UnsureReason] = None  # set only on unsure grades; None keeps old saved files loading
 
 
 class GradedItem(Frozen):

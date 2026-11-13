@@ -76,10 +76,14 @@ def test_set_crosscheck_ai_list_of_a_different_set_makes_a_correct_mark_unsure()
     assert "may have been read wrongly" in grade.explanation
 
 
-def test_set_crosscheck_unreadable_ai_reply_stays_unsure() -> None:
+def test_set_crosscheck_unreadable_ai_reply_keeps_the_sympy_mark() -> None:
     solver = _ai(FUNCTION_SETUP, CRITICAL, "the critical points are nice")
     grade = _grade_one(FUNCTION_SETUP, CRITICAL, ("0; 2",), solver)
-    assert grade.verdict == "unsure"
+    assert grade.verdict == "correct"
+    assert grade.method == "sympy_computed"
+    assert grade.reason is None
+    assert sympy_task.UNPARSABLE_CROSS_CHECK in grade.explanation
+    assert "may have been read wrongly" not in grade.explanation
 
 
 def test_set_crosscheck_spacing_is_removed_from_set_replies_only() -> None:

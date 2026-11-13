@@ -26,7 +26,7 @@ from core.derivative_checker import (
     strip_constant,
 )
 from core.equations import SYMPY_METHOD, ask_text, read_or_none
-from core.solvers import NEGATIVE_SAMPLE_POINTS, Mark
+from core.solvers import NEGATIVE_SAMPLE_POINTS, WHY_RULE, Mark
 
 MATCH = "match"
 MISMATCH = "mismatch"
@@ -194,7 +194,7 @@ def _domain_mark(check: Check, value: sp.Basic) -> Mark:
     side = AGREES_ON[check.missing[0]]
     answer = plain_antiderivative(value)
     explanation = DOMAIN_TEXT.format(side=side, answer=answer)
-    return Mark("unsure", SYMPY_METHOD, explanation, f"{sp.latex(value)} + C")
+    return Mark("unsure", SYMPY_METHOD, explanation, f"{sp.latex(value)} + C", WHY_RULE)
 
 
 def _mismatch_mark(check: Check, value: sp.Basic, shown: str) -> Mark:
@@ -212,7 +212,7 @@ def _match_mark(check: Check, value: sp.Basic, shown: str, integrand: sp.Basic, 
     reference = f"{sp.latex(value)} + C"
     if not has_constant:
         text = MISSING_CONSTANT_TEXT.format(integrand=sp.latex(integrand))
-        return Mark("unsure", SYMPY_METHOD, text, reference)
+        return Mark("unsure", SYMPY_METHOD, text, reference, WHY_RULE)
     text = CORRECT_TEXT.format(shown=shown, integrand=sp.latex(integrand), count=check.matched)
     return Mark("correct", SYMPY_METHOD, text, reference)
 

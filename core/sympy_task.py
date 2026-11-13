@@ -38,6 +38,8 @@ from core.solvers import (
     EQUAL,
     AnswerSolver,
     CallLedger,
+    WHY_DISAGREEMENT,
+    WHY_RULE,
     Comparison,
     Mark,
     ask_solve,
@@ -430,14 +432,15 @@ def _sub_mark(
         return None
     comparison = compare_expressions(value, student_value)
     if _is_rounded_decimal(value, student, comparison):
-        return Mark(UNSURE, SYMPY_METHOD, ROUNDED_EXPLANATION, reference)
+        return Mark(UNSURE, SYMPY_METHOD, ROUNDED_EXPLANATION, reference, WHY_RULE)
     if single:
         return comparison_mark(comparison, student, reference, SYMPY_METHOD, SOURCE_PHRASE)
     verdict = _sub_verdict(comparison)
     if verdict is None:
         return None
     explanation = f"{label}: SymPy computes {reference}; the student wrote {student}."
-    return Mark(verdict, SYMPY_METHOD, explanation, reference)
+    reason = WHY_RULE if verdict == UNSURE else None
+    return Mark(verdict, SYMPY_METHOD, explanation, reference, reason)
 
 
 def _combined_mark(marks: list[Mark]) -> Mark:
@@ -453,7 +456,9 @@ def _combined_mark(marks: list[Mark]) -> Mark:
         verdict = UNSURE
     explanation = " ".join(mark.explanation for mark in marks)
     reference = "; ".join(mark.reference or "" for mark in marks)
-    return Mark(verdict, SYMPY_METHOD, explanation, reference)
+    unsure_reasons = [mark.reason for mark in marks if mark.verdict == UNSURE and mark.reason]
+    reason = unsure_reasons[0] if verdict == UNSURE and unsure_reasons else None
+    return Mark(verdict, SYMPY_METHOD, explanation, reference, reason)
 
 
 def _computed(
@@ -541,7 +546,7 @@ def _unparsable(mark: Mark) -> Mark:
 
 def _disagreed(mark: Mark, ai_answer: str) -> Mark:
     explanation = CROSS_CHECK_DISAGREES.format(computed=mark.reference, ai=ai_answer)
-    return Mark(UNSURE, SYMPY_METHOD, explanation, mark.reference)
+    return Mark(UNSURE, SYMPY_METHOD, explanation, mark.reference, WHY_DISAGREEMENT)
 
 
 def _cross_check(full: str, computed: Computed, fast: AnswerSolver, ledger: CallLedger) -> Mark:
@@ -627,9 +632,8 @@ def _kind_cross_check(
     module = _kind_module(spec)
     reply_answers = (_reply_text(spec, attempt.answer),)
     reply = None if module is None else module.mark_spec(spec, value, reply_answers)
-    # A reply the module cannot read leaves the SymPy mark alone, except for solution sets:
-    # test_set_crosscheck_unreadable_ai_reply_stays_unsure pins that an unreadable set reply stays unsure.
-    if reply is None and not solution_sets.owns(spec):
+    # A reply the module cannot read leaves the SymPy mark alone: it confirms nothing and changes nothing.
+    if reply is None:
         return _unparsable(mark)
     if reply is not None and reply.verdict == "correct":
         return _agreed(mark)

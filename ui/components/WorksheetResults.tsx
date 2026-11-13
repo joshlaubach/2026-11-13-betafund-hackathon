@@ -1,6 +1,6 @@
 "use client";
 
-import type { GradedItem, GradeMethod, Verdict } from "@/lib/types";
+import type { GradedItem, GradeMethod, GradeReason, Verdict } from "@/lib/types";
 import { MathText, Tex } from "./Tex";
 
 const VERDICT_WORDS: Record<Verdict, string> = {
@@ -12,6 +12,14 @@ const VERDICT_GLYPH: Record<Verdict, string> = { correct: "✓", incorrect: "✗
 // Verified marks come from the bank or from SymPy's own computation; AI marks may be regraded.
 const VERIFIED_METHODS: readonly GradeMethod[] = ["bank_key", "sympy_computed"];
 const AI_METHODS: readonly GradeMethod[] = ["ai_ladder", "ai_solve_sympy", "ai_judgment"];
+
+// One short line under an unsure or not-marked row. "rule" has none: its explanation already names the fix.
+const REASON_LINES: Partial<Record<GradeReason, string>> = {
+  reading: "Echo could not read this part clearly. Retake a clearer photo of it.",
+  format: "Echo could not compare the forms of the answers.",
+  disagreement: "Independent AI solves disagreed. Check this one yourself or try Regrade.",
+  no_verdict: "The AI gave no answer for this part. Try Regrade.",
+};
 
 const NOT_MARKED_FALLBACK =
   "It may not be a calculus worksheet, or the photo may be too unclear to read. Try a clearer, closer photo.";
@@ -54,8 +62,15 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
         ? "Not verified"
         : "AI-graded";
   const answers = studentAnswers(entry);
+  const reasonLine = grade.verdict === "unsure" && grade.reason ? REASON_LINES[grade.reason] : undefined;
+  // Only AI-graded rows get the AI edge. A SymPy or unmarked row that is not verified keeps the plain edge.
+  const edgeClass = verified ? "row-verified" : aiBased ? "row-ai" : "row-plain";
+  // Regrade is offered for AI rows, and for unsure rows where no answer came back or the solves disagreed.
+  const retryableUnsure =
+    grade.verdict === "unsure" && (grade.reason === "no_verdict" || grade.reason === "disagreement");
+  const offerRegrade = aiBased || retryableUnsure;
   return (
-    <li className={`row ${verified ? "row-verified" : "row-ai"}`}>
+    <li className={`row ${edgeClass}`}>
       <div className="row-head">
         <span className={`verdict verdict-${grade.verdict}`}>
           <span aria-hidden="true">{VERDICT_GLYPH[grade.verdict]}</span> {VERDICT_WORDS[grade.verdict]}
@@ -87,6 +102,7 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
         </details>
       )}
       <p className="explain">{grade.explanation}</p>
+      {reasonLine && <p className="explain">{reasonLine}</p>}
       <p className="label">{grade.label}</p>
       {item.explanation_text && (
         <p className="written">
@@ -98,7 +114,7 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
           This mark changed when regraded. Treat it with extra care.
         </p>
       )}
-      {aiBased && (
+      {offerRegrade && (
         <button className="quiet" onClick={() => onRegrade(entry)} disabled={busy}>
           {busy ? "Regrading…" : "Regrade"}
         </button>

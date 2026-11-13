@@ -38,6 +38,8 @@ from core.solvers import (  # noqa: F401 - re-exported for callers and tests
     CONSTANT_EXPLANATION,
     JUDGE_FAILED_EXPLANATION,
     UNCOMPARED_EXPLANATION,
+    WHY_FORMAT,
+    WHY_READING,
     AnswerSolver,
     CallBudget,
     CallLedger,
@@ -418,6 +420,8 @@ def _question(item: WorksheetItem) -> Optional[Question]:
 
 
 def _grade_from_mark(mark: Mark, bank_problem: Optional[dict] = None) -> Grade:
+    """The grade for a mark. Only an unsure mark carries a reason, so a correct or incorrect grade has none."""
+    is_unsure = mark.verdict == "unsure"
     return Grade(
         verdict=mark.verdict,
         method=mark.method,
@@ -426,6 +430,7 @@ def _grade_from_mark(mark: Mark, bank_problem: Optional[dict] = None) -> Grade:
         explanation=mark.explanation,
         bank_topic=bank_problem["topic"] if bank_problem is not None else None,
         bank_id=str(bank_problem["id"]) if bank_problem is not None else None,
+        reason=mark.reason if is_unsure else None,
     )
 
 
@@ -435,15 +440,16 @@ def _bank_grade(problem: dict, student: str) -> Grade:
         compare_answers(reference, student), student, reference, BANK_METHOD, "the verified key"
     )
     if mark is None:
-        mark = Mark("unsure", BANK_METHOD, UNCOMPARED_EXPLANATION, reference)
+        mark = Mark("unsure", BANK_METHOD, UNCOMPARED_EXPLANATION, reference, WHY_FORMAT)
     return _grade_from_mark(mark, problem)
 
 
 def _no_answer_grade(problem: Optional[dict]) -> Grade:
     if problem is None:
-        return _grade_from_mark(Mark("unsure", JUDGE_METHOD, NO_ANSWER_EXPLANATION))
+        return _grade_from_mark(Mark("unsure", JUDGE_METHOD, NO_ANSWER_EXPLANATION, reason=WHY_READING))
     return _grade_from_mark(
-        Mark("unsure", BANK_METHOD, NO_ANSWER_EXPLANATION, _reference_latex(problem)), problem
+        Mark("unsure", BANK_METHOD, NO_ANSWER_EXPLANATION, _reference_latex(problem), WHY_READING),
+        problem,
     )
 
 
@@ -473,7 +479,9 @@ def grade_item(
     A single solver is used for every rung. Never raises for a solver failure.
     """
     if item.confidence == "low":  # a misread part must never earn a verified-looking mark
-        return _grade_from_mark(Mark("unsure", NOT_GRADED_METHOD, LOW_CONFIDENCE_EXPLANATION))
+        return _grade_from_mark(
+            Mark("unsure", NOT_GRADED_METHOD, LOW_CONFIDENCE_EXPLANATION, reason=WHY_READING)
+        )
     problems = _eligible_bank() if bank is None else tuple(bank)
     problem = _bank_match(item, problems)
     question = _question(item)

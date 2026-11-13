@@ -9,6 +9,8 @@ export type GradeMethod =
   | "ai_judgment"
   | "not_graded";
 export type SkillStatus = "solid" | "shaky" | "weak" | "not_enough_data";
+// Why an unsure or not-marked grade is unsure. null for correct and incorrect grades.
+export type GradeReason = "reading" | "format" | "disagreement" | "no_verdict" | "rule";
 export type Mode = "live" | "replay" | "fake" | "bank";
 
 export interface WorksheetItem {
@@ -38,6 +40,7 @@ export interface Grade {
   explanation: string;
   bank_topic: string | null;
   bank_id: string | null;
+  reason: GradeReason | null;
 }
 
 export interface GradedItem {

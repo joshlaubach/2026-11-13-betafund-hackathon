@@ -34,7 +34,7 @@ from core.drafter import (
 )
 from core.input_boundary import BoundaryError
 from core.latex_reader import read_latex
-from core.worksheet_types import GradeMethod, Verdict, join_statement
+from core.worksheet_types import GradeMethod, UnsureReason, Verdict, join_statement
 
 logger = logging.getLogger(__name__)
 ENV_API_KEY = "ANTHROPIC_API_KEY"
@@ -51,6 +51,12 @@ DIFFERENT = "different"
 DOMAIN_DIFFERS = "domain_differs"
 UNKNOWN = "unknown"
 NEGATIVE_SAMPLE_POINTS = tuple(-point for point in SAMPLE_POINTS)
+# Why a mark is unsure, shown to the user next to the mark. Set only on unsure marks.
+WHY_READING: UnsureReason = "reading"  # the part or answer was not read clearly
+WHY_FORMAT: UnsureReason = "format"  # SymPy could not read the answer's form
+WHY_DISAGREEMENT: UnsureReason = "disagreement"  # an independent solve differs
+WHY_NO_VERDICT: UnsureReason = "no_verdict"  # a model call failed or gave no verdict
+WHY_RULE: UnsureReason = "rule"  # a known rule fired, and its explanation names the fix
 CONSTANT_REL_TOLERANCE = 1e-12  # constants are exact, so they get a much tighter bound than sampled x
 CONSTANT_EXPLANATION = "answers differ by a constant; check for + C"
 DOMAIN_EXPLANATION = (
@@ -122,6 +128,7 @@ class Mark(NamedTuple):
     method: GradeMethod
     explanation: str
     reference: Optional[str] = None
+    reason: Optional[UnsureReason] = None  # set only when verdict is unsure
 
 
 class Attempt(NamedTuple):
@@ -498,9 +505,9 @@ def comparison_mark(
 ) -> Optional[Mark]:
     """A mark from a comparison, or None when SymPy could not compare the answers."""
     if comparison.constant_offset:
-        return Mark("unsure", method, CONSTANT_EXPLANATION, reference)
+        return Mark("unsure", method, CONSTANT_EXPLANATION, reference, WHY_RULE)
     if comparison.status == DOMAIN_DIFFERS:
-        return Mark("unsure", method, DOMAIN_EXPLANATION, reference)
+        return Mark("unsure", method, DOMAIN_EXPLANATION, reference, WHY_RULE)
     if comparison.status == EQUAL:
         explanation = (
             f"The student's answer {student} matches {source_phrase} {reference} "

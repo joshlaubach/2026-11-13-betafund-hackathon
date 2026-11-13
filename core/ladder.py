@@ -18,6 +18,9 @@ from core.drafter import DEFAULT_EFFORT
 from core.solvers import (
     ITEM_CALL_CAP,
     JUDGE_FAILED_EXPLANATION,
+    WHY_DISAGREEMENT,
+    WHY_FORMAT,
+    WHY_NO_VERDICT,
     AnswerSolver,
     Attempt,
     CallBudget,
@@ -33,7 +36,7 @@ from core.solvers import (
     log_failure,
 )
 from core.sympy_task import sympy_mark
-from core.worksheet_types import GradeMethod
+from core.worksheet_types import GradeMethod, UnsureReason
 
 logger = logging.getLogger(__name__)
 ENV_MODEL_FAST = "ECHO_MODEL_FAST"
@@ -123,19 +126,28 @@ def _unsure_reason(question: Question, cause: str) -> str:
 
 
 def _judge(
-    question: Question, rung: AnswerSolver, ledger: CallLedger, effort: Optional[str], cause: str
+    question: Question,
+    rung: AnswerSolver,
+    ledger: CallLedger,
+    effort: Optional[str],
+    cause: str,
+    unsure_reason: UnsureReason,
 ) -> Mark:
-    """The judge tier: Sonnet judges the written answer. Only used when no answer can be compared."""
+    """The judge tier: Sonnet judges the written answer. Only used when no answer can be compared.
+
+    unsure_reason is why the judge's own unsure answer is unsure: its form, or no verdict.
+    """
     refusal = ledger.take()
     if refusal is not None:
-        return Mark(UNSURE, JUDGE, refusal)
+        return Mark(UNSURE, JUDGE, refusal, reason=WHY_NO_VERDICT)
     try:
         verdict = rung.judge(question.full, question.judged, effort).verdict
     except Exception as error:  # a judge failure is an unsure mark, never a crash
         log_failure(logger, "judge call failed", error)
-        return Mark(UNSURE, JUDGE, JUDGE_FAILED_EXPLANATION)
+        return Mark(UNSURE, JUDGE, JUDGE_FAILED_EXPLANATION, reason=WHY_NO_VERDICT)
     if verdict == UNSURE:
-        return Mark(UNSURE, JUDGE, _unsure_reason(question, cause) + UNSURE_SUFFIX)
+        explanation = _unsure_reason(question, cause) + UNSURE_SUFFIX
+        return Mark(UNSURE, JUDGE, explanation, reason=unsure_reason)
     return Mark(verdict, JUDGE, JUDGED.format(student=question.compared, verdict=verdict))
 
 
@@ -151,7 +163,7 @@ def _against_agreed(
     comparison = compare_answers(reference, question.compared)
     mark = comparison_mark(comparison, question.compared, reference, AI_LADDER, AGREED_PHRASE)
     if mark is None:
-        return _judge(question, rungs.mid, ledger, effort, REASON_STUDENT_UNREADABLE)
+        return _judge(question, rungs.mid, ledger, effort, REASON_STUDENT_UNREADABLE, WHY_FORMAT)
     if mark.verdict == UNSURE:
         return mark  # an unsure reason (such as + C) is shown as it is
     note = AGREE_NOTE.format(count=agreeing, total=total)
@@ -169,15 +181,15 @@ def _tiebreak(
     """Opus solves once. It settles the disagreement only by matching one of the two answers."""
     top = ask_solve(rungs.top, question.full, ledger, effort)
     if top.refusal is not None:
-        return Mark(UNSURE, AI_LADDER, top.refusal)
+        return Mark(UNSURE, AI_LADDER, top.refusal, reason=WHY_NO_VERDICT)
     if top.answer is None:
-        return Mark(UNSURE, AI_LADDER, TIEBREAK_FAILED)
+        return Mark(UNSURE, AI_LADDER, TIEBREAK_FAILED, reason=WHY_NO_VERDICT)
     if _agrees(fast_answer, top.answer):
         return _against_agreed(question, fast_answer, 2, 3, rungs, ledger, effort)
     if _agrees(mid_answer, top.answer):
         return _against_agreed(question, mid_answer, 2, 3, rungs, ledger, effort)
     listing = THREE_WAY.format(first=fast_answer, second=mid_answer, third=top.answer)
-    return Mark(UNSURE, AI_LADDER, listing)
+    return Mark(UNSURE, AI_LADDER, listing, reason=WHY_DISAGREEMENT)
 
 
 def ai_mark(
@@ -191,15 +203,17 @@ def ai_mark(
     The judge tier takes over when the student's answer or either solve cannot be read by SymPy.
     """
     if not is_readable(question.compared):
-        return _judge(question, rungs.mid, ledger, effort, REASON_STUDENT_UNREADABLE)
+        return _judge(question, rungs.mid, ledger, effort, REASON_STUDENT_UNREADABLE, WHY_FORMAT)
     fast = ask_solve(rungs.fast, question.full, ledger, effort)
     if fast.refusal is not None:
-        return Mark(UNSURE, AI_LADDER, fast.refusal)
+        return Mark(UNSURE, AI_LADDER, fast.refusal, reason=WHY_NO_VERDICT)
     mid = ask_solve(rungs.mid, question.full, ledger, effort)
     if mid.refusal is not None:
-        return Mark(UNSURE, AI_LADDER, mid.refusal)
+        return Mark(UNSURE, AI_LADDER, mid.refusal, reason=WHY_NO_VERDICT)
     if not (_readable_answer(fast.answer) and _readable_answer(mid.answer)):
-        return _judge(question, rungs.mid, ledger, effort, REASON_SOLVE_UNREADABLE)
+        solve_failed = fast.answer is None or mid.answer is None
+        reason = WHY_NO_VERDICT if solve_failed else WHY_FORMAT
+        return _judge(question, rungs.mid, ledger, effort, REASON_SOLVE_UNREADABLE, reason)
     if _agrees(str(fast.answer), str(mid.answer)):
         return _against_agreed(question, str(fast.answer), 2, 2, rungs, ledger, effort)
     return _tiebreak(question, str(fast.answer), str(mid.answer), rungs, ledger, effort)
@@ -231,4 +245,4 @@ def regrade_mark(question: Question, rungs: Rungs) -> Mark:
         )
         if mark is not None:
             return mark
-    return _judge(question, rungs.mid, ledger, REGRADE_EFFORT, REASON_JUDGE_UNSURE)
+    return _judge(question, rungs.mid, ledger, REGRADE_EFFORT, REASON_JUDGE_UNSURE, WHY_NO_VERDICT)
