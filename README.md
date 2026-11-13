@@ -14,7 +14,7 @@ Echo keeps the speed of AI and removes the risk: **no AI-written problem reaches
 
 ## The math in one minute
 
-Echo covers **Calculus I and II**. The examples below use integration by substitution, one Calculus I topic, because it is the first and deepest checker we are building.
+Echo covers **Calculus I and II**. The one checker built so far is for the **power rule**, a Calculus I derivative topic. The integration-by-substitution examples further down describe a checker that is **planned, not built yet**; they are marked as such.
 
 - A **derivative** tells you how fast something is changing. The derivative of $x^2$ is $2x$.
 - An **integral** goes the other way: it finds what you started with, given how fast it was changing. It is written $\int f(x)\,dx$, and an answer to it is called an **antiderivative**.
@@ -32,7 +32,9 @@ Echo covers **Calculus I and II**. The examples below use integration by substit
 
 In the chat, the AI proposes a problem with a wrong answer key. The checker **rejects it**, and the bot explains *why*, using the checker's own numbers.
 
-Here is a real example of the kind of mistake it catches. The problem is:
+**What works today (run `python scripts/demo_wrong_key.py`).** The problem is "Find $f'(x)$ for $f(x) = x^4 + 3x^2 + 7$". The checker computes the derivative itself and compares it with the key on 10 test points. The correct key $4x^3 + 6x$ is accepted. The same key with $+1$ added is rejected with: "at x = 0.3137 the checker computes 2.00568 but the key gives 3.00568". Those numbers come from the checker, not from the AI. The wrong key in this demo was made on purpose (the bank key plus 1); it is not something a live AI produced.
+
+**What is planned, not built (integral checker).** Here is the kind of mistake the substitution checker is meant to catch. The problem is:
 
 $$\int \frac{2}{x}\,dx \quad \text{for } x > 0$$
 
@@ -54,7 +56,9 @@ Echo is aimed at **all of Calculus I and II**, which is 90 topics in the problem
 
 ## How the checker decides
 
-This describes the checker for integrals, the first one built. Other topics get their own checker that follows the same idea: recompute the answer independently, then compare. A problem has to pass **every** test below. Failing any one means rejection.
+**Built today:** the power-rule derivative checker (`core/derivative_checker.py`). It reads the problem and key with a strict reader, derives the answer with SymPy, and compares on 10 test points that sit off any regular grid (so a key cannot sneak through by matching only at neat numbers). At least 6 points must be usable. A key with the wrong value at any point is rejected, and an unreadable key is refused rather than guessed at.
+
+**Planned, not built:** the integral checker described below. Other topics get their own checker that follows the same idea: recompute the answer independently, then compare. For the integral checker, a problem has to pass **every** test below. Failing any one means rejection.
 
 1. **Safe reading.** The problem and answer are read with a strict grammar and never run as code, so a bad or oversized input cannot break Echo. A check that takes more than 5 seconds hits the timeout and is stopped.
 2. **Does the problem make sense?** The formula must work at every number in the domain. A spot where it breaks, like dividing by zero, makes the problem invalid.
@@ -79,8 +83,8 @@ Venue wifi is unreliable, so Echo has four fallbacks:
 | If this fails | Echo does this instead |
 |---|---|
 | The photo reader gets the handwriting wrong | The tutor corrects it on the confirm screen |
-| Fewer than three AI drafts pass | It fills in from the problem bank, then from the template generator, and labels where each problem came from |
-| The AI is slow or offline | A clearly labeled **replay** of a saved run, plus the template generator, which works offline |
+| Fewer than three AI drafts pass | It fills in from the problem bank and labels where each problem came from. (A template generator was planned; it is not built.) |
+| The AI is slow or offline, or there is no API key | A clearly labeled **replay** of a saved run, or the bank problems with their own label |
 | The laptop dies | A backup demo video |
 
 The checker runs **on the laptop itself**, so it never depends on the internet.
@@ -109,22 +113,40 @@ Level 5, a second difficulty scale, a trained difficulty estimator, extra topics
 
 ## Project status
 
-> **Update this table before submitting.** It shows what exists in the repository right now.
+> Last updated 2026-11-12 (Thursday evening). It shows what exists in the repository right now.
 
 | Piece | Status |
 |---|---|
 | Build plan for Calculus I and II, reviewed and approved by a second AI ([`PLAN.md`](PLAN.md), [`PLAN-REVIEW-LOG.md`](PLAN-REVIEW-LOG.md)) | Done |
 | Problem bank ([`docs/verified_problems.json`](docs/verified_problems.json)) | Done |
-| Bank audit and test scripts | Not built yet |
-| Checkers (one per topic) | Not built yet. Topics checked so far: 0 (the audit script will report how many topics are usable) |
-| Chat and photo upload | Not built yet |
-| Template generator | Not built yet |
-| Worksheet download | Not built yet |
-| Saved replay and backup video | Not made yet |
+| Bank audit script | Done. 3,405 of 3,450 level 1 to 4 problems are usable; 88 of 90 topics have at least one |
+| Strict input reader and LaTeX reader (`core/`) | Done. Reads 2,537 bank answers correctly and none wrongly; 230 are refused instead of guessed |
+| Checkers (one per topic) | **1 of 90 topics Echo-checked: `power_rule`.** Gate result: 40 of 40 problems supported, the checker accepted all 40 bank keys and rejected all 120 deliberately wrong keys |
+| Labeled bank fallback | Done. Every other usable topic serves bank problems labeled "bank-verified, not Echo-checked" |
+| AI drafting layer | Done and used live once (`claude-sonnet-5-5`, 3 of 5 drafts accepted, all hand-checked). Live, replay and scripted (fake) sources |
+| One entry point for the chat (`core/entry.py`) | Done. Falls back to replay or bank with a plain-words note |
+| Saved replay | `replay/power_rule_L2.json` is a saved **live** run. `replay/power_rule_L2_fake.json` is **scripted** (made without a model) and is labeled that way |
+| Chat and photo upload, photo reading, level check | Not built yet |
+| Template generator | Dropped; the bank fills the gap instead |
+| Worksheet download, backup video | Not built yet |
+
+What the gate does and does not show: it shows the checker agrees with the bank's keys and rejects corrupted ones. The bank may come from similar checking code, so this is consistency, not independent proof.
 
 ### Running it
 
-Run instructions will be added here when the app exists.
+You need Python 3.10 or newer and these packages: `sympy`, `pydantic`, `python-dotenv`, `pytest`, and `anthropic` (only for live mode). There is no `requirements.txt` yet. All commands run from this folder.
+
+```bash
+python -m pytest tests -q                 # 560 tests, all offline
+python scripts/gate_power_rule.py         # run this first: writes build/gate_power_rule.json
+python scripts/demo_wrong_key.py          # accepted key, then a wrong key rejected with numbers
+python scripts/demo_fallback.py           # the three labels: Echo-checked, bank, unsupported
+python scripts/demo_entry.py --mode replay                            # no key, no internet
+python scripts/demo_entry.py --mode bank --topic u_substitution --level 2
+python scripts/demo_entry.py --mode fake                              # scripted drafts, no model
+```
+
+The `build/` folder is not committed, so the gate script must be run once before the demos. Live mode needs a key: copy `.env.example` to `.env`, fill in `ANTHROPIC_API_KEY`, and run `python scripts/live_smoke.py`. Without a key, live mode falls back to the bank and says so.
 
 ---
 
@@ -137,5 +159,7 @@ Run instructions will be added here when the app exists.
 | [`docs/verified_problems.json`](docs/verified_problems.json) | The problem bank: 3,510 problems in 90 calculus topics. Echo uses levels 1 to 4 (3,450 problems), minus any problem that fails our audit |
 | [`docs/`](docs/) | Notes on progress, decisions, and known problems |
 | [`app/`](app/) | The checking code, reused from the author's existing AI math tutor. It is sorted into `calc1/` (Calculus I), `calc2/` (Calculus II), `shared/` (helpers for both), and `api/` (a web layer Echo does not use). A file-by-file map is in [`docs/app-map.md`](docs/app-map.md) |
-| [`scripts/`](scripts/) and [`tests/`](tests/) | The bank audit script and its tests |
+| [`core/`](core/) | Echo's own code: strict reader, LaTeX reader, derivative checker, bank fallback, AI drafting layer, and the single entry point (`entry.py`) |
+| [`replay/`](replay/) | Saved runs for offline demos (one live, one scripted) |
+| [`scripts/`](scripts/) and [`tests/`](tests/) | The audit, gate and demo scripts, and their tests |
 | [`CLAUDE.md`](CLAUDE.md) | Instructions for the AI coding assistant used to build this |
