@@ -14,6 +14,9 @@ interface Practiced {
   result: ProblemsResponse;
 }
 
+const READING_DISCLAIMER =
+  "Echo reads handwriting with AI and can misread it, especially unclear writing. If a problem or answer is read wrongly, its mark will be wrong too. Compare each problem below with the worksheet.";
+
 const MODES: { value: Mode; label: string }[] = [
   { value: "live", label: "Live AI (needs internet)" },
   { value: "replay", label: "Saved replay (works offline)" },
@@ -164,6 +167,9 @@ export default function Home() {
       {result && (
         <>
           {sourceLine && <p className="mode-note">Reading source: {sourceLine}</p>}
+          <p className="disclaimer" role="note">
+            {READING_DISCLAIMER}
+          </p>
           <WorksheetResults
             graded={result.graded}
             disclaimer={result.disclaimer}
