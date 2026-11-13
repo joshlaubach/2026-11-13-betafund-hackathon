@@ -18,7 +18,7 @@ Echo reads a photo of a finished calculus worksheet, marks each answer, shows wh
 |---|---|
 | **Fixture mode** | The page showing made-up sample results, so you can work on how it looks without the API or a key. |
 | **Replay** | A saved run of a real photo, played back with no internet. The page labels it "Saved replay." |
-| **Verified mark** | A mark whose answer SymPy computed itself. The page says so on the mark. |
+| **Echo-checked with SymPy** (badge) | A mark whose answer SymPy computed itself. The page says so on the mark and shows how under "How this was checked". |
 | **Edge case** | A photo built to trip Echo up (smudges, crossed-out answers, a non-math page). |
 | **Brief** | A short written assignment saying what to build and how we will check it is done. |
 | **"Done when"** | A check anyone can run to see whether the task is finished. |

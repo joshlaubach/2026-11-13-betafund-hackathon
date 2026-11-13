@@ -2,6 +2,24 @@
 
 Submission deadline: Friday 2026-11-13, 4:00 PM Pacific.
 
+## 2026-11-13 morning — learning loop, tutor, redesign
+
+**Built**
+
+- Practice workspace: type an answer, check it (SymPy compares with the bank's verified key at 10 sample points; numeric, not symbolic), reveal the bank's worked steps one at a time as hints, or the full solution. The key stays hidden until solved. Each check shows who checked, evidence, time, and limits. Routes `/api/practice/steps`, `/api/practice/check`.
+- Echo tutor (`/api/tutor/chat`): BM25 retrieval over eligible bank problems with topic filters (24/26 relevance eval), context from the active problem, attempts, hints and worksheet tally; live replies must cite retrieved ids and are `grounded` only when they do; scripted no-AI replies in replay and fake. Validated structured actions (similar, harder, easier, practice set, hint, next step, solution, check, explain, worked example) drive real page operations.
+- Ask Echo per row (read-only explanation of a mark), with plain-language method names.
+- Redesign: Geist and Instrument Serif, the requested dark palette plus a light theme, theme toggle with no flash, docked resizable tutor on desktop and Worksheet/Tutor tabs on phones, drag-and-drop upload, preview with zoom/rotate/full screen, honest two-step analysis progress, statuses Echo verified / Bank confirmed / AI-graded, unverified / Unable to verify with glyphs, reading confidence shown apart from the math check, shared motion tokens with reduced-motion support. Difficulty levels are never shown.
+
+**Fixed after review or real-page testing**
+
+- Tutor: tag-stripping bypass, forged history lines, replies claiming verification, untruthful `grounded`, total-distance questions retrieving net-change examples, vague requests finding no example, inline "Step 1: … Step 2: …" now one step per line.
+- Internal method ids no longer reach model prompts; snake_case words no longer render as math.
+
+**Verified:** backend 1468 passed, 9 skipped; browser suite 104 of 104; four user journeys scripted against the Docker app at 1440, 820 and 390 px in light and dark, no console errors, no overflow.
+
+**Known limits:** one difficulty dimension (the bank has one expert level); no streaming; only power_rule generates Echo verified problems; about a third of bank answers cannot be read by the checker (shown as Unable to verify); no axe/Lighthouse audit or real-device test; the worksheet column does not animate its width when the tutor opens.
+
 ## 2026-11-12 — current worksheet flow
 
 **Built**
