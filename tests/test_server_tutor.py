@@ -37,13 +37,24 @@ def post_chat(test_client: TestClient, **fields):
 
 
 def test_replay_mode_returns_ok_with_a_grounded_reply(client):
-    body = post_chat(client, mode="replay").json()
+    history = [{"role": "student", "text": "help"}, {"role": "tutor", "text": "What rule applies here?"}]
+    body = post_chat(client, mode="replay", history=history).json()
 
     assert body["status"] == "ok"
     assert body["engine"] == "scripted"
+    assert body["help_level"] == "hint"
     assert body["grounded"] is True
     assert body["sources"]
-    assert "worked example" in body["reply"]
+    assert "similar problem" in body["reply"]
+
+
+def test_the_first_replay_reply_is_a_question_not_a_worked_example(client):
+    body = post_chat(client, mode="replay").json()
+
+    assert body["status"] == "ok"
+    assert body["help_level"] == "ask"
+    assert body["reply"].rstrip().endswith("?")
+    assert body["sources"] == []
 
 
 def test_fake_mode_returns_ok_and_makes_no_model_call(client, monkeypatch):
@@ -106,10 +117,11 @@ def test_malformed_context_returns_an_error_status(client):
     assert body == {"status": "error", "error": tutor.BAD_CONTEXT_MESSAGE}
 
 
-def test_live_mode_without_a_key_returns_the_auth_message(client):
+def test_live_mode_without_a_key_returns_a_plain_message_not_the_technical_cause(client):
     body = post_chat(client, mode="live").json()
 
-    assert body == {"status": "error", "error": AUTH_MESSAGE}
+    assert body == {"status": "error", "error": tutor.UNAVAILABLE_MESSAGE}
+    assert AUTH_MESSAGE not in body["error"]
 
 
 def test_unknown_mode_is_rejected_by_the_request_model(client):

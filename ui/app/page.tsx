@@ -25,6 +25,7 @@ import type { PracticeActivity, PracticeCommand } from "@/lib/practice-types";
 import type { TutorAction } from "@/lib/tutor-types";
 import { buildTutorContext, planAction } from "@/lib/tutor-wiring";
 import { WorksheetResults } from "@/components/WorksheetResults";
+import { useIsDesktop } from "@/lib/use-desktop";
 
 type Stage = "idle" | "reading" | "grading" | "done";
 interface Practiced {
@@ -123,6 +124,7 @@ export default function Home() {
   const [command, setCommand] = useState<PracticeCommand | undefined>(undefined);
   // What Echo first read for each corrected row, keyed by part number. Kept so it is never overwritten.
   const [firstReads, setFirstReads] = useState<Record<number, FirstRead>>({});
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     if (!file) {
@@ -263,25 +265,31 @@ export default function Home() {
     ? `About: ${tutorContext.topic_title}${activity ? `, problem ${activeIndex + 1}` : ""}`
     : "Ask about any calculus topic.";
 
+  // On desktop the masthead sits at the top of the workspace column, so the tutor column starts at y=0.
+  // On phones and tablets it stays above the split: the workspace is hidden while the tutor tab is open.
+  const masthead = (
+    <header className="masthead">
+      <div className="masthead-inner">
+        <h1 className="wordmark">Echo</h1>
+        <p className="tagline">Every mark says how it was checked.</p>
+        <div className="masthead-tools">
+          <button
+            type="button"
+            className="quiet tutor-launch"
+            aria-expanded={tutorOpen}
+            onClick={() => (tutorOpen ? closeTutor() : openTutor())}
+          >
+            Ask the tutor
+          </button>
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+  );
+
   return (
     <>
-      <header className="masthead">
-        <div className="masthead-inner">
-          <h1 className="wordmark">Echo</h1>
-          <p className="tagline">Every mark says how it was checked.</p>
-          <div className="masthead-tools">
-            <button
-              type="button"
-              className="quiet tutor-launch"
-              aria-expanded={tutorOpen}
-              onClick={() => (tutorOpen ? closeTutor() : openTutor())}
-            >
-              Ask the tutor
-            </button>
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      {!isDesktop && masthead}
       <SplitWorkspace
         tutorOpen={tutorOpen}
         onTutorOpenChange={(open) => (open ? openTutor() : closeTutor())}
@@ -289,6 +297,7 @@ export default function Home() {
         onMobileViewChange={setMobileView}
         workspace={
       <div className="workspace-pane">
+      {isDesktop && masthead}
       <main className="workspace">
         <section className="intake" aria-label="Upload a worksheet">
           <p className="intro">

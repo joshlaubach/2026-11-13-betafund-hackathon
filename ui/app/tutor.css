@@ -1,4 +1,5 @@
-/* Tutor and split workspace. Docked column on desktop, bottom tabs below 62rem. Tokens only, so both themes work. */
+/* Tutor and split workspace. Docked column on desktop, bottom tabs below 62rem. On phones the tutor lifts above the
+   on-screen keyboard via --kb-inset (set by useKeyboardInset in lib/keyboard-inset.ts). Tokens only, so both themes work. */
 
 /* The hidden attribute must win over the display rules below. */
 .split [hidden] {
@@ -34,10 +35,11 @@
     padding-bottom: calc(var(--tab-bar-h) + env(safe-area-inset-bottom));
   }
 
-  /* On a phone the tutor is a full-screen view above the tab bar, so its input is never under the bar. */
+  /* On a phone the tutor is a full-screen view above the tab bar, so its input is never under the bar.
+     When the keyboard is open (--kb-inset > 0) the bottom edge moves up to the keyboard instead. */
   .split-pane-tutor {
     position: fixed;
-    inset: 0 0 calc(var(--tab-bar-h) + env(safe-area-inset-bottom)) 0;
+    inset: 0 0 max(calc(var(--tab-bar-h) + env(safe-area-inset-bottom)), var(--kb-inset, 0px)) 0;
     height: auto;
     z-index: 5;
     background: var(--paper);
@@ -64,8 +66,11 @@
     grid-column: 3;
     position: sticky;
     top: 0;
+    align-self: start;
     height: 100vh;
     height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
   }
 }
 
@@ -164,8 +169,10 @@
   color: var(--ink);
 }
 
+/* Docked: the log takes the leftover height and scrolls. The panel itself scrolls only on a very short viewport. */
 .tutor-panel-docked {
   height: 100%;
+  overflow-y: auto;
 }
 
 .tutor-panel-overlay {
@@ -201,6 +208,7 @@
 }
 
 .tutor-head {
+  flex: 0 0 auto;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -236,7 +244,7 @@
 /* The log is the only thing that scrolls inside the panel. */
 .tutor-log {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 6rem;
   display: grid;
   align-content: start;
   gap: 0.75rem;
@@ -390,6 +398,7 @@
 
 /* Suggested actions: compact pills that wrap, never scroll sideways. */
 .tutor-chips {
+  flex: 0 0 auto;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -440,6 +449,7 @@
 }
 
 .tutor-form {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;

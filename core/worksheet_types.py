@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
+
+from core.evidence import Verification, verification_of
 
 Confidence = Literal["low", "medium", "high"]
 Verdict = Literal["correct", "incorrect", "unsure"]
@@ -86,6 +88,12 @@ class Grade(Frozen):
     bank_topic: Optional[str] = None  # set only when method == "bank_key"
     bank_id: Optional[str] = None
     reason: Optional[UnsureReason] = None  # set only on unsure grades; None keeps old saved files loading
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def verification(self) -> Verification:
+        """Whether the mark was verified, apart from what it says. Derived, so old saved grades have it too."""
+        return verification_of(self.method, self.verdict, self.reason)
 
 
 class GradedItem(Frozen):

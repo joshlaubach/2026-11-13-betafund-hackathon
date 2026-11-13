@@ -70,6 +70,8 @@ export interface Grade {
   bank_topic: string | null;
   bank_id: string | null;
   reason: GradeReason | null;
+  // Whether the mark was verified, apart from what it says. Added by the server; absent in older saved grades.
+  verification?: "verified" | "unverified" | "unavailable";
 }
 
 export interface GradedItem {

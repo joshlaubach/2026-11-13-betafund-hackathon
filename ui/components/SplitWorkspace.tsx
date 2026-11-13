@@ -24,6 +24,7 @@ import {
   writeStoredWidth,
 } from "@/lib/split";
 import { useIsDesktop } from "@/lib/use-desktop";
+import { useKeyboardInset } from "@/lib/keyboard-inset";
 
 export type MobileView = "worksheet" | "tutor";
 
@@ -85,6 +86,7 @@ export function SplitWorkspace({
   onMobileViewChange,
 }: SplitWorkspaceProps) {
   const isDesktop = useIsDesktop();
+  useKeyboardInset();
   const tutorVisible = isDesktop ? tutorOpen : mobileView === "tutor";
   const workspaceVisible = isDesktop || mobileView === "worksheet";
   const viewport = useViewportWidth();
