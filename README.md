@@ -8,6 +8,16 @@ Scope: Calculus I and II. Built for the 2026-11-13 BetaFund hackathon.
 
 Most AI tutors sound equally sure whether they computed an answer or guessed it. Echo keeps those apart. A math program (SymPy) computes or checks what it can, and those marks are labeled as checked. Anything an AI had to judge on its own is labeled that way, and the tutor is told the difference: it will not tell a student they are wrong unless a program confirmed it. When Echo cannot tell, it says so and asks the student to check a step with it.
 
+## Screenshots
+
+Saved replay of a real photo (the drone worksheet), at 1440 pixels wide. Light and dark themes are the same layout.
+
+| The marks | The tutor | A checked answer |
+|---|---|---|
+| ![Marks with Echo-verified and AI-graded labels](docs/screens/results-light.png) | ![Tutor answering with a hint and a question](docs/screens/tutor-light.png) | ![Practice answer marked Not yet with the check details](docs/screens/practice-check-light.png) |
+
+Dark theme: [marks](docs/screens/results-dark.png), [tutor](docs/screens/tutor-dark.png), [checked answer](docs/screens/practice-check-dark.png).
+
 ## How a mark is made
 
 The reading step separates each question, the student's final answer, and any setup shared by several parts. The page shows the reading beside the marks. Every mark carries a method label.
@@ -33,6 +43,7 @@ Each mark records two separate things: what was found (correct, incorrect, unsur
 - **Practice.** The student types an answer and Echo checks it against the bank's verified key at sample points. Hints reveal the bank's worked steps one at a time, and the key stays hidden until the problem is solved. Each check shows who checked it, the evidence, the time, and what the check does not prove. A check that cannot read the answer says "Unable to verify", never "wrong".
 - **The tutor** answers from worked examples in Echo's bank (BM25 retrieval with topic filters) and cites the ids it used. It teaches Socratically: the first reply is a focused question, then a more specific hint, then the next step, then a full worked solution. A request for the solution or an example gets it straight away; so does being stuck for five rounds. A tutor reply that uses grading vocabulary, or comes back empty or malformed, is replaced by guided questions from the bank. If the model service is down, the student sees a plain message and Retry.
 - **Ask Echo** on any marked part helps the student check their work. It is read-only: it never changes a mark.
+- **Streak.** After a wrong or unsure part, the tutor offers a streak: a progress bar of correct answers in a row on the same concept. Each answer is checked against the bank's verified key. A wrong answer resets the bar; using the solution ends the streak. The length (3 to 6, default 5) is set in **Settings**, next to the theme and the marks source. If only a few different problems exist, the streak is shortened and says so.
 - Problem difficulty levels are never shown to the student.
 
 Only `power_rule` has Echo-checked generated practice problems. Every other topic with usable problems serves audited bank problems labeled **"bank-verified, not Echo-checked"**.
@@ -61,7 +72,7 @@ cd ui && npm ci && NEXT_PUBLIC_FIXTURES=1 npm run dev
 
 ## Tests
 
-As of 2026-11-13: backend `pytest` 1544 passed, 9 skipped; browser `cd ui && npx playwright test` 112 passed. Install backend test tools with `pip install -r requirements-dev.txt`.
+As of 2026-11-13: backend `pytest` 1570 passed, 9 skipped; browser `cd ui && npx playwright test` 140 passed. Install backend test tools with `pip install -r requirements-dev.txt`.
 
 ## What to be honest about
 
