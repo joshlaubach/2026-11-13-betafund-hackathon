@@ -35,19 +35,40 @@ class Frozen(BaseModel):
 
 
 class WorksheetItem(Frozen):
-    """One problem read from a worksheet photo, with the student's written answer."""
+    """One part read from a worksheet photo, with the student's written answer.
+
+    statement_latex is the part's own question only. context_latex is the shared setup that the
+    code copies in after reading. final_answers_latex are the student's final answers in order, and
+    explanation_text is the student's written sentence, which is shown but never graded.
+    """
 
     number: int
     statement_latex: str
-    student_answer_latex: Optional[str] = None
+    student_answer_latex: Optional[str] = None  # the full written line, working included
     topic_guess: Optional[str] = None  # a bank topic id, or None
     confidence: Confidence = "medium"
     notes: str = ""
+    part_label: Optional[str] = None  # e.g. "a"
+    context_latex: str = ""
+    final_answers_latex: tuple[str, ...] = ()
+    explanation_text: str = ""
 
 
 class WorksheetReading(Frozen):
     items: tuple[WorksheetItem, ...]
     notes: str = ""
+    shared_context: str = ""  # setup text before the parts, such as v(t) = 1 - e^{-t}
+
+
+def join_statement(context: str, statement: str) -> str:
+    """The shared setup followed by a part's own question. Without a setup it is the statement."""
+    setup = context.strip()
+    return f"{setup} {statement}" if setup else statement
+
+
+def full_statement(item: WorksheetItem) -> str:
+    """What every solve, judge, and SymPy task receives: the shared setup plus the part's question."""
+    return join_statement(item.context_latex, item.statement_latex)
 
 
 class Grade(Frozen):

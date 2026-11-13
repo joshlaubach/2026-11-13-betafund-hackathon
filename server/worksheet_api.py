@@ -81,6 +81,13 @@ MAX_NOTES_CHARS = 500
 STATEMENT_TOO_LONG_MESSAGE = f"statement_latex can have at most {MAX_STATEMENT_CHARS} characters"
 ANSWER_TOO_LONG_MESSAGE = f"student_answer_latex can have at most {MAX_ANSWER_CHARS} characters"
 NOTES_TOO_LONG_MESSAGE = f"notes can have at most {MAX_NOTES_CHARS} characters"
+MAX_CONTEXT_CHARS = 2000
+MAX_EXPLANATION_CHARS = 1000
+MAX_FINAL_ANSWERS = 10
+CONTEXT_TOO_LONG_MESSAGE = f"the shared setup can have at most {MAX_CONTEXT_CHARS} characters"
+EXPLANATION_TOO_LONG_MESSAGE = f"explanation_text can have at most {MAX_EXPLANATION_CHARS} characters"
+FINAL_ANSWERS_TOO_MANY_MESSAGE = f"final_answers_latex can have at most {MAX_FINAL_ANSWERS} answers"
+FINAL_ANSWER_TOO_LONG_MESSAGE = f"each final answer can have at most {MAX_ANSWER_CHARS} characters"
 UNSURE = "unsure"
 AI_JUDGMENT_METHOD = "ai_judgment"
 
@@ -104,6 +111,19 @@ def _check_text_lengths(items: Sequence[WorksheetItem]) -> None:
             raise ValueError(ANSWER_TOO_LONG_MESSAGE)
         if len(item.notes) > MAX_NOTES_CHARS:
             raise ValueError(NOTES_TOO_LONG_MESSAGE)
+        _check_part_text(item)
+
+
+def _check_part_text(item: WorksheetItem) -> None:
+    """Limit the setup, final answers, and explanation that a part carries."""
+    if len(item.context_latex) > MAX_CONTEXT_CHARS:
+        raise ValueError(CONTEXT_TOO_LONG_MESSAGE)
+    if len(item.explanation_text) > MAX_EXPLANATION_CHARS:
+        raise ValueError(EXPLANATION_TOO_LONG_MESSAGE)
+    if len(item.final_answers_latex) > MAX_FINAL_ANSWERS:
+        raise ValueError(FINAL_ANSWERS_TOO_MANY_MESSAGE)
+    if any(len(answer) > MAX_ANSWER_CHARS for answer in item.final_answers_latex):
+        raise ValueError(FINAL_ANSWER_TOO_LONG_MESSAGE)
 
 
 class GradeRequest(BaseModel):
@@ -117,6 +137,8 @@ class GradeRequest(BaseModel):
         _check_text_lengths(reading.items)
         if len(reading.notes) > MAX_NOTES_CHARS:
             raise ValueError(NOTES_TOO_LONG_MESSAGE)
+        if len(reading.shared_context) > MAX_CONTEXT_CHARS:
+            raise ValueError(CONTEXT_TOO_LONG_MESSAGE)
         return reading
 
 

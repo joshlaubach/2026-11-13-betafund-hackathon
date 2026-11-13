@@ -33,7 +33,7 @@ from core.drafter import (
 )
 from core.input_boundary import BoundaryError
 from core.latex_reader import read_latex
-from core.worksheet_types import GradeMethod, Verdict
+from core.worksheet_types import GradeMethod, Verdict, join_statement
 
 logger = logging.getLogger(__name__)
 ENV_API_KEY = "ANTHROPIC_API_KEY"
@@ -127,6 +127,33 @@ class Attempt(NamedTuple):
 
     answer: Optional[str] = None
     refusal: Optional[str] = None
+
+
+class Question(NamedTuple):
+    """One part as the graders see it: its own question, the shared setup, and what the student wrote.
+
+    answers are the student's final answers in order (the whole written answer when none was read).
+    working is the full written answer, which only the judge sees. The explanation sentence is never here.
+    """
+
+    statement: str
+    context: str
+    answers: tuple[str, ...]
+    working: str
+
+    @property
+    def full(self) -> str:
+        return join_statement(self.context, self.statement)
+
+    @property
+    def compared(self) -> str:
+        return "; ".join(self.answers)
+
+    @property
+    def judged(self) -> str:
+        if self.working in ("", self.compared):
+            return self.compared
+        return f"Final answer(s): {self.compared}\nWorking: {self.working}"
 
 
 class CallBudget:

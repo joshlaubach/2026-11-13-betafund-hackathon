@@ -33,6 +33,7 @@ from core.ladder import (  # noqa: F401 - REGRADE_EFFORT and Rungs are re-export
     regrade_mark,
 )
 from core.photo_reader import SHA256_HEX_PATTERN, bank_topic_ids, check_image, sha256_hex
+from core.sympy_task import strip_label
 from core.solvers import (  # noqa: F401 - re-exported for callers and tests
     CONSTANT_EXPLANATION,
     JUDGE_FAILED_EXPLANATION,
@@ -43,6 +44,7 @@ from core.solvers import (  # noqa: F401 - re-exported for callers and tests
     FakeSolver,
     LiveSolver,
     Mark,
+    Question,
     SourceError,
     answers_equivalent,
     call_model,
@@ -77,32 +79,49 @@ TOPIC_CLEARED_NOTE = "topic guess {guess!r} is not a bank topic, so it was clear
 
 WORKSHEET_SYSTEM_PROMPT = (
     "You transcribe a student's handwritten or printed calculus worksheet for Echo. "
-    "For every numbered problem, write statement_latex with exactly what is written, and "
-    "student_answer_latex with exactly the student's written answer, or null when no answer "
-    "is written. Do not solve, simplify, complete, or correct anything, even when it is wrong. "
-    "If any part is illegible, cut off, or ambiguous, say which part in notes and lower "
-    "confidence. Choose topic_guess only from the topic ids given in the request, or null if "
-    "none fits. Return only the structured output requested."
+    "Put any shared setup that comes before the parts, such as definitions like v(t) = ..., in "
+    "shared_context, exactly as written. For every lettered or numbered part, write statement_latex "
+    "with only that part's own question, exactly as written. Write final_answers_latex as the "
+    "student's final mathematical answers only, in order, as bare math with no words and no units, "
+    "for example v'(t) = e^{-t} and then v'(0) = 1. Write the student's written sentence in "
+    "explanation_text. Working steps may stay in student_answer_latex, or null when no answer is "
+    "written. Do not solve, simplify, complete, or correct anything, even when it is wrong. If any "
+    "part is illegible, cut off, or ambiguous, say which part in notes and lower confidence. Choose "
+    "topic_guess only from the topic ids given in the request, or null if none fits. Return only "
+    "the structured output requested."
 )
+DRONE_CONTEXT = "A drone has velocity v(t) = 1 - e^{-t}."
 
 
+# The scripted drone worksheet: shared setup, then parts a, b, and c. Used by fake mode.
 FAKE_READING = WorksheetReading(
+    shared_context=DRONE_CONTEXT,
     items=(
         WorksheetItem(
             number=1,
-            statement_latex="Find $f'(x)$ for $f(x) = 3x^{4} + 2x$.",
-            student_answer_latex="12x^{3}+2",
-            topic_guess="power_rule",
+            part_label="a",
+            statement_latex="Compute $v(0)$.",
+            student_answer_latex="v(0) = 1 - e^{0} = 0. The drone starts at rest.",
+            final_answers_latex=("v(0) = 0",),
+            explanation_text="The drone starts at rest.",
             confidence="high",
         ),
         WorksheetItem(
             number=2,
-            statement_latex=(
-                "Evaluate $\\displaystyle \\lim_{x \\to 1} \\frac{- \\frac{1}{2} + \\frac{1}{x + 1}}"
-                "{x^{2} - 1}$. Give an exact answer."
-            ),
-            student_answer_latex="-\\frac{1}{8}",
-            topic_guess="algebraic",
+            part_label="b",
+            statement_latex="Compute $\\int_0^5 v(t)\\,dt$.",
+            student_answer_latex="\\int_0^5 v(t)\\,dt = 6 - e^{5}. The total distance is 6 - e^{5}.",
+            final_answers_latex=("6 - e^{5}",),
+            explanation_text="The total distance is 6 - e^{5}.",
+            confidence="high",
+        ),
+        WorksheetItem(
+            number=3,
+            part_label="c",
+            statement_latex="Find $v'(t)$. Compute $v'(0)$.",
+            student_answer_latex="v'(t) = e^{-t}, so v'(0) = 1. The acceleration starts at 1.",
+            final_answers_latex=("v'(t) = e^{-t}", "v'(0) = 1"),
+            explanation_text="The acceleration starts at 1.",
             confidence="high",
         ),
     ),
@@ -225,10 +244,21 @@ def _topic_ids(topics: Optional[Sequence[str]]) -> tuple[str, ...]:
     return tuple(sorted(set(topics)))
 
 
-def _normalized_item(item: WorksheetItem, topics: tuple[str, ...]) -> WorksheetItem:
-    """Strip the text, make a blank answer None, and clear a topic guess that is not a bank topic."""
+def _final_answers(item: WorksheetItem) -> tuple[str, ...]:
+    return tuple(part.strip() for part in item.final_answers_latex if part.strip())
+
+
+def _normalized_item(item: WorksheetItem, topics: tuple[str, ...], context: str) -> WorksheetItem:
+    """Strip the text, make a blank answer None, copy in the shared setup, and clear a topic guess that is not a bank topic."""
     answer = (item.student_answer_latex or "").strip() or None
-    update: dict = {"statement_latex": item.statement_latex.strip(), "student_answer_latex": answer}
+    update: dict = {
+        "statement_latex": item.statement_latex.strip(),
+        "student_answer_latex": answer,
+        "context_latex": context,
+        "final_answers_latex": _final_answers(item),
+        "explanation_text": item.explanation_text.strip(),
+        "part_label": (item.part_label or "").strip() or None,
+    }
     if item.topic_guess is not None and item.topic_guess not in topics:
         update["topic_guess"] = None
         update["notes"] = _join_notes(item.notes, TOPIC_CLEARED_NOTE.format(guess=item.topic_guess))
@@ -236,9 +266,10 @@ def _normalized_item(item: WorksheetItem, topics: tuple[str, ...]) -> WorksheetI
 
 
 def _normalized(reading: WorksheetReading, topics: tuple[str, ...]) -> WorksheetReading:
-    """Drop blank problems, keep the first MAX_ITEMS, and record each change in the notes."""
+    """Drop blank problems, copy the shared setup into every part, keep the first MAX_ITEMS, and record each change."""
+    context = reading.shared_context.strip()
     usable = [
-        _normalized_item(item, topics)
+        _normalized_item(item, topics, context)
         for item in reading.items
         if item.statement_latex.strip()
     ]
@@ -249,7 +280,8 @@ def _normalized(reading: WorksheetReading, topics: tuple[str, ...]) -> Worksheet
     if len(usable) > MAX_ITEMS:
         notes = _join_notes(notes, ITEM_CAP_NOTE.format(total=len(usable), kept=MAX_ITEMS))
         usable = usable[:MAX_ITEMS]
-    return reading.model_copy(update={"items": tuple(usable), "notes": notes})
+    update = {"items": tuple(usable), "notes": notes, "shared_context": context}
+    return reading.model_copy(update=update)
 
 
 def _result(
@@ -367,6 +399,18 @@ def _answer_text(item: WorksheetItem) -> Optional[str]:
     return text or None
 
 
+def _question(item: WorksheetItem) -> Optional[Question]:
+    """The part as graders see it, or None when the student wrote nothing.
+
+    The final answers are compared; the full written line is only ever shown to the judge.
+    """
+    working = _answer_text(item) or ""
+    answers = tuple(strip_label(answer) for answer in _final_answers(item)) or ((working,) if working else ())
+    if not answers:
+        return None
+    return Question(item.statement_latex, item.context_latex, answers, working)
+
+
 def _grade_from_mark(mark: Mark, bank_problem: Optional[dict] = None) -> Grade:
     return Grade(
         verdict=mark.verdict,
@@ -405,10 +449,10 @@ def bank_match_grade(item: WorksheetItem, bank: Sequence[dict]) -> Optional[Grad
     problem = _bank_match(item, tuple(bank))
     if problem is None:
         return None
-    student = _answer_text(item)
-    if student is None:
+    question = _question(item)
+    if question is None:
         return _no_answer_grade(problem)
-    return _bank_grade(problem, student)
+    return _bank_grade(problem, question.compared)
 
 
 def grade_item(
@@ -424,13 +468,13 @@ def grade_item(
     """
     problems = _eligible_bank() if bank is None else tuple(bank)
     problem = _bank_match(item, problems)
-    student = _answer_text(item)
-    if student is None:
+    question = _question(item)
+    if question is None:
         return _no_answer_grade(problem)
     if problem is not None:
-        return _bank_grade(problem, student)
+        return _bank_grade(problem, question.compared)
     ledger = CallLedger(budget if budget is not None else CallBudget())
-    mark = grade_unmatched(item.statement_latex, student, as_rungs(rungs), ledger, effort)
+    mark = grade_unmatched(question, as_rungs(rungs), ledger, effort)
     return _grade_from_mark(mark)
 
 
@@ -450,13 +494,13 @@ def grade_worksheet(
 
 def _regraded_grade(graded: GradedItem, rungs: Rungs, problems: tuple[dict, ...]) -> Grade:
     item = graded.item
-    student = _answer_text(item)
+    question = _question(item)
     if graded.grade.method == SYMPY_METHOD:
         # The cross-check outcome cannot be re-derived without an AI call, so the mark is kept.
         return graded.grade
-    if graded.grade.method == BANK_METHOD or student is None:
+    if graded.grade.method == BANK_METHOD or question is None:
         return grade_item(item, rungs, bank=problems)
-    return _grade_from_mark(regrade_mark(item.statement_latex, student, rungs))
+    return _grade_from_mark(regrade_mark(question, rungs))
 
 
 def regrade_item(

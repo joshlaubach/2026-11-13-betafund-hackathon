@@ -370,7 +370,8 @@ def test_non_image_bytes_are_rejected_before_source_call():
 
 
 def test_fake_source_reads_ok_and_keeps_bank_topic_guess():
-    result = read_worksheet(make_png(), FakeWorksheetSource(), topics=["power_rule", "algebraic"])
+    reading = reading_of(item(SOLVER_STATEMENT, "x^{2}", topic="power_rule"))
+    result = read_worksheet(make_png(), FakeWorksheetSource(reading), topics=["power_rule", "algebraic"])
     assert result["status"] == STATUS_OK
     assert result["source"] == "fake"
     assert result["reading"]["items"][0]["topic_guess"] == "power_rule"

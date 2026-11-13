@@ -141,7 +141,7 @@ def test_read_fake_returns_reading_label_and_hash_only(client):
     assert response.status_code == 200
     assert set(body) == {"status", "source", "label", "reading", "error", "image_sha256"}
     assert body["status"] == "ok"
-    assert len(body["reading"]["items"]) == 2
+    assert len(body["reading"]["items"]) == 3  # the scripted drone worksheet: parts a, b, and c
     assert body["image_sha256"] == sha256_hex(PNG_BYTES)
     assert "FAKE" in body["label"]
 

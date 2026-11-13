@@ -34,6 +34,7 @@ export default function Home() {
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [sourceLine, setSourceLine] = useState<string>("");
+  const [setup, setSetup] = useState<string>("");
   const [result, setResult] = useState<GradeResponse | null>(null);
   const [busyNumber, setBusyNumber] = useState<number | null>(null);
   const [practiced, setPracticed] = useState<Practiced | null>(null);
@@ -61,6 +62,7 @@ export default function Home() {
         throw new ApiError(read.error ?? "Echo could not read that photo. Try a clearer one.");
       }
       setSourceLine(read.label.replace(/^source:\s*/i, ""));
+      setSetup(read.reading.shared_context);
       setStage("grading");
       setResult(await gradeWorksheet(read.reading, mode));
       setStage("done");
@@ -172,6 +174,7 @@ export default function Home() {
           </p>
           <WorksheetResults
             graded={result.graded}
+            setup={setup}
             disclaimer={result.disclaimer}
             busyNumber={busyNumber}
             onRegrade={(entry) => void handleRegrade(entry)}

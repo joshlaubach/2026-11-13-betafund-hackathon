@@ -89,9 +89,12 @@ def source_line(source: WorksheetSource, solver: Rungs) -> str:
 def print_item(graded: GradedItem) -> None:
     item = graded.item
     grade = graded.grade
-    print(f"{item.number}. {item.statement_latex}")
-    print(f"   student answer: {item.student_answer_latex if item.student_answer_latex else '(none written)'}")
-    print(f"   topic guess: {item.topic_guess}")
+    label = f"({item.part_label}) " if item.part_label else ""
+    print(f"{item.number}. {label}{item.statement_latex}")
+    if item.context_latex:
+        print(f"   setup: {item.context_latex}")
+    print(f"   final answers: {'; '.join(item.final_answers_latex) or '(none written)'}")
+    print(f"   written explanation (not graded): {item.explanation_text or '(none written)'}")
     print(f"   verdict: {grade.verdict}")
     print(f"   label: {grade.label}")
     print(f"   explanation: {grade.explanation}")

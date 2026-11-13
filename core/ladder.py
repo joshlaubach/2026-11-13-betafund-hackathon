@@ -1,7 +1,8 @@
 """The model ladder for worksheet grading: Haiku and Sonnet solve blind, Opus breaks a tie.
 
 Rungs are three solvers, one per model. Their model names come from ECHO_MODEL_FAST,
-ECHO_MODEL_MID, and ECHO_MODEL_TOP, with defaults. grade_unmatched is the entry point for an
+ECHO_MODEL_MID, and ECHO_MODEL_TOP, with defaults. Every solve and judge call receives the full
+statement (the shared setup plus the part's question). grade_unmatched is the entry point for an
 item with no bank match: SymPy first (core.sympy_task), then the AI ladder, then the judge tier
 (Sonnet, only when an answer cannot be compared). regrade_mark gives one fresh Sonnet solve.
 """
@@ -12,6 +13,7 @@ import logging
 import os
 from typing import NamedTuple, Optional
 
+from core.definitions import missing_definitions
 from core.drafter import DEFAULT_EFFORT
 from core.solvers import (
     ITEM_CALL_CAP,
@@ -23,6 +25,7 @@ from core.solvers import (
     FakeSolver,
     LiveSolver,
     Mark,
+    Question,
     ask_solve,
     compare_answers,
     comparison_mark,
@@ -56,6 +59,12 @@ JUDGED = (
     "The student's answer {student} could not be checked by SymPy, so the AI judge marked it "
     "{verdict} from the statement alone."
 )
+UNSURE_SUFFIX = ", so this mark is unsure."
+REASON_NO_CONTEXT = "no shared setup defines {names} for this part"
+REASON_STUDENT_UNREADABLE = "the student's answer could not be read by SymPy"
+REASON_SOLVE_UNREADABLE = "an AI solve could not be read by SymPy"
+REASON_JUDGE_UNSURE = "the AI judge could not tell from the statement alone"
+UNSURE = "unsure"
 
 
 class Rungs(NamedTuple):
@@ -105,24 +114,33 @@ def _agrees(left: str, right: str) -> bool:
     return compare_answers(left, right).status == "equal"
 
 
+def _unsure_reason(question: Question, cause: str) -> str:
+    """Say what was missing: a definition from the setup, or else the given cause."""
+    missing = missing_definitions(question.statement, question.context)
+    if missing:
+        return REASON_NO_CONTEXT.format(names=", ".join(missing))
+    return cause
+
+
 def _judge(
-    statement: str, student: str, rung: AnswerSolver, ledger: CallLedger, effort: Optional[str]
+    question: Question, rung: AnswerSolver, ledger: CallLedger, effort: Optional[str], cause: str
 ) -> Mark:
     """The judge tier: Sonnet judges the written answer. Only used when no answer can be compared."""
     refusal = ledger.take()
     if refusal is not None:
-        return Mark("unsure", JUDGE, refusal)
+        return Mark(UNSURE, JUDGE, refusal)
     try:
-        verdict = rung.judge(statement, student, effort).verdict
+        verdict = rung.judge(question.full, question.judged, effort).verdict
     except Exception as error:  # a judge failure is an unsure mark, never a crash
         log_failure(logger, "judge call failed", error)
-        return Mark("unsure", JUDGE, JUDGE_FAILED_EXPLANATION)
-    return Mark(verdict, JUDGE, JUDGED.format(student=student, verdict=verdict))
+        return Mark(UNSURE, JUDGE, JUDGE_FAILED_EXPLANATION)
+    if verdict == UNSURE:
+        return Mark(UNSURE, JUDGE, _unsure_reason(question, cause) + UNSURE_SUFFIX)
+    return Mark(verdict, JUDGE, JUDGED.format(student=question.compared, verdict=verdict))
 
 
 def _against_agreed(
-    statement: str,
-    student: str,
+    question: Question,
     reference: str,
     agreeing: int,
     total: int,
@@ -130,19 +148,18 @@ def _against_agreed(
     ledger: CallLedger,
     effort: Optional[str],
 ) -> Mark:
-    comparison = compare_answers(reference, student)
-    mark = comparison_mark(comparison, student, reference, AI_LADDER, AGREED_PHRASE)
+    comparison = compare_answers(reference, question.compared)
+    mark = comparison_mark(comparison, question.compared, reference, AI_LADDER, AGREED_PHRASE)
     if mark is None:
-        return _judge(statement, student, rungs.mid, ledger, effort)
-    if mark.verdict == "unsure":
+        return _judge(question, rungs.mid, ledger, effort, REASON_STUDENT_UNREADABLE)
+    if mark.verdict == UNSURE:
         return mark  # an unsure reason (such as + C) is shown as it is
     note = AGREE_NOTE.format(count=agreeing, total=total)
     return mark._replace(explanation=f"{mark.explanation} {note}")
 
 
 def _tiebreak(
-    statement: str,
-    student: str,
+    question: Question,
     fast_answer: str,
     mid_answer: str,
     rungs: Rungs,
@@ -150,22 +167,21 @@ def _tiebreak(
     effort: Optional[str],
 ) -> Mark:
     """Opus solves once. It settles the disagreement only by matching one of the two answers."""
-    top = ask_solve(rungs.top, statement, ledger, effort)
+    top = ask_solve(rungs.top, question.full, ledger, effort)
     if top.refusal is not None:
-        return Mark("unsure", AI_LADDER, top.refusal)
+        return Mark(UNSURE, AI_LADDER, top.refusal)
     if top.answer is None:
-        return Mark("unsure", AI_LADDER, TIEBREAK_FAILED)
+        return Mark(UNSURE, AI_LADDER, TIEBREAK_FAILED)
     if _agrees(fast_answer, top.answer):
-        return _against_agreed(statement, student, fast_answer, 2, 3, rungs, ledger, effort)
+        return _against_agreed(question, fast_answer, 2, 3, rungs, ledger, effort)
     if _agrees(mid_answer, top.answer):
-        return _against_agreed(statement, student, mid_answer, 2, 3, rungs, ledger, effort)
+        return _against_agreed(question, mid_answer, 2, 3, rungs, ledger, effort)
     listing = THREE_WAY.format(first=fast_answer, second=mid_answer, third=top.answer)
-    return Mark("unsure", AI_LADDER, listing)
+    return Mark(UNSURE, AI_LADDER, listing)
 
 
 def ai_mark(
-    statement: str,
-    student: str,
+    question: Question,
     rungs: Rungs,
     ledger: CallLedger,
     effort: Optional[str] = None,
@@ -174,44 +190,45 @@ def ai_mark(
 
     The judge tier takes over when the student's answer or either solve cannot be read by SymPy.
     """
-    if not is_readable(student):
-        return _judge(statement, student, rungs.mid, ledger, effort)
-    fast = ask_solve(rungs.fast, statement, ledger, effort)
+    if not is_readable(question.compared):
+        return _judge(question, rungs.mid, ledger, effort, REASON_STUDENT_UNREADABLE)
+    fast = ask_solve(rungs.fast, question.full, ledger, effort)
     if fast.refusal is not None:
-        return Mark("unsure", AI_LADDER, fast.refusal)
-    mid = ask_solve(rungs.mid, statement, ledger, effort)
+        return Mark(UNSURE, AI_LADDER, fast.refusal)
+    mid = ask_solve(rungs.mid, question.full, ledger, effort)
     if mid.refusal is not None:
-        return Mark("unsure", AI_LADDER, mid.refusal)
+        return Mark(UNSURE, AI_LADDER, mid.refusal)
     if not (_readable_answer(fast.answer) and _readable_answer(mid.answer)):
-        return _judge(statement, student, rungs.mid, ledger, effort)
+        return _judge(question, rungs.mid, ledger, effort, REASON_SOLVE_UNREADABLE)
     if _agrees(str(fast.answer), str(mid.answer)):
-        return _against_agreed(statement, student, str(fast.answer), 2, 2, rungs, ledger, effort)
-    return _tiebreak(
-        statement, student, str(fast.answer), str(mid.answer), rungs, ledger, effort
-    )
+        return _against_agreed(question, str(fast.answer), 2, 2, rungs, ledger, effort)
+    return _tiebreak(question, str(fast.answer), str(mid.answer), rungs, ledger, effort)
 
 
 def grade_unmatched(
-    statement: str,
-    student: str,
+    question: Question,
     rungs: Rungs,
     ledger: CallLedger,
     effort: Optional[str] = None,
 ) -> Mark:
-    """An item with no bank match: SymPy when the statement is a derivative or limit, else the AI ladder."""
-    checked = sympy_mark(statement, student, rungs.fast, ledger)
+    """An item with no bank match: SymPy when the part is a derivative, limit, value, or integral, else the AI ladder."""
+    checked = sympy_mark(
+        question.statement, question.answers, rungs.fast, ledger, question.context
+    )
     if checked is not None:
         return checked
-    return ai_mark(statement, student, rungs, ledger, effort)
+    return ai_mark(question, rungs, ledger, effort)
 
 
-def regrade_mark(statement: str, student: str, rungs: Rungs) -> Mark:
+def regrade_mark(question: Question, rungs: Rungs) -> Mark:
     """One fresh blind solve by the mid rung at REGRADE_EFFORT, compared with the student's answer."""
     ledger = CallLedger(CallBudget(ITEM_CALL_CAP))
-    solved: Attempt = ask_solve(rungs.mid, statement, ledger, REGRADE_EFFORT)
+    solved: Attempt = ask_solve(rungs.mid, question.full, ledger, REGRADE_EFFORT)
     if solved.refusal is None and _readable_answer(solved.answer):
-        comparison = compare_answers(str(solved.answer), student)
-        mark = comparison_mark(comparison, student, str(solved.answer), SINGLE_SOLVE, REGRADED_PHRASE)
+        comparison = compare_answers(str(solved.answer), question.compared)
+        mark = comparison_mark(
+            comparison, question.compared, str(solved.answer), SINGLE_SOLVE, REGRADED_PHRASE
+        )
         if mark is not None:
             return mark
-    return _judge(statement, student, rungs.mid, ledger, REGRADE_EFFORT)
+    return _judge(question, rungs.mid, ledger, REGRADE_EFFORT, REASON_JUDGE_UNSURE)

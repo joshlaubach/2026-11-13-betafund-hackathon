@@ -17,11 +17,16 @@ export interface WorksheetItem {
   topic_guess: string | null;
   confidence: "low" | "medium" | "high";
   notes: string;
+  part_label: string | null;
+  context_latex: string;
+  final_answers_latex: string[];
+  explanation_text: string;
 }
 
 export interface WorksheetReading {
   items: WorksheetItem[];
   notes: string;
+  shared_context: string;
 }
 
 export interface Grade {
