@@ -5,6 +5,11 @@
 *.pem
 *.key
 
+# Local databases (app/config.py defaults to ./aimpg.db)
+*.db
+*.sqlite
+*.sqlite3
+
 # Python
 __pycache__/
 *.py[cod]
