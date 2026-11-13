@@ -13,6 +13,7 @@ from fastapi import UploadFile
 from starlette.concurrency import run_in_threadpool
 
 from core.bank_fallback import REPO_ROOT
+from core.image_privacy import strip_metadata
 from core.image_size import image_dimensions, too_small_message
 from core.photo_reader import (
     MAX_IMAGE_BYTES,
@@ -71,6 +72,11 @@ async def read_capped(upload: UploadFile) -> bytes:
         buffer.extend(chunk)
         if len(buffer) > MAX_IMAGE_BYTES:
             raise UploadTooLarge(TOO_LARGE_MESSAGE)
+
+
+async def read_private_upload(upload: UploadFile) -> bytes:
+    """Read the capped upload, then strip its metadata before any size check, hash, or reader call."""
+    return strip_metadata(await read_capped(upload))
 
 
 def size_error(image: bytes, mode: str) -> str | None:
@@ -149,7 +155,7 @@ def _public_result(result: dict, label: str) -> dict[str, Any]:
 
 async def read_uploaded_photo(upload: UploadFile, mode: str) -> dict[str, Any]:
     """Read an uploaded photo with the source for mode. Raises UploadTooLarge past the cap."""
-    image = await read_capped(upload)
+    image = await read_private_upload(upload)
     too_small = size_error(image, mode)
     if too_small is not None:
         return small_photo_result(too_small, image)

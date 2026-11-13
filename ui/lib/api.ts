@@ -8,6 +8,7 @@ import {
   fixtureRead,
   fixtureReadUnmarked,
 } from "./fixtures";
+import { UNPREPARED_MESSAGE, prepareUpload } from "./photo";
 import type {
   GradedItem,
   GradeResponse,
@@ -43,10 +44,20 @@ function jsonBody(body: unknown): RequestInit {
   return { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
 }
 
-export function readWorksheet(file: File, mode: Mode): Promise<ReadResponse> {
+// Fixture mode skips preparation so tiny in-memory test images reach the page unchanged.
+async function prepareForUpload(file: File): Promise<File> {
+  try {
+    return await prepareUpload(file);
+  } catch {
+    throw new ApiError(UNPREPARED_MESSAGE);
+  }
+}
+
+export async function readWorksheet(file: File, mode: Mode): Promise<ReadResponse> {
   if (USE_FIXTURES) return pause(file.name.includes(UNMARKED_FILE_TAG) ? fixtureReadUnmarked : fixtureRead);
+  const prepared = await prepareForUpload(file);
   const form = new FormData();
-  form.append("file", file);
+  form.append("file", prepared);
   form.append("mode", mode);
   return send<ReadResponse>("/api/worksheet/read", { method: "POST", body: form });
 }

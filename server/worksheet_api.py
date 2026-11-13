@@ -303,7 +303,7 @@ def _too_small_result(message: str, image: bytes) -> dict[str, Any]:
 
 async def read_uploaded_worksheet(upload: UploadFile, mode: str) -> dict[str, Any]:
     """Read an uploaded worksheet photo. Raises photo_api.UploadTooLarge past the cap."""
-    image = await photo_api.read_capped(upload)
+    image = await photo_api.read_private_upload(upload)
     too_small = photo_api.size_error(image, mode)
     if too_small is not None:
         return _too_small_result(too_small, image)
