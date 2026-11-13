@@ -16,10 +16,11 @@ import multiprocessing
 import queue
 import re
 import time
-from typing import Any, NamedTuple, Optional
+from typing import Any, Callable, NamedTuple, Optional
 
 import sympy as sp
 
+from core import antiderivatives, equations, solution_sets
 from core.definitions import (
     ASK_VERBS,
     Definition,
@@ -328,11 +329,11 @@ def compute_task(task: Task) -> Optional[sp.Basic]:
     return _finite_or_none(result)
 
 
-def _child_compute(task: Task, outbox: Any) -> None:
-    """Runs in the child process: announce readiness, then send the answer or None on any failure."""
+def _child_run(function: Callable[[Any], Any], arg: Any, outbox: Any) -> None:
+    """Runs in the child process: announce readiness, then send the function's answer or None on any failure."""
     outbox.put(READY)
     try:
-        answer = compute_task(task)
+        answer = function(arg)
     except Exception:  # any SymPy or reader failure is a missing answer, never a crash
         answer = None
     outbox.put(answer)
@@ -358,21 +359,26 @@ def _await_message(child: Any, outbox: Any, timeout_s: float) -> Any:
                 return outbox.get(timeout=POLL_INTERVAL_S)  # a message sent just before exit still counts
 
 
-def compute_answer(task: Task) -> Optional[sp.Basic]:
-    """SymPy's answer, computed in a child process. None on timeout, child exit, error, or a non-finite result."""
+def _run_in_child(function: Callable[[Any], Any], arg: Any) -> Any:
+    """function(arg) computed in a child process. None on timeout, child exit, or error."""
     outbox = _CONTEXT.Queue()
-    child = _CONTEXT.Process(target=_child_compute, args=(task, outbox), daemon=True)
+    child = _CONTEXT.Process(target=_child_run, args=(function, arg, outbox), daemon=True)
     child.start()
     try:
         if _await_message(child, outbox, STARTUP_TIMEOUT_S) != READY:
             return None
-        answer = _await_message(child, outbox, SYMPY_TIMEOUT_S)
+        return _await_message(child, outbox, SYMPY_TIMEOUT_S)
     except queue.Empty:  # the child never started, exited silently, or ran past its limit
         return None
     finally:
         _stop(child)
         outbox.close()
         outbox.join_thread()
+
+
+def compute_answer(task: Task) -> Optional[sp.Basic]:
+    """SymPy's answer, computed in a child process. None on timeout, child exit, error, or a non-finite result."""
+    answer = _run_in_child(compute_task, task)
     return answer if isinstance(answer, sp.Basic) else None
 
 
@@ -527,10 +533,69 @@ def sympy_mark(
     """
     tasks = parse_tasks(statement, context)
     if tasks is None:
-        return None
+        return _kind_mark(statement, answers, fast, ledger, context)
     computed = _computed(tasks, answers, _labels(statement, len(tasks)))
     if computed is None:
         return None
     if computed.mark.verdict == UNSURE:
         return computed.mark
     return _cross_check(join_statement(context, statement), computed, fast, ledger)
+
+
+# ---------------------------------------------------------------------------
+# Equation, solution-set, and antiderivative asks (core/equations.py, solution_sets.py, antiderivatives.py)
+# ---------------------------------------------------------------------------
+
+_KIND_MODULES = (equations, solution_sets, antiderivatives)
+
+
+def _kind_module(spec: object) -> Any:
+    """The module that made a spec, or None."""
+    return next((module for module in _KIND_MODULES if module.owns(spec)), None)
+
+
+def _kind_spec(statement: str, context: str) -> Optional[object]:
+    """The first spec any kind module reads from the ask, or None when none reads it."""
+    for module in _KIND_MODULES:
+        spec = module.parse_spec(statement, context)
+        if spec is not None:
+            return spec
+    return None
+
+
+def compute_kind(spec: object) -> Optional[sp.Basic]:
+    """Runs in the child process: SymPy's reference for an equation, solution-set, or integral spec."""
+    module = _kind_module(spec)
+    return None if module is None else module.compute_spec(spec)
+
+
+def _kind_cross_check(
+    full: str, spec: object, value: sp.Basic, mark: Mark, fast: AnswerSolver, ledger: CallLedger
+) -> Mark:
+    """One blind AI solve, graded by the same kind module: it can only confirm the SymPy mark or make it unsure."""
+    attempt = ask_solve(fast, full, ledger, None)
+    if attempt.refusal is not None or attempt.answer is None:
+        return mark._replace(explanation=f"{mark.explanation} {NO_CROSS_CHECK}")
+    module = _kind_module(spec)
+    reply = None if module is None else module.mark_spec(spec, value, (attempt.answer,))
+    if reply is not None and reply.verdict == "correct":
+        return mark._replace(explanation=f"{mark.explanation} {CROSS_CHECK_AGREES}")
+    explanation = CROSS_CHECK_DISAGREES.format(computed=mark.reference, ai=attempt.answer)
+    return Mark(UNSURE, SYMPY_METHOD, explanation, mark.reference)
+
+
+def _kind_mark(
+    statement: str, answers: tuple[str, ...], fast: AnswerSolver, ledger: CallLedger, context: str
+) -> Optional[Mark]:
+    """The mark for an ask no task shape reads, or None so the part goes to the AI ladder unchanged."""
+    spec = _kind_spec(statement, context)
+    module = None if spec is None else _kind_module(spec)
+    if spec is None or module is None:
+        return None
+    value = _run_in_child(compute_kind, spec)
+    if not isinstance(value, sp.Basic):
+        return None
+    mark = module.mark_spec(spec, value, answers)
+    if mark is None or mark.verdict == UNSURE:
+        return mark
+    return _kind_cross_check(join_statement(context, statement), spec, value, mark, fast, ledger)
