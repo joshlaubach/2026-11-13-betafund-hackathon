@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import os
+import random
 from pathlib import Path
 from typing import Optional, Union
 
@@ -22,6 +23,7 @@ from core.bank_fallback import (
     echo_checked_topics,
     serve,
 )
+from core.generated_problems import load_generated
 from core.drafter import (
     DEFAULT_EFFORT,
     DEFAULT_MODEL,
@@ -176,6 +178,27 @@ def _draft_problems(
     return problems, _source_notes(mode, source, result)
 
 
+def _generated_attempt(topic: str, level: int, count: int, seed: Optional[int]) -> list[dict]:
+    """Pre-generated problems that passed SymPy offline (core/generated_problems.py). No model call."""
+    pool = load_generated(topic, level)
+    if not pool:
+        return []
+    rng = random.Random(seed) if seed is not None else random
+    chosen = rng.sample(pool, min(count, len(pool)))
+    return [
+        {
+            "statement": problem["statement"],
+            "answer_latex": problem["answer_latex"],
+            "steps": [],
+            "origin": ORIGIN_ECHO,
+            "label": LABEL_ACCEPTED,
+            "level": level,
+            "checker": {"outcome": "accepted", "method": "sympy_generated_offline"},
+        }
+        for problem in chosen
+    ]
+
+
 def _echo_attempt(
     mode: str,
     topic: str,
@@ -183,10 +206,14 @@ def _echo_attempt(
     count: int,
     replay_path: Path,
     build_dir: Union[str, Path],
+    seed: Optional[int] = None,
 ) -> tuple[list[dict], list[str]]:
     """Draft problems only when the mode asks for drafts and the topic is Echo-checked."""
     if mode == MODE_BANK:
         return [], []
+    generated = _generated_attempt(topic, level, count, seed)
+    if generated:
+        return generated, [f"{len(generated)} problem(s) generated offline and verified by SymPy (Echo-checked)"]
     if topic not in echo_checked_topics(build_dir):
         return [], [f"{topic} is not Echo-checked yet; showing bank problems"]
     return _draft_problems(mode, topic, level, count, replay_path, build_dir)
@@ -246,7 +273,7 @@ def request_problems(
     if error is not None:
         return _result(STATUS_ERROR, topic, level, mode, None, [error], [])
     replay = Path(replay_path) if replay_path is not None else REPLAY_DEFAULT
-    echo_problems, notes = _echo_attempt(mode, topic, level, count, replay, build_dir)
+    echo_problems, notes = _echo_attempt(mode, topic, level, count, replay, build_dir, seed)
     taken = {_normalize(problem["statement"]) for problem in echo_problems}
     bank_problems, bank_notes = _bank_fill(
         topic, level, count - len(echo_problems), seed, build_dir, taken
