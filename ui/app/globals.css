@@ -86,6 +86,7 @@ p {
   display: grid;
   gap: 0.3rem;
   max-width: 24rem;
+  min-width: 0;
 }
 
 .field label {
@@ -94,6 +95,9 @@ p {
 
 input[type="file"],
 select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   font: inherit;
   padding: 0.55rem 0.6rem;
   border: 1px solid var(--graphite);
