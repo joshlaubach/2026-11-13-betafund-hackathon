@@ -113,8 +113,12 @@ def test_live_is_grounded_only_when_it_cites_a_retrieved_example(monkeypatch):
 DISTANCE_TOPIC = {"topic": "net_change_total_distance", "topic_title": "Net Change Total Distance"}
 
 
+STUCK = [turn for _ in range(5) for turn in ({"role": "student", "text": "stuck"}, {"role": "tutor", "text": "Try again."})]
+
+
 def test_a_total_distance_question_gets_total_distance_examples_not_net_change():
-    reply = chat("Explain how to find total distance", [], DISTANCE_TOPIC, "replay")
+    # The first reply is a question with no example; a stuck student gets the worked steps.
+    reply = chat("Explain how to find total distance", STUCK, DISTANCE_TOPIC, "replay")
     assert reply["sources"]
     assert all("total distance" in source["statement"].lower() for source in reply["sources"])
     # The worked steps shown must add absolute values, never signed displacements.

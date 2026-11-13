@@ -11,6 +11,17 @@
 - **SymPy child startup costs time.** Computed answers run in a fresh spawned process, sometimes more than once for a multipart item. The reported cost is about two seconds per item, but that figure is an estimate; the code has no timing measurement that confirms it.
 - **Metadata stripping is best effort.** The server strips metadata from supported well-formed JPEG, PNG, WebP, and GIF uploads before reading. The stripper returns the original bytes if it cannot safely parse them. Echo's own code does not save image bytes; replay JSON saves readings and grades.
 
+## Tutor and verification
+
+- **The worksheet table still shows an AI-only "incorrect" as Incorrect.** Only the tutor and Ask Echo treat it as "not known". The stored verdict, the table, and the skill tallies still count it (labeled AI-graded, not verified). A stricter fix would store such a mark as unsure or add a separate "unconfirmed" verdict, which touches the table, skill picture, recommendations, and tests; not done.
+- **Two saved replay grades were an AI-only "incorrect".** `replay/grades_5efa2d5cce4b.json` (the parametric slope `dy/dx` at `t=1` equal to 1/7, an AI judge) and `replay/grades_980c8d36cb2c.json` (1.718 against the agreed AI answer e - 1: a rounded decimal compared at sample points). Nothing was changed. Safe remediation: regrade each in Live mode and review the result, then re-save the replay deliberately; never rewrite saved grades in bulk. Run the read-only listing again after any new replay is saved.
+- **A rounded decimal can still be marked incorrect.** The 1.718 against e - 1 case shows the comparison is not tolerance-aware for approximations of an exact value; the "decimal where exact was asked" rule covers only some routes.
+- **Parametric curves have no computed route.** Slopes and second derivatives of parametric curves fall to the AI ladder or judge, so they cannot be verified. The tutor now asks the student to check a step instead of judging; the grade itself is unchanged.
+- **The offline tutor runs out of steps.** Fake and replay replies draw only on the bank example's steps. When they are all shown, later rounds repeat the full worked example. Live replies are not limited this way.
+- **The vocabulary guard is a pattern list.** `core/evidence.py` catches the known grading words (SymPy, records, method ids, "not verified", AI judge). A new phrasing can slip past it; the system prompts also forbid it, and the guard is a second layer, not a proof.
+- **The mobile keyboard path has no real-device test.** `--kb-inset` is covered by a unit test of `keyboardInset()` and by emulated viewports, not by a physical iOS or Android keyboard.
+- **Desktop masthead width.** With the tutor open, the masthead's border and background span only the worksheet column.
+
 ## Gotchas
 - **Inline Python breaks in PowerShell.** `python -c "..."` with nested quotes gets mangled. Write a script file to the scratchpad and run `python -I script.py` instead.
 - **`python -I -c` cannot import repo folders** (`core`, `scripts`, `app`) from the current directory. Add `sys.path.insert(0, <repo root>)` first, or test through pytest, which does it for you.

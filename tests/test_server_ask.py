@@ -34,7 +34,10 @@ ROW = {
     "explanation": "The antiderivative of 2x is x squared plus C.",
     "label": "Checked against the bank key",
 }
-SCRIPTED_TEXT = "Echo's note on this part: " + ROW["explanation"] + " " + ROW["label"]
+# The question asks how the part was marked, so the plain method words are added. The record's own sentences never are.
+SCRIPTED_TEXT = ask.SCRIPTED_BY_STANCE["confirmed_correct"] + ask.SCRIPTED_HOW_CHECKED.format(
+    words=ask.METHOD_WORDS["bank_key"]
+)
 
 
 class FakeMessages:
@@ -108,7 +111,12 @@ def test_row_fields_are_optional_and_default_to_empty(client, monkeypatch):
     response = client.post(ROUTE, json={"question": QUESTION, "mode": "fake"})
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "answer": "Echo's note on this part:"}
+    # No method, verdict or reason means nothing is known, so the reply neither praises nor blames.
+    assert response.json() == {
+        "status": "ok",
+        "answer": ask.SCRIPTED_BY_STANCE["unknown"]
+        + ask.SCRIPTED_HOW_CHECKED.format(words=ask.UNKNOWN_METHOD_WORDS),
+    }
 
 
 def test_live_mode_returns_the_model_answer(client, monkeypatch):
@@ -120,20 +128,22 @@ def test_live_mode_returns_the_model_answer(client, monkeypatch):
     assert len(fake.messages.calls) == 1
 
 
-def test_live_mode_without_a_key_returns_the_auth_message(client, monkeypatch):
+def test_live_mode_without_a_key_returns_a_plain_message_not_the_technical_cause(client, monkeypatch):
     forbid_model(monkeypatch)
 
     body = post_ask(client, "live").json()
 
-    assert body == {"status": "error", "error": AUTH_MESSAGE}
+    assert body == {"status": "error", "error": ask.UNAVAILABLE_MESSAGE}
+    assert AUTH_MESSAGE not in body["error"]
 
 
-def test_live_empty_model_answer_returns_an_error_status(client, monkeypatch):
+def test_live_empty_model_answer_falls_back_to_a_guiding_question(client, monkeypatch):
     use_fake_model(monkeypatch, {"answer": ""})
 
     body = post_ask(client, "live").json()
 
-    assert body == {"status": "error", "error": ask.EMPTY_ANSWER_MESSAGE}
+    assert body["status"] == "ok"
+    assert body["answer"].startswith(ask.SCRIPTED_BY_STANCE["confirmed_correct"])
 
 
 def test_empty_question_returns_an_error_status(client, monkeypatch):

@@ -6,7 +6,7 @@ import type { AskRow, Mode } from "@/lib/types";
 import { MathText } from "./Tex";
 
 export const ASK_MAX_CHARS = 300;
-const SUGGESTIONS = ["Why is this marked this way?", "What did I do wrong?", "How was this checked?"];
+const SUGGESTIONS = ["Why is this marked this way?", "Help me check my work", "How was this checked?"];
 const ASK_FALLBACK = "Echo could not reach the explanation step. Try again.";
 const REPLY_LABEL = "Echo's explanation (AI, not a mark)";
 

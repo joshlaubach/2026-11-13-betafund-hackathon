@@ -39,7 +39,7 @@ test("opening the panel shows the suggested questions and the input", async ({ p
   const row = unsureRow(page);
   await row.getByRole("button", { name: TOGGLE_NAME }).click();
 
-  await expect(row.getByRole("button", { name: "What did I do wrong?" })).toBeVisible();
+  await expect(row.getByRole("button", { name: "Help me check my work" })).toBeVisible();
   await expect(row.getByRole("button", { name: "How was this checked?" })).toBeVisible();
   await expect(row.getByRole("button", { name: CHIP })).toBeVisible();
   await expect(row.getByLabel("Your question")).toBeVisible();

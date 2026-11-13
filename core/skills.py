@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import NamedTuple, Optional, Sequence, Union
 
 from core import bank_fallback
+from core.evidence import VERIFIED_METHODS
 from core.worksheet_types import GradedItem, Recommendation, SkillStatus, TopicSkill
 from server.topics import topic_tree
 
@@ -22,7 +23,6 @@ BuildDir = Union[str, Path]
 UNKNOWN = "unknown"
 METHOD_BANK_KEY = "bank_key"
 METHOD_SYMPY_COMPUTED = "sympy_computed"
-VERIFIED_METHODS = (METHOD_BANK_KEY, METHOD_SYMPY_COMPUTED)
 VERDICT_CORRECT = "correct"
 VERDICT_INCORRECT = "incorrect"
 DETERMINATE_VERDICTS = (VERDICT_CORRECT, VERDICT_INCORRECT)  # an unsure mark is never verified

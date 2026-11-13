@@ -187,32 +187,34 @@ def test_fake_mode_returns_the_explanation_with_its_label_and_calls_no_model(mon
 
     text = answer(QUESTION, make_row(), "fake")
 
-    assert text == f"Echo's note on this part: {EXPLANATION} {LABEL}"
+    # The question asks how the part was marked, so the plain method words are added.
+    assert text == ask.SCRIPTED_BY_STANCE["confirmed_correct"] + ask.SCRIPTED_HOW_CHECKED.format(
+        words=ask.METHOD_WORDS["bank_key"]
+    )
 
 
-def test_replay_mode_returns_the_scripted_note_and_calls_no_model(monkeypatch):
+def test_replay_mode_returns_the_scripted_reply_and_calls_no_model(monkeypatch):
     forbid_client(monkeypatch)
 
     text = answer(QUESTION, make_row(), "replay")
 
-    assert text.startswith("Echo's note on this part: ")
-    assert EXPLANATION in text
+    assert text.startswith(ask.SCRIPTED_BY_STANCE["confirmed_correct"])
 
 
-def test_scripted_mode_without_a_label_ends_with_the_explanation(monkeypatch):
+def test_scripted_mode_never_repeats_the_grading_records_own_sentences(monkeypatch):
     forbid_client(monkeypatch)
 
-    text = answer(QUESTION, make_row(label=""), "fake")
+    text = answer(QUESTION, make_row(), "fake")
 
-    assert text == f"Echo's note on this part: {EXPLANATION}"
+    assert EXPLANATION not in text and LABEL not in text
 
 
-def test_scripted_mode_with_no_explanation_has_no_trailing_space(monkeypatch):
+def test_scripted_mode_without_how_asked_is_just_the_question(monkeypatch):
     forbid_client(monkeypatch)
 
-    text = answer(QUESTION, make_row(explanation="", label=""), "fake")
+    text = answer("help me with this", make_row(explanation="", label=""), "fake")
 
-    assert text == "Echo's note on this part:"
+    assert text == ask.SCRIPTED_BY_STANCE["confirmed_correct"]
 
 
 def test_scripted_output_never_talks_about_changing_a_mark(monkeypatch):
@@ -224,13 +226,14 @@ def test_scripted_output_never_talks_about_changing_a_mark(monkeypatch):
         assert word not in text
 
 
-def test_scripted_output_is_capped_at_1200_characters(monkeypatch):
+def test_scripted_output_stays_short_however_long_the_record_text_is(monkeypatch):
     forbid_client(monkeypatch)
     row = make_row(explanation="e" * 800, label="l" * 800)
 
     text = answer(QUESTION, row, "fake")
 
-    assert len(text) == MAX_ANSWER_CHARS
+    assert len(text) <= MAX_ANSWER_CHARS
+    assert "e" * 50 not in text
 
 
 # ---------------------------------------------------------------------------
@@ -271,7 +274,8 @@ def test_live_prompt_wraps_question_statement_and_answer_in_tags(monkeypatch):
     assert "<question>why is this marked correct?</question>" in content
     assert "<statement>\\int 2x\\,dx</statement>" in content
     assert "<student_answer>x^{2}+C</student_answer>" in content
-    assert "How it was marked: verified: the answer matched the stored key" in content
+    assert "What is known about the student's answer: The answer is confirmed correct." in content
+    assert "How it was checked: verified: the answer matched the stored key" in content
 
 
 def test_live_system_prompt_forbids_changing_the_mark_and_treats_tags_as_data(monkeypatch):
@@ -296,7 +300,7 @@ def test_live_tags_inside_inputs_are_stripped(monkeypatch):
     assert "<statement>int  2x</statement>" in content
     assert content.count("<statement>") == 1
     assert content.count("<question>") == 1
-    assert "note x" in content
+    assert "note" not in content  # the record's own sentences are never sent
 
 
 def test_live_answer_is_stripped_of_surrounding_spaces(monkeypatch):
@@ -317,40 +321,29 @@ def test_live_reply_with_extra_fields_keeps_only_the_answer(monkeypatch):
     assert answer(QUESTION, make_row(), "live") == "It matches."
 
 
-def test_live_empty_answer_is_an_error(monkeypatch):
-    use_fake_client(monkeypatch, {"answer": ""})
+@pytest.mark.parametrize(
+    "parsed, why",
+    [({"answer": ""}, EMPTY_ANSWER_MESSAGE), ({"answer": "   "}, EMPTY_ANSWER_MESSAGE),
+     ({"notes": "no answer field"}, ask.UNUSABLE_REPLY_MESSAGE)],
+)
+def test_live_unusable_reply_falls_back_to_a_guiding_question_and_logs_why(monkeypatch, caplog, parsed, why):
+    use_fake_client(monkeypatch, parsed)
 
-    with pytest.raises(AskError) as caught:
-        answer(QUESTION, make_row(), "live")
+    text = answer("help me with this", make_row(), "live")
 
-    assert str(caught.value) == EMPTY_ANSWER_MESSAGE
-
-
-def test_live_blank_answer_is_an_error(monkeypatch):
-    use_fake_client(monkeypatch, {"answer": "   "})
-
-    with pytest.raises(AskError) as caught:
-        answer(QUESTION, make_row(), "live")
-
-    assert str(caught.value) == EMPTY_ANSWER_MESSAGE
+    assert text == ask.SCRIPTED_BY_STANCE["confirmed_correct"]
+    assert why in caplog.text  # developers still see the cause; the student does not
 
 
-def test_live_reply_without_an_answer_is_an_error(monkeypatch):
-    use_fake_client(monkeypatch, {"notes": "no answer field"})
-
-    with pytest.raises(AskError) as caught:
-        answer(QUESTION, make_row(), "live")
-
-    assert str(caught.value) == ask.UNUSABLE_REPLY_MESSAGE
-
-
-def test_live_mode_without_a_key_is_an_error_and_makes_no_client(monkeypatch):
+def test_live_mode_without_a_key_gives_a_plain_message_and_makes_no_client(monkeypatch, caplog):
     forbid_client(monkeypatch)
 
     with pytest.raises(AskError) as caught:
         answer(QUESTION, make_row(), "live")
 
-    assert str(caught.value) == AUTH_MESSAGE
+    assert str(caught.value) == ask.UNAVAILABLE_MESSAGE
+    assert AUTH_MESSAGE not in str(caught.value)
+    assert AUTH_MESSAGE in caplog.text
 
 
 def test_the_live_prompt_never_contains_internal_method_ids(monkeypatch):
