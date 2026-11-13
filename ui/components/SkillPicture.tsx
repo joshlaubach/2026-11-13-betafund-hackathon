@@ -10,6 +10,10 @@ const STATUS_WORDS: Record<SkillStatus, string> = {
 };
 const STATUS_GLYPH: Record<SkillStatus, string> = { solid: "●", shaky: "◐", weak: "○", not_enough_data: "–" };
 
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
 interface Props {
   result: GradeResponse;
   activeTopic: string | null;
@@ -22,8 +26,8 @@ export function SkillPicture({ result, activeTopic, onPractice }: Props) {
     <section aria-labelledby="skills-heading">
       <h2 id="skills-heading">What to work on</h2>
       <p className="lede">
-        From {summary.problems_seen} problems: {summary.verified_marks} verified marks and {summary.ai_marks}{" "}
-        AI-graded marks. {unplaced > 0 && `${unplaced} problems could not be placed in a topic.`}
+        From {plural(summary.problems_seen, "problem")}: {plural(summary.verified_marks, "verified mark")} and{" "}
+        {plural(summary.ai_marks, "AI-graded mark")}. {unplaced > 0 && `${plural(unplaced, "problem")} could not be placed in a topic.`}
       </p>
 
       <ol className="rows">

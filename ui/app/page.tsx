@@ -57,7 +57,7 @@ export default function Home() {
       if (read.status !== "ok" || !read.reading) {
         throw new ApiError(read.error ?? "Echo could not read that photo. Try a clearer one.");
       }
-      setSourceLine(read.label);
+      setSourceLine(read.label.replace(/^source:\s*/i, ""));
       setStage("grading");
       setResult(await gradeWorksheet(read.reading, mode));
       setStage("done");
