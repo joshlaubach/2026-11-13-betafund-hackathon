@@ -9,8 +9,8 @@ u-substitution has no sampler (its recipes depend on the model's choice of g and
 """
 from functools import partial
 
-from app import (applications_b_samples, rates_optimization_samples, applications_samples, by_parts_samples, derivative_advanced_samples, derivative_rules_samples, derivatives_samples, improper_samples, limits_samples, partial_samples, rules_samples, strategy_samples,
-                 trig_samples, trig_sub_samples)
+from app.calc1 import applications_b_samples, rates_optimization_samples, applications_samples, derivative_advanced_samples, derivative_rules_samples, derivatives_samples, limits_samples
+from app.calc2 import by_parts_samples, improper_samples, partial_samples, rules_samples, strategy_samples, trig_samples, trig_sub_samples
 
 SAMPLERS = {
     "by_parts": by_parts_samples.generate,
@@ -46,39 +46,39 @@ def payload_for_reply(stem: str, payload: dict) -> dict:
     return out
 
 
-from app import integration_basics_samples
-from app.integration_basics import TOPICS as _BASICS_TOPICS
+from app.calc1 import integration_basics_samples
+from app.calc1.integration_basics import TOPICS as _BASICS_TOPICS
 for _topic in _BASICS_TOPICS:
     SAMPLERS[_topic] = partial(integration_basics_samples.generate, topic=_topic)
 
 
-from app import sequences_series_samples
-from app.sequences_series import TOPICS as _SEQUENCES_SERIES_TOPICS
+from app.calc2 import sequences_series_samples
+from app.calc2.sequences_series import TOPICS as _SEQUENCES_SERIES_TOPICS
 for _topic in _SEQUENCES_SERIES_TOPICS:
     SAMPLERS[_topic] = partial(sequences_series_samples.generate, topic=_topic)
 
 
-from app import integral_applications_samples
-from app.integral_applications import TOPICS as _INTEGRAL_APPLICATION_TOPICS
+from app.calc1 import integral_applications_samples
+from app.calc1.integral_applications import TOPICS as _INTEGRAL_APPLICATION_TOPICS
 for _topic in _INTEGRAL_APPLICATION_TOPICS:
     SAMPLERS[_topic] = partial(integral_applications_samples.generate, topic=_topic)
 
-from app import arc_length_samples
+from app.calc2 import arc_length_samples
 SAMPLERS["arc_length"] = arc_length_samples.generate
 
 
-from app import series_tests_samples
-from app.series_tests import TOPICS as _SERIES_TESTS_TOPICS
+from app.calc2 import series_tests_samples
+from app.calc2.series_tests import TOPICS as _SERIES_TESTS_TOPICS
 for _topic in _SERIES_TESTS_TOPICS:
     SAMPLERS[_topic] = partial(series_tests_samples.generate, topic=_topic)
 
 
-from app import power_series_samples
-from app.power_series import TOPICS as _POWER_SERIES_TOPICS
+from app.calc2 import power_series_samples
+from app.calc2.power_series import TOPICS as _POWER_SERIES_TOPICS
 for _topic in _POWER_SERIES_TOPICS:
     SAMPLERS[_topic] = partial(power_series_samples.generate, topic=_topic)
 
-from app import parametric_polar_samples
-from app.parametric_polar import TOPICS as _PARAMETRIC_POLAR_TOPICS
+from app.calc2 import parametric_polar_samples
+from app.calc2.parametric_polar import TOPICS as _PARAMETRIC_POLAR_TOPICS
 for _topic in _PARAMETRIC_POLAR_TOPICS:
     SAMPLERS[_topic] = partial(parametric_polar_samples.generate, topic=_topic)
