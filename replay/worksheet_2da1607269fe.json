@@ -1,0 +1,57 @@
+{
+  "source": "live",
+  "saved_at": "2026-11-13T08:38:45+00:00",
+  "image_sha256": "2da1607269fe543a2137b62e1b472b78b48e33a408986c527cec55a420c4adbc",
+  "reading": {
+    "items": [
+      {
+        "number": 1,
+        "statement_latex": "Compute v(0). Write a complete sentence explaining the meaning of v(0) in the context of the problem.",
+        "student_answer_latex": "v(0) = 1 - e^{-0} = 1 - 1 = 0",
+        "topic_guess": "motion",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "a",
+        "context_latex": "A surveillance drone rises from the ground. Its upward velocity is modelled by the function v(t) = 1 - e^{-t} meters per second that is t seconds into its flight",
+        "final_answers_latex": [
+          "v(0) = 0"
+        ],
+        "explanation_text": "The surveillance drone starts at rest initially.",
+        "corrected_by_user": false
+      },
+      {
+        "number": 2,
+        "statement_latex": "Compute \\int_0^5 v(t)\\,dt and write a sentence to interpret its meaning in the context of the problem",
+        "student_answer_latex": "\\int_0^5 v(t)\\,dt = \\int_0^5 (1 - e^{-t})\\,dt = \\left. t - e^{-t} \\right|_0^5 = (5 - e^{-5}) - (0 - e^{-0}) = 6 - e^5",
+        "topic_guess": "net_change_total_distance",
+        "confidence": "medium",
+        "notes": "The final result is written as 6 - e^5 and transcribed as written. The exponent of e in the final answer could be read as 5 or -5; it looks like 5.",
+        "part_label": "b",
+        "context_latex": "A surveillance drone rises from the ground. Its upward velocity is modelled by the function v(t) = 1 - e^{-t} meters per second that is t seconds into its flight",
+        "final_answers_latex": [
+          "6 - e^5"
+        ],
+        "explanation_text": "This is the height the drone reaches after 5 seconds in meters",
+        "corrected_by_user": false
+      },
+      {
+        "number": 3,
+        "statement_latex": "Find v'(t). Compute v'(0) and write a sentence to interpret its meaning in the context of the problem.",
+        "student_answer_latex": "v'(t) = e^{-t}, v'(0) = e^{-0} = 1",
+        "topic_guess": "motion",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "c",
+        "context_latex": "A surveillance drone rises from the ground. Its upward velocity is modelled by the function v(t) = 1 - e^{-t} meters per second that is t seconds into its flight",
+        "final_answers_latex": [
+          "v'(t) = e^{-t}",
+          "v'(0) = 1"
+        ],
+        "explanation_text": "This is the initial acceleration of the drone in m/s^2",
+        "corrected_by_user": false
+      }
+    ],
+    "notes": "",
+    "shared_context": "A surveillance drone rises from the ground. Its upward velocity is modelled by the function v(t) = 1 - e^{-t} meters per second that is t seconds into its flight"
+  }
+}

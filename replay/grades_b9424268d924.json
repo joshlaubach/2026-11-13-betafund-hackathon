@@ -1,0 +1,95 @@
+{
+  "source": "live",
+  "saved_at": "2026-11-13T08:28:15+00:00",
+  "reading_sha256": "b9424268d924ffcea6743112f5793d96d78c94e9b4288968c5e16e8de72a566f",
+  "graded": [
+    {
+      "item": {
+        "number": 1,
+        "statement_latex": "Use implicit differentiation to find the slope of the tangent line to the curve at the point $(-2, 1)$. Give an exact answer.",
+        "student_answer_latex": "\\frac{d}{dx}[y^2] = \\frac{d}{dx}[x^3 - 3x + 3]; 2y\\frac{dy}{dx} = 3x^2 - 3; \\frac{dy}{dx} = \\frac{3}{2}\\cdot\\frac{x^2-1}{y}; \\frac{dy}{dx}\\Big|_{(-2,1)} = \\frac{3}{2}\\cdot\\frac{(-2)^2-1}{(1)} = \\frac{3}{2}\\cdot 3 = \\frac{9}{2}",
+        "topic_guess": "implicit",
+        "confidence": "medium",
+        "notes": "The line dy/dx = 3/2 (x^2-1)/y is written with a dot between the fraction factors; I transcribed it as written. The student's step 2y dy/dx = 3x^2 - 3 followed by dy/dx = (3/2)(x^2-1)/y is not correct, but I did not alter it.",
+        "part_label": "a",
+        "context_latex": "Suppose we have an implicitly defined curve given by: y^2 = x^3 - 3x + 3",
+        "final_answers_latex": [
+          "\\frac{9}{2}"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "\\frac{9}{2}",
+        "explanation": "The student's answer \\frac{9}{2} matches SymPy's computed answer \\frac{9}{2} at 10 sample points, checked by SymPy. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 2,
+        "statement_latex": "Write the equation of the tangent line to the curve at the point $(-2, 1)$",
+        "student_answer_latex": "y - 1 = \\frac{9}{2}(x+2)",
+        "topic_guess": "tangent_normal_lines",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "b",
+        "context_latex": "Suppose we have an implicitly defined curve given by: y^2 = x^3 - 3x + 3",
+        "final_answers_latex": [
+          "y - 1 = \\frac{9}{2}(x+2)"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "y = \\frac{9 x}{2} + 10",
+        "explanation": "The student's answer y - 1 = \\frac{9}{2}(x+2) matches SymPy's computed answer y = \\frac{9 x}{2} + 10 at 20 sample points, checked by SymPy. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 3,
+        "statement_latex": "Find the coordinates of all points on the curve where the tangent line is horizontal",
+        "student_answer_latex": "x^2 - 1 = 0 \\Rightarrow x = \\pm 1; y = 0",
+        "topic_guess": "implicit",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "c",
+        "context_latex": "Suppose we have an implicitly defined curve given by: y^2 = x^3 - 3x + 3",
+        "final_answers_latex": [
+          "(-1,0)",
+          "(1,0)"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "incorrect",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "\\left\\{\\left( -1, \\  - \\sqrt{5}\\right), \\left( -1, \\  \\sqrt{5}\\right), \\left( 1, \\  -1\\right), \\left( 1, \\  1\\right)\\right\\}",
+        "explanation": "SymPy computes \\left\\{\\left( -1, \\  - \\sqrt{5}\\right), \\left( -1, \\  \\sqrt{5}\\right), \\left( 1, \\  -1\\right), \\left( 1, \\  1\\right)\\right\\} as the points where the tangent is horizontal; the student wrote (-1,0); (1,0). (-1, 0) is not on the curve. (1, 0) is not on the curve. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    }
+  ]
+}

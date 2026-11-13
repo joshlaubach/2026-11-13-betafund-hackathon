@@ -1,0 +1,95 @@
+{
+  "source": "live",
+  "saved_at": "2026-11-13T08:38:50+00:00",
+  "reading_sha256": "a7f8d085e721c1eedf46e9124898df6e576405d4c55cfc0d15feb0a4e65b46bc",
+  "graded": [
+    {
+      "item": {
+        "number": 1,
+        "statement_latex": "Compute v(0). Write a complete sentence explaining the meaning of v(0) in the context of the problem.",
+        "student_answer_latex": "v(0) = 1 - e^{-0} = 1 - 1 = 0",
+        "topic_guess": "motion",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "a",
+        "context_latex": "A surveillance drone rises from the ground. Its upward velocity is modelled by the function v(t) = 1 - e^{-t} meters per second that is t seconds into its flight",
+        "final_answers_latex": [
+          "v(0) = 0"
+        ],
+        "explanation_text": "The surveillance drone starts at rest initially.",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "0",
+        "explanation": "The student's answer 0 matches SymPy's computed answer 0 at 10 sample points, checked by SymPy. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 2,
+        "statement_latex": "Compute \\int_0^5 v(t)\\,dt and write a sentence to interpret its meaning in the context of the problem",
+        "student_answer_latex": "\\int_0^5 v(t)\\,dt = \\int_0^5 (1 - e^{-t})\\,dt = \\left. t - e^{-t} \\right|_0^5 = (5 - e^{-5}) - (0 - e^{-0}) = 6 - e^5",
+        "topic_guess": "net_change_total_distance",
+        "confidence": "medium",
+        "notes": "The final result is written as 6 - e^5 and transcribed as written. The exponent of e in the final answer could be read as 5 or -5; it looks like 5.",
+        "part_label": "b",
+        "context_latex": "A surveillance drone rises from the ground. Its upward velocity is modelled by the function v(t) = 1 - e^{-t} meters per second that is t seconds into its flight",
+        "final_answers_latex": [
+          "6 - e^5"
+        ],
+        "explanation_text": "This is the height the drone reaches after 5 seconds in meters",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "incorrect",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "4 + e^{-5}",
+        "explanation": "The student's answer 6 - e^5 does not match SymPy's computed answer 4 + e^{-5}: SymPy found different values at a sample point. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 3,
+        "statement_latex": "Find v'(t). Compute v'(0) and write a sentence to interpret its meaning in the context of the problem.",
+        "student_answer_latex": "v'(t) = e^{-t}, v'(0) = e^{-0} = 1",
+        "topic_guess": "motion",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "c",
+        "context_latex": "A surveillance drone rises from the ground. Its upward velocity is modelled by the function v(t) = 1 - e^{-t} meters per second that is t seconds into its flight",
+        "final_answers_latex": [
+          "v'(t) = e^{-t}",
+          "v'(0) = 1"
+        ],
+        "explanation_text": "This is the initial acceleration of the drone in m/s^2",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "e^{- t}; 1",
+        "explanation": "v'(t): SymPy computes e^{- t}; the student wrote e^{-t}. v'(0): SymPy computes 1; the student wrote 1. An independent AI solve was written in a form Echo could not compare, so it did not cross-check this mark.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "source": "live",
+  "saved_at": "2026-11-13T08:28:41+00:00",
+  "reading_sha256": "5efa2d5cce4b05a325532738258a924e9fe224f2ffd4f932afeb0fc7541f7670",
+  "graded": [
+    {
+      "item": {
+        "number": 1,
+        "statement_latex": "Find an equation for the line tangent to the curve when t = 1",
+        "student_answer_latex": "\\frac{dy}{dx}\\Big|_{t=1} = \\frac{\\frac{dy}{dt}\\big|_{t=1}}{\\frac{dx}{dt}\\big|_{t=1}} = \\frac{3t^2-2t}{t^2+6t}\\Big|_{t=1} = \\frac{1}{7}",
+        "topic_guess": "tangents",
+        "confidence": "medium",
+        "notes": "Student only computed the slope dy/dx = 1/7 and did not write an equation of the line. Note dx/dt as written (t^2+6t) is what the student wrote.",
+        "part_label": "a",
+        "context_latex": "Consider the curve parameterized by x = \\frac{1}{3}t^3 + 3t^2 + \\frac{2}{3}, y = t^3 - t^2 for 0 \\le t \\le \\sqrt{5}",
+        "final_answers_latex": [
+          "\\frac{dy}{dx}\\Big|_{t=1} = \\frac{1}{7}"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "incorrect",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "The student's answer \\frac{dy}{dx}\\Big|_{t=1} = \\frac{1}{7} could not be checked by SymPy, so the AI judge marked it incorrect from the statement alone.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 2,
+        "statement_latex": "Compute \\frac{d^2y}{dx^2} at t = 1",
+        "student_answer_latex": "\\frac{d^2y}{dx^2}\\Big|_{t=1} = \\frac{d}{dx}\\left[\\frac{dy}{dx}\\right]\\Big|_{t=1} = \\frac{\\frac{d}{dt}\\left[\\frac{dy}{dx}\\right]}{\\frac{dx}{dt}}\\Big|_{t=1} = \\frac{(6t-2)(t^2+6t)-(2t+6)(3t^2-2t)}{(t^2+6t)^2}\\cdot\\frac{1}{t^2+6t} = \\frac{20}{7^3}",
+        "topic_guess": "second_derivatives",
+        "confidence": "low",
+        "notes": "Final value 20/7^3 is read as 20 over 73 with the 3 raised, so the denominator is likely 7^3; the handwriting is slightly ambiguous. The large fraction in the middle is partly smudged and the placement of the final division by t^2+6t is uncertain. The final numerator/denominator are hard to read.",
+        "part_label": "b",
+        "context_latex": "Consider the curve parameterized by x = \\frac{1}{3}t^3 + 3t^2 + \\frac{2}{3}, y = t^3 - t^2 for 0 \\le t \\le \\sqrt{5}",
+        "final_answers_latex": [
+          "\\frac{20}{7^3}"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "not_graded",
+        "label": "Not marked: Echo was not confident it read this part correctly",
+        "reference_answer_latex": null,
+        "explanation": "The writing for this part was faint or unclear, so Echo did not mark it. Compare the reading with the photo, then try a clearer photo.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 3,
+        "statement_latex": "Write an integral to compute the total arc length of the curve. Do not evaluate the integral.",
+        "student_answer_latex": "\\int_0^{\\sqrt{5}} \\sqrt{\\left(\\frac{dx}{dt}\\right)^2 + \\left(\\frac{dy}{dt}\\right)^2}\\,dt = \\int_0^{\\sqrt{5}} \\sqrt{(t^2+6t)^2 + (3t^2-2t)^2}\\,dt",
+        "topic_guess": "parametric_arc_length",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "c",
+        "context_latex": "Consider the curve parameterized by x = \\frac{1}{3}t^3 + 3t^2 + \\frac{2}{3}, y = t^3 - t^2 for 0 \\le t \\le \\sqrt{5}",
+        "final_answers_latex": [
+          "\\int_0^{\\sqrt{5}} \\sqrt{(t^2+6t)^2 + (3t^2-2t)^2}\\,dt"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "The student's answer \\int_0^{\\sqrt{5}} \\sqrt{(t^2+6t)^2 + (3t^2-2t)^2}\\,dt could not be checked by SymPy, so the AI judge marked it correct from the statement alone.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    }
+  ]
+}

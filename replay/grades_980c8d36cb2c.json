@@ -1,0 +1,270 @@
+{
+  "source": "live",
+  "saved_at": "2026-11-13T08:28:29+00:00",
+  "reading_sha256": "980c8d36cb2c3442c64a7867bc4e71e2ffc9a3788e560ea3a5c4c21f4c4a4fbe",
+  "graded": [
+    {
+      "item": {
+        "number": 1,
+        "statement_latex": "Find f'(x)",
+        "student_answer_latex": "3x(x-2)",
+        "topic_guess": "power_rule",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "a",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "3x(x-2)"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "- 6 x + 3 x^{2}",
+        "explanation": "The student's answer 3x(x-2) matches SymPy's computed answer - 6 x + 3 x^{2} at 10 sample points, checked by SymPy. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 2,
+        "statement_latex": "Compute f'(1)",
+        "student_answer_latex": "-3\\pi",
+        "topic_guess": "power_rule",
+        "confidence": "medium",
+        "notes": "The answer looks like -3\\pi, but the last symbol could be a different character.",
+        "part_label": "b",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "-3\\pi"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "incorrect",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "-3",
+        "explanation": "The student's answer -3\\pi does not match SymPy's computed answer -3: SymPy found different values at a sample point. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 3,
+        "statement_latex": "Write the equation of the tangent line at x=1",
+        "student_answer_latex": "y = -3x - 3",
+        "topic_guess": "tangent_normal_lines",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "c",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "y=-3x-3"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "incorrect",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "y = 3 - 3 x",
+        "explanation": "The student's answer y=-3x-3 does not match SymPy's computed answer y = 3 - 3 x: SymPy found different values at a sample point. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 4,
+        "statement_latex": "Find all critical points where f'(x) = 0",
+        "student_answer_latex": "0 and -2",
+        "topic_guess": "critical_numbers",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "d",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "0",
+          "-2"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "incorrect",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "\\left\\{0, 2\\right\\}",
+        "explanation": "SymPy computes the set \\left\\{0, 2\\right\\}; the student wrote 0; -2, which is a different set. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 5,
+        "statement_latex": "On what intervals is f increasing?",
+        "student_answer_latex": "0 > x or x > 2",
+        "topic_guess": "increasing_decreasing",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "e",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "0>x",
+          "x>2"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "\\left(-\\infty, 0\\right) \\cup \\left(2, \\infty\\right)",
+        "explanation": "The student's answer 0>x; x>2 matches the set SymPy computed, \\left(-\\infty, 0\\right) \\cup \\left(2, \\infty\\right). An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 6,
+        "statement_latex": "Evaluate \\lim_{x\\to 0} \\frac{|x|}{x}",
+        "student_answer_latex": "DNE",
+        "topic_guess": "one_sided",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "f",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "\\text{DNE}"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "The student's answer \\text{DNE} could not be checked by SymPy, so the AI judge marked it correct from the statement alone.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 7,
+        "statement_latex": "Find \\int \\frac{3}{x} dx",
+        "student_answer_latex": "3 \\ln x + C",
+        "topic_guess": "basic_antiderivatives",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "g",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "3\\ln x + C"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "3 \\log{\\left(\\left|{x}\\right| \\right)} + C",
+        "explanation": "Agrees only for x>0; the answer should be 3 ln|x| + C.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "rule"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 8,
+        "statement_latex": "Evaluate \\int_0^1 e^x dx. Give an exact answer.",
+        "student_answer_latex": "1.718",
+        "topic_guess": "ftc_evaluate",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "h",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "1.718"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "incorrect",
+        "method": "ai_ladder",
+        "label": "AI-graded: independent AI solves agree. SymPy only compared answers; the AI's answer is unchecked. Not verified by Echo",
+        "reference_answer_latex": "e-1",
+        "explanation": "The student's answer 1.718 does not match the agreed AI answer e-1: SymPy found different values at a sample point. 2 of 2 independent AI solves agree.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 9,
+        "statement_latex": "Solve x^2 = 2",
+        "student_answer_latex": "x = \\pm\\sqrt{2}",
+        "topic_guess": "algebraic",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "i",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "x=\\pm\\sqrt{2}"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "correct",
+        "method": "sympy_computed",
+        "label": "Marked by Echo's checker: SymPy computed the answer itself",
+        "reference_answer_latex": "\\left\\{- \\sqrt{2}, \\sqrt{2}\\right\\}",
+        "explanation": "The student's answer x=\\pm\\sqrt{2} matches the set SymPy computed, \\left\\{- \\sqrt{2}, \\sqrt{2}\\right\\}. An independent AI solve agreed with SymPy's answer.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": null
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    }
+  ]
+}

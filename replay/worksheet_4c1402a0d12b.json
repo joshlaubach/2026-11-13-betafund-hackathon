@@ -1,0 +1,148 @@
+{
+  "source": "live",
+  "saved_at": "2026-11-13T08:28:24+00:00",
+  "image_sha256": "4c1402a0d12b950540b7ac8920da38208fc7cef117c890a02ed1db8564c9ca72",
+  "reading": {
+    "items": [
+      {
+        "number": 1,
+        "statement_latex": "Find f'(x)",
+        "student_answer_latex": "3x(x-2)",
+        "topic_guess": "power_rule",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "a",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "3x(x-2)"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 2,
+        "statement_latex": "Compute f'(1)",
+        "student_answer_latex": "-3\\pi",
+        "topic_guess": "power_rule",
+        "confidence": "medium",
+        "notes": "The answer looks like -3\\pi, but the last symbol could be a different character.",
+        "part_label": "b",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "-3\\pi"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 3,
+        "statement_latex": "Write the equation of the tangent line at x=1",
+        "student_answer_latex": "y = -3x - 3",
+        "topic_guess": "tangent_normal_lines",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "c",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "y=-3x-3"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 4,
+        "statement_latex": "Find all critical points where f'(x) = 0",
+        "student_answer_latex": "0 and -2",
+        "topic_guess": "critical_numbers",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "d",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "0",
+          "-2"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 5,
+        "statement_latex": "On what intervals is f increasing?",
+        "student_answer_latex": "0 > x or x > 2",
+        "topic_guess": "increasing_decreasing",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "e",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "0>x",
+          "x>2"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 6,
+        "statement_latex": "Evaluate \\lim_{x\\to 0} \\frac{|x|}{x}",
+        "student_answer_latex": "DNE",
+        "topic_guess": "one_sided",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "f",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "\\text{DNE}"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 7,
+        "statement_latex": "Find \\int \\frac{3}{x} dx",
+        "student_answer_latex": "3 \\ln x + C",
+        "topic_guess": "basic_antiderivatives",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "g",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "3\\ln x + C"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 8,
+        "statement_latex": "Evaluate \\int_0^1 e^x dx. Give an exact answer.",
+        "student_answer_latex": "1.718",
+        "topic_guess": "ftc_evaluate",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "h",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "1.718"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      {
+        "number": 9,
+        "statement_latex": "Solve x^2 = 2",
+        "student_answer_latex": "x = \\pm\\sqrt{2}",
+        "topic_guess": "algebraic",
+        "confidence": "high",
+        "notes": "",
+        "part_label": "i",
+        "context_latex": "Let f(x) = x^3 - 3x^2 + 2",
+        "final_answers_latex": [
+          "x=\\pm\\sqrt{2}"
+        ],
+        "explanation_text": "",
+        "corrected_by_user": false
+      }
+    ],
+    "notes": "Part b: the final symbol of the answer is uncertain. Parts are lettered a to i and are numbered 1 to 9 in order.",
+    "shared_context": "Let f(x) = x^3 - 3x^2 + 2"
+  }
+}

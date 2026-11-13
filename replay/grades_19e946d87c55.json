@@ -1,0 +1,412 @@
+{
+  "source": "live",
+  "saved_at": "2026-11-13T08:29:16+00:00",
+  "reading_sha256": "19e946d87c55d7c0baa3882479166b6087bd2d34ce0f5ef479c1a49713ec9757",
+  "graded": [
+    {
+      "item": {
+        "number": 1,
+        "statement_latex": "ἐν τίνι γλῶσσᾳ γράφει Παῦλος;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "No student answer written; this is a Greek-language worksheet, not calculus.",
+        "part_label": "1",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 2,
+        "statement_latex": "κατὰ τὴν προσευχὴν τοῦ κυρίου, ποῦ κατοικεῖ ὁ πατὴρ τοῦ Ἰησοῦ;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "No student answer written.",
+        "part_label": "2",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 3,
+        "statement_latex": "κατὰ τὴν ἁγίαν γραφὴν, πάλιν ἔρχεται ὁ Χριστὸς εἰς τὴν γῆν ταύτην;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "No student answer written.",
+        "part_label": "3",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 4,
+        "statement_latex": "κατὰ τὸ εὐαγγέλιον τοῦ Λουκᾶ, τίς τίκτει τὸν Ἰησοῦν;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "medium",
+        "notes": "No student answer written. A mouse cursor covers part of the word εὐαγγέλιον, so some letters are a guess.",
+        "part_label": "4",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 5,
+        "statement_latex": "εἰσέρχεται Ἰησοῦς εἰς Ἱερουσαλὴμ ἐπὶ τίνος; (hint: ζῷον ἔστιν)",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "No student answer written.",
+        "part_label": "5",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 6,
+        "statement_latex": "ὦ ἀνήρ, ποῦ κατοικεῖ Ἰωάννης ὁ βαπτιστής;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "medium",
+        "notes": "No student answer written. The first word may be ὡς or ὦ, so I guessed it.",
+        "part_label": "6",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 7,
+        "statement_latex": "κατὰ τὸ βιβλίον τὸ ἀγαθὸν, τίς ἀριθμεῖ τὰς τρίχας τῆς κεφαλῆς σου;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "No student answer written.",
+        "part_label": "7",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 8,
+        "statement_latex": "κατὰ τὰ εὐαγγέλια, τί λαμβάνει ὁ Ἰησοῦς ἀπὸ τοῦ οὐρανοῦ ἐν τῷ βαπτισμῷ αὐ",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "low",
+        "notes": "The question is cut off at the right edge of the photo (ends at αὐ...). No student answer written.",
+        "part_label": "8",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "not_graded",
+        "label": "Not marked: Echo was not confident it read this part correctly",
+        "reference_answer_latex": null,
+        "explanation": "The writing for this part was faint or unclear, so Echo did not mark it. Compare the reading with the photo, then try a clearer photo.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 9,
+        "statement_latex": "κατὰ τὰ εὐαγγέλια, τίς λαλεῖ πρὸς τὸν Ἰησοῦν ἐν τῇ ἐρημῳ;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "medium",
+        "notes": "No student answer written. Accents on the last word are hard to read.",
+        "part_label": "9",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 10,
+        "statement_latex": "κατὰ τὰ εὐαγγέλια, πόσους μαθητὰς ἔχει ὁ Ἰησοῦς;",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "No student answer written.",
+        "part_label": "10",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 11,
+        "statement_latex": "πρόσθες πέντε πρὸς ὀκτώ.",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "Arithmetic section item 1; numbered 11 here to keep it distinct from the first section. No student answer written.",
+        "part_label": "Arithmetic 1",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 12,
+        "statement_latex": "ἄφελε τριάκοντα ἀπὸ πεντήκοντα.",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "high",
+        "notes": "Arithmetic section item 2. No student answer written.",
+        "part_label": "Arithmetic 2",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 13,
+        "statement_latex": "λόγισαι· εἴκοσι καὶ τεσσαράκοντα καὶ δέκα.",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "medium",
+        "notes": "Arithmetic section item 3. No student answer written. Small text, some accents guessed.",
+        "part_label": "Arithmetic 3",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 14,
+        "statement_latex": "πρόσθες τέσσαρα πρὸς ἑπτά.",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "medium",
+        "notes": "Arithmetic section item 4. No student answer written. Small text, breathing mark on the last word is hard to read.",
+        "part_label": "Arithmetic 4",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "ai_judgment",
+        "label": "AI-graded: AI judgment only. Not verified by Echo",
+        "reference_answer_latex": null,
+        "explanation": "no answer written",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    },
+    {
+      "item": {
+        "number": 15,
+        "statement_latex": "ἄφελε τρία ἀπὸ δώδεκα.",
+        "student_answer_latex": null,
+        "topic_guess": null,
+        "confidence": "low",
+        "notes": "Arithmetic section item 5. Text is small and cut off at the bottom edge of the photo. No student answer written.",
+        "part_label": "Arithmetic 5",
+        "context_latex": "Answer the questions in Greek (2 points each):",
+        "final_answers_latex": [],
+        "explanation_text": "",
+        "corrected_by_user": false
+      },
+      "grade": {
+        "verdict": "unsure",
+        "method": "not_graded",
+        "label": "Not marked: Echo was not confident it read this part correctly",
+        "reference_answer_latex": null,
+        "explanation": "The writing for this part was faint or unclear, so Echo did not mark it. Compare the reading with the photo, then try a clearer photo.",
+        "bank_topic": null,
+        "bank_id": null,
+        "reason": "reading"
+      },
+      "regraded": false,
+      "changed_on_regrade": false
+    }
+  ]
+}
