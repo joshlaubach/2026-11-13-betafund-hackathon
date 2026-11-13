@@ -1,0 +1,40 @@
+# Secrets and local environment: never enter a build context
+.env
+.env.*
+**/*.pem
+**/*.key
+
+# Version control and tooling output
+.git
+.claude
+graphify-out
+.playwright-mcp
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.coverage
+**/htmlcov
+
+# Python caches, tests, and local scratch
+**/__pycache__
+**/*.py[cod]
+tests
+**/*.log
+**/*.tmp.*
+claudex-*
+*.db
+*.sqlite
+*.sqlite3
+
+# The page is a separate image
+ui
+node_modules
+**/node_modules
+**/.next
+
+# Build output: the API image regenerates build/ with the gate
+build
+
+# Docs: keep only the bank file the API reads (docs/* then re-include)
+docs/*
+!docs/verified_problems.json

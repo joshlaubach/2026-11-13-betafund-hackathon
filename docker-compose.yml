@@ -1,0 +1,52 @@
+# Echo: Python API on port 8000 and Next.js page on port 3000.
+#   docker compose up -d --wait     (default ECHO_MODE=replay: no key, no internet)
+# Secrets come from the host environment or an optional .env file. They are never baked into an image.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: echo-api
+    env_file:
+      - path: ./.env
+        required: false
+    environment:
+      - ECHO_MODE=${ECHO_MODE:-replay}
+      - ANTHROPIC_API_KEY
+      - ANTHROPIC_MODEL
+      - ANTHROPIC_EFFORT
+      - ECHO_SAVE_REPLAYS
+    volumes:
+      # Saved runs live on the host. ECHO_SAVE_REPLAYS=1 writes good live runs back here.
+      - ./replay:/app/replay
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5).status == 200 else 1)"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+      args:
+        # Used by the browser, so it must point at the API's published port on this machine.
+        NEXT_PUBLIC_API_BASE: http://127.0.0.1:8000
+        NEXT_PUBLIC_FIXTURES: "0"
+    image: echo-ui
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.status === 200 ? 0 : 1), () => process.exit(1))"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
