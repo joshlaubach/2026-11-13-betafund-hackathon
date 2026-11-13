@@ -21,6 +21,7 @@ _WRITING_CLAUSE = re.compile(
     r"[,.;]?\s*(?:and\s+)?(?:write|explain|state|justify|interpret)\b.*$", re.IGNORECASE
 )
 _SENTENCE_BREAK = re.compile(r"\.\s+")
+_PROSE_START = re.compile(r"\s+(?=[A-Za-z]{3,}\b)")
 _BODY_END = r"(?=\.\s|\.$|;|$)"
 _DEFINITION = re.compile(r"([A-Za-z])\s*\(\s*([A-Za-z])\s*\)\s*=\s*(.+?)" + _BODY_END)
 _Y_DEFINITION = re.compile(r"(?<![A-Za-z(])y\s*=\s*(.+?)" + _BODY_END)
@@ -60,16 +61,25 @@ def _only_variable(body: str) -> str | None:
     return names.pop() if len(names) == 1 else None
 
 
+def _trim_prose(body: str) -> str:
+    """Cut a definition body at the first plain word, so "1 - e^{-t} meters per second" keeps "1 - e^{-t}".
+
+    LaTeX commands start with a backslash, so a word after a space is prose, not math.
+    """
+    return _PROSE_START.split(body.strip(), maxsplit=1)[0].strip()
+
+
 def _definitions_in(text: str) -> list[Definition]:
     explicit = [
-        Definition(name, variable, body.strip())
+        Definition(name, variable, _trim_prose(body))
         for name, variable, body in _DEFINITION.findall(text)
     ]
     implicit = []
     for body in _Y_DEFINITION.findall(text):
-        variable = _only_variable(body)
+        trimmed = _trim_prose(body)
+        variable = _only_variable(trimmed)
         if variable is not None:
-            implicit.append(Definition("y", variable, body.strip()))
+            implicit.append(Definition("y", variable, trimmed))
     return [definition for definition in explicit + implicit if _readable(definition)]
 
 
@@ -90,6 +100,15 @@ def split_asks(statement: str) -> tuple[str, ...]:
     trimmed = _WRITING_CLAUSE.sub("", plain_text(statement))
     pieces = (piece.strip().rstrip(".").strip() for piece in _SENTENCE_BREAK.split(trimmed))
     return tuple(piece for piece in pieces if piece)
+
+
+def without_writing_ask(statement: str) -> str:
+    """The statement without "write a sentence..." instructions, which are graded separately and never shown to a model.
+
+    A model that is asked for a sentence it cannot see would call correct math incomplete.
+    """
+    trimmed = _WRITING_CLAUSE.sub("", statement).strip()
+    return trimmed or statement
 
 
 def ask_label(ask: str) -> str:

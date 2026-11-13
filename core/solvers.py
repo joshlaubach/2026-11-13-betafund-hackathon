@@ -21,6 +21,7 @@ import anthropic
 import sympy as sp
 from pydantic import BaseModel
 
+from core.definitions import without_writing_ask
 from core.derivative_checker import ABS_FLOOR, MIN_COMPARABLE_POINTS, REL_TOLERANCE, SAMPLE_POINTS, X
 from core.drafter import (
     AUTH_MESSAGE,
@@ -72,8 +73,9 @@ SOLVE_SYSTEM_PROMPT = (
 )
 JUDGE_SYSTEM_PROMPT = (
     "You judge a student's written answer to a calculus problem for Echo. Reply correct or "
-    "incorrect only when you are sure; reply unsure when you cannot tell. "
-    "Return only the structured output requested. " + TAG_RULE
+    "incorrect only when you are sure; reply unsure when you cannot tell. Any written sentence or "
+    "explanation the problem asks for is graded separately and is not shown to you: judge only the "
+    "mathematical answers. Return only the structured output requested. " + TAG_RULE
 )
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
@@ -143,7 +145,8 @@ class Question(NamedTuple):
 
     @property
     def full(self) -> str:
-        return join_statement(self.context, self.statement)
+        """What a model is shown: the setup and the part, without any request to write a sentence."""
+        return join_statement(self.context, without_writing_ask(self.statement))
 
     @property
     def compared(self) -> str:

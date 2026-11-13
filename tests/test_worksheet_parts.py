@@ -305,3 +305,24 @@ def test_old_saved_reading_without_new_fields_still_loads(tmp_path: Path) -> Non
     assert saved["reading"].shared_context == ""
     result = read_worksheet(png, ReplayWorksheetSource(path), topics=["power_rule"])
     assert result["status"] == STATUS_OK
+
+
+def test_definition_body_is_cut_at_the_first_plain_word() -> None:
+    from core.definitions import parse_definitions
+
+    setup = "Its velocity is modelled by v(t) = 1 - e^{-t} meters per second that is t seconds into its flight"
+    definitions = parse_definitions(setup)
+    assert definitions["v"].body_latex == "1 - e^{-t}"
+
+
+def test_models_never_see_a_request_to_write_a_sentence() -> None:
+    from core.solvers import Question
+
+    question = Question(
+        "(c) Find v'(t). Compute v'(0) and write a sentence to interpret its meaning in the context of the problem.",
+        "v(t) = 1 - e^{-t}",
+        ("e^{-t}", "1"),
+        "v'(t) = e^{-t}",
+    )
+    assert "sentence" not in question.full
+    assert "Compute v'(0)" in question.full
