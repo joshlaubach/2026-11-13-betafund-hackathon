@@ -1,0 +1,33 @@
+{
+  "topic": "power_rule",
+  "level": 2,
+  "source": "live",
+  "saved_at": "2026-11-13T02:02:26+00:00",
+  "drafts": [
+    {
+      "function_latex": "4x^{3} - 5x^{2} + 3x - 7",
+      "evaluate_at": null,
+      "key_latex": "12x^{2} - 10x + 3"
+    },
+    {
+      "function_latex": "x^{4} - \\frac{3}{x}",
+      "evaluate_at": "1",
+      "key_latex": "7"
+    },
+    {
+      "function_latex": "3\\sqrt{x} + x^{2}",
+      "evaluate_at": "4",
+      "key_latex": "\\frac{35}{4}"
+    },
+    {
+      "function_latex": "\\frac{2}{x^{2}} + 5x",
+      "evaluate_at": null,
+      "key_latex": "-\\frac{4}{x^{3}} + 5"
+    },
+    {
+      "function_latex": "2x^{5} - 4x^{3} + x",
+      "evaluate_at": "-1",
+      "key_latex": "-1"
+    }
+  ]
+}
