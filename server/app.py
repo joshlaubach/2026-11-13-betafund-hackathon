@@ -1,6 +1,7 @@
 """The FastAPI app the chat page calls. It wraps core/entry, core/photo_reader and core/bank_fallback.
 
-Routes: GET /api/health, GET /api/topics, POST /api/read-photo, POST /api/problems.
+Routes: GET /api/health, GET /api/topics, POST /api/read-photo, POST /api/problems,
+POST /api/worksheet/read, /grade, /regrade, /profile (server/worksheet_api.py).
 Nothing here echoes environment variables, tracebacks, or the API key. Unexpected
 errors return HTTP 500 {"error": "internal error"} and are logged by type and message.
 """
@@ -20,7 +21,7 @@ from pydantic import BaseModel
 from core import bank_fallback
 from core.entry import request_problems
 from core.photo_reader import TOO_LARGE_MESSAGE
-from server import photo_api
+from server import photo_api, worksheet_api
 from server.topics import topic_tree
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,39 @@ def create_app() -> FastAPI:
             return request_problems(body.topic, body.level, mode=mode, build_dir=BUILD_DIR)
         except Exception as error:
             return _internal_error("problems", error)
+
+    @app.post("/api/worksheet/read", response_model=None)
+    async def worksheet_read_route(
+        file: UploadFile = File(...),
+        mode: Literal["live", "replay", "fake"] = Form(DEFAULT_MODE),
+    ) -> Any:
+        try:
+            return await worksheet_api.read_uploaded_worksheet(file, mode)
+        except photo_api.UploadTooLarge:
+            return _too_large()
+        except Exception as error:
+            return _internal_error("worksheet-read", error)
+
+    @app.post("/api/worksheet/grade", response_model=None)
+    def worksheet_grade_route(body: worksheet_api.GradeRequest) -> Any:
+        try:
+            return worksheet_api.grade_reading(body, BUILD_DIR)
+        except Exception as error:
+            return _internal_error("worksheet-grade", error)
+
+    @app.post("/api/worksheet/regrade", response_model=None)
+    def worksheet_regrade_route(body: worksheet_api.RegradeRequest) -> Any:
+        try:
+            return worksheet_api.regrade_graded(body)
+        except Exception as error:
+            return _internal_error("worksheet-regrade", error)
+
+    @app.post("/api/worksheet/profile", response_model=None)
+    def worksheet_profile_route(body: worksheet_api.ProfileRequest) -> Any:
+        try:
+            return worksheet_api.profile_graded(body, BUILD_DIR)
+        except Exception as error:
+            return _internal_error("worksheet-profile", error)
 
     return app
 
