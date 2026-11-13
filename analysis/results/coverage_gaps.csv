@@ -1,0 +1,20 @@
+﻿topic,title,level,eligible_count,gap_to_three,status
+average_value,Average Value,1,0,3,empty
+basic_antiderivatives,Basic Antiderivatives,4,0,3,empty
+curve_sketching,Curve sketching analysis,1,0,3,empty
+definite_properties,Definite Properties,3,0,3,empty
+definite_properties,Definite Properties,4,0,3,empty
+ftc_evaluate,Ftc Evaluate,4,0,3,empty
+increasing_decreasing/variants/graph,"Intervals of increase and decrease, read from the graph of f'",1,0,3,empty
+increasing_decreasing/variants/graph,"Intervals of increase and decrease, read from the graph of f'",2,0,3,empty
+increasing_decreasing/variants/graph,"Intervals of increase and decrease, read from the graph of f'",3,0,3,empty
+increasing_decreasing/variants/graph,"Intervals of increase and decrease, read from the graph of f'",4,0,3,empty
+initial_value_problems,Initial Value Problems,1,0,3,empty
+linear_approximation,Linear approximation and differentials,4,0,3,empty
+relative_extrema,Relative extrema,1,0,3,empty
+relative_extrema/variants/graph,"Relative extrema, read from the graph of f",1,0,3,empty
+relative_extrema/variants/graph,"Relative extrema, read from the graph of f",2,0,3,empty
+relative_extrema/variants/graph,"Relative extrema, read from the graph of f",3,0,3,empty
+relative_extrema/variants/graph,"Relative extrema, read from the graph of f",4,0,3,empty
+riemann_sums,Riemann Sums,4,0,3,empty
+symmetry,Symmetry,4,0,3,empty

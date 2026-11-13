@@ -1,0 +1,91 @@
+﻿topic,title,course,unit,total,level_5,eligible,excluded_1_4,level_1,level_2,level_3,level_4,all_levels_have_three
+absolute_conditional,Absolute and conditional convergence,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+absolute_extrema,Absolute extrema on a closed interval,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+algebraic,Limits by algebraic manipulation,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+alternating_error,Alternating series error bounds,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+arc_length,Cartesian arc length,calc_ii,c7_applications_of_integration,40,0,40,0,10,10,10,10,True
+area_between_curves,Area between curves,calc_i,c5_area_and_volume,40,0,40,0,10,10,10,10,True
+at_infinity,Limits at infinity,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+average_value,Average Value,calc_i,c4_integration_basics,30,0,30,0,0,10,10,10,False
+basic_antiderivatives,Basic Antiderivatives,calc_i,c4_integration_basics,30,0,30,0,10,10,10,0,False
+binomial_series,Binomial series,calc_ii,c11_power_series_taylor,40,0,40,0,10,10,10,10,True
+by_parts,Integration by parts,calc_ii,c6_integration_techniques,40,0,40,0,10,10,10,10,True
+chain_rule,Chain rule,calc_i,c2_derivatives,50,10,40,0,10,10,10,10,True
+classify_discontinuity,Classify discontinuities,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+concavity_inflection,Concavity and inflection points,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+convergence_tests,Convergence tests,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+critical_numbers,Critical numbers,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+curve_sketching,Curve sketching analysis,calc_i,c3_applications_of_derivatives,30,0,30,0,0,10,10,10,False
+definite_properties,Definite Properties,calc_i,c4_integration_basics,20,0,20,0,10,10,0,0,False
+dhyperbolic,Derivatives of hyperbolic functions,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+difference_quotient,Difference quotient,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+differentiability,Differentiability at a point,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+epsilon_delta,Epsilon-delta: find delta for a given epsilon,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+error_bounds,Numerical integration error bounds,calc_ii,c6_integration_techniques,40,0,40,0,10,10,10,10,True
+euler_formula,Euler's formula,calc_ii,c11_power_series_taylor,40,0,40,0,10,10,10,10,True
+exponential_log,Derivatives of exponential and logarithmic functions,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+ftc_evaluate,Ftc Evaluate,calc_i,c4_integration_basics,30,0,30,0,10,10,10,0,False
+ftc_part1,Ftc Part1,calc_i,c4_integration_basics,40,0,40,0,10,10,10,10,True
+geometric,Geometric series,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+higher_order,Higher-order derivatives,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+hyperbolic,Hyperbolic integrals,calc_ii,c6_integration_techniques,40,0,40,0,10,10,10,10,True
+implicit,Implicit differentiation,calc_i,c2_derivatives,50,10,40,0,10,10,10,10,True
+improper,Improper integrals and comparison,calc_ii,c6_integration_techniques,50,10,40,0,10,10,10,10,True
+increasing_decreasing,Intervals of increase and decrease,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+increasing_decreasing/variants/graph,"Intervals of increase and decrease, read from the graph of f'",calc_i,c3_applications_of_derivatives,20,0,0,20,0,0,0,0,False
+infinite,Infinite limits and vertical asymptotes,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+initial_value_problems,Initial Value Problems,calc_i,c4_integration_basics,30,0,30,0,0,10,10,10,False
+integral_test_remainder,Integral test remainder estimates,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+inverse_functions,Derivatives of inverse functions,calc_i,c2_derivatives,50,10,40,0,10,10,10,10,True
+inverse_trig,Derivatives of inverse trigonometric functions,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+ivt,Intermediate Value Theorem: locate a root,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+lhopital,Indeterminate forms and L'Hopital's rule,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+limit_definition,Derivative from the limit definition,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+limits,Limits of sequences,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+linear_approximation,Linear approximation and differentials,calc_i,c3_applications_of_derivatives,30,0,30,0,10,10,10,0,False
+logarithmic,Logarithmic differentiation,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+make_continuous,Find parameters that make a function continuous,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+marginal_analysis,Marginal analysis,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+monotone_bounded,Monotone and bounded sequences,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+motion,"Position, velocity, acceleration, speed",calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+net_change_total_distance,Net Change Total Distance,calc_i,c4_integration_basics,40,0,40,0,10,10,10,10,True
+newtons_method,Newton's method,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+one_sided,One-sided limits,calc_i,c1_limits_continuity,40,0,35,5,6,9,10,10,True
+operations,Power series operations,calc_ii,c11_power_series_taylor,40,0,40,0,10,10,10,10,True
+optimization,Optimization,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+p_series,p-series,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+parametric_arc_length,Parametric arc length,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+parametric_area,Area under a parametric curve,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+parametric_surface_area,Parametric surface area,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+partial_fractions,Integration by partial fractions,calc_ii,c6_integration_techniques,40,0,40,0,10,10,10,10,True
+polar_arc_length,Polar arc length,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+polar_area,Polar area and area between polar curves,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+power_rule,Power rule,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+product_rule,Product rule,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+quotient_rule,Quotient rule,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+radius_interval,Radius and interval of convergence,calc_ii,c11_power_series_taylor,40,0,40,0,10,10,10,10,True
+rate_of_change,Instantaneous rate of change,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+recursive,Recursive sequences,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+related_rates,Related rates,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+relative_extrema,Relative extrema,calc_i,c3_applications_of_derivatives,30,0,30,0,0,10,10,10,False
+relative_extrema/variants/graph,"Relative extrema, read from the graph of f",calc_i,c3_applications_of_derivatives,20,0,0,20,0,0,0,0,False
+riemann_sums,Riemann Sums,calc_i,c4_integration_basics,30,0,30,0,10,10,10,0,False
+rolle_mvt,Rolle's theorem and MVT: find all c,calc_i,c3_applications_of_derivatives,40,0,40,0,10,10,10,10,True
+rules,"Midpoint, trapezoid and Simpson's rules",calc_ii,c6_integration_techniques,40,0,40,0,10,10,10,10,True
+second_derivatives,Parametric second derivatives,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+slopes,Slopes of polar curves,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+squeeze,Squeeze theorem,calc_i,c1_limits_continuity,40,0,40,0,10,10,10,10,True
+strategy,Mixed integration strategy,calc_ii,c6_integration_techniques,50,10,40,0,10,10,10,10,True
+symmetry,Symmetry,calc_i,c4_integration_basics,30,0,30,0,10,10,10,0,False
+tangent_normal_lines,Tangent and normal lines,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+tangents,Parametric tangent lines,calc_ii,c9_parametric_polar,40,0,40,0,10,10,10,10,True
+taylor_maclaurin,Taylor and Maclaurin series,calc_ii,c11_power_series_taylor,40,0,40,0,10,10,10,10,True
+taylor_remainder,Taylor remainder and error bounds,calc_ii,c11_power_series_taylor,40,0,40,0,10,10,10,10,True
+telescoping,Telescoping series,calc_ii,c10_sequences_and_series,40,0,40,0,10,10,10,10,True
+trig,Derivatives of trigonometric functions,calc_i,c2_derivatives,40,0,40,0,10,10,10,10,True
+trig_integrals,Trigonometric integrals,calc_ii,c6_integration_techniques,40,0,40,0,10,10,10,10,True
+trig_substitution,Trigonometric substitution,calc_ii,c6_integration_techniques,40,0,40,0,10,10,10,10,True
+u_substitution,Substitution (indefinite and definite),calc_i,c4_integration_basics,50,10,40,0,10,10,10,10,True
+volume_cross_sections,Volume by known cross-sections,calc_i,c5_area_and_volume,40,0,40,0,10,10,10,10,True
+volume_disk_washer,Volume by disks and washers,calc_i,c5_area_and_volume,40,0,40,0,10,10,10,10,True
+volume_shell,Volume by cylindrical shells,calc_i,c5_area_and_volume,40,0,40,0,10,10,10,10,True

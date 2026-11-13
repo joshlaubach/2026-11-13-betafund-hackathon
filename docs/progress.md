@@ -64,3 +64,12 @@ Submission deadline: Friday 2026-11-13, 4:00 PM Pacific.
 - **Replays saved** for five demo photos (`replay/`), each replayed once with no model calls.
 - **Probe:** `scripts/gate_topics.py` shows `chain_rule` (95%) and `quotient_rule` (90%) would meet the `power_rule` bar; nothing has been enabled.
 - **Next:** design pass, demo script and backup video, rehearsal with wifi off, make the repo visible to judges before 4:00 PM Pacific.
+
+## 2026-11-13 — Bank analysis contribution
+
+- Added the executed English `analysis/Echo_Bank_Analysis.ipynb`, `scripts/analyze_bank.py`, offline report renderer/templates, tests, and reviewed snapshot results under `analysis/results/`.
+- Reuses existing bank-audit eligibility; no edits to bank keys, difficulty ratings, core checker, UI, server or approved plan. Level guesser is not included.
+- Results reconcile to the existing audit: 3,510 rows; 3,450 in levels 1–4; 3,405 eligible; 45 excluded; 60 level-5 rows out of scope. 88 topics have eligible rows; 78 have at least three at every level; 19 topic-level cells are empty.
+- Repeated statement text: 11 groups / 22 rows (one within-topic: `strategy::ST12/ST16`; ten cross-topic). Review candidates only, no deletions. 250 reused ID values involve 500 rows; no duplicate `(topic,id)` keys. All 190 absent SymPy strings belong to enum-answer rows.
+- Power-rule consistency tests: 40/40 bank keys accepted and 120/120 constructed wrong keys rejected using the existing three mutations. Not independent proof or all-calculus accuracy.
+- Validation: 92 relevant tests passed; 8 English notebook code cells executed. Browser report search/filter verified. The analyzed bank and audit/checker dependencies are unchanged at base `482b966`.

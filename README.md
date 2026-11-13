@@ -81,3 +81,11 @@ Echo's code was prepared before the event; the organizer approved writing code b
 ## More
 
 [Progress](docs/progress.md), [decisions](docs/decisions.md), [known issues](docs/known-issues.md), [demo script](docs/demo-script.md), and [the grading review](docs/review-grading.md).
+
+## Problem bank analysis
+
+See [the English analysis notebook](analysis/Echo_Bank_Analysis.ipynb) and
+[analysis setup and results](analysis/README.md) for reproducible topic/level
+coverage, duplicate review candidates, and constructed power-rule negative tests.
+This read-only analysis retains the existing difficulty ratings and does not
+change the bank, grading, or practice-generation behavior.
