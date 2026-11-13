@@ -2,6 +2,8 @@
 
 Newest first. Each entry: date, decision, reason.
 
+- **2026-11-12: Reuse `app/` from the author's existing AI math tutor, and disclose it.** The folder holds per-topic verifiers, a safe parser, a sandbox, and offline samplers, so the build becomes an adapter and a gate around existing code instead of new verifiers. The README says where it came from. Open question: confirm with the organizer that "written beforehand" covers reusing code from an existing product, not just code written for this event. Recommended direction: tighten the code to the approved plan's limits rather than amend the plan.
+
 - **2026-11-12: Code is written before the event.** The organizer approved writing code beforehand, as long as the final submission is made before the deadline. Reason: the user's statement. Consequence: the plan, README, and pitch say the code was prepared beforehand with the organizer's approval, not "built onsite."
 
 - **2026-11-12: Scope is all of Calculus I and II, with a measured-coverage gate.** The user chose "check everything." Each topic needs its own verifier, enabled only after it passes positive and negative tests against the bank. Topics without an enabled verifier serve bank problems labeled "bank-verified, not Echo-checked." Reason: 90 verifiers across six answer formats may not all land by Friday, and the label keeps every claim honest. This voided the earlier substitution-only approval.

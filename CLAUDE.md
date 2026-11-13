@@ -48,3 +48,6 @@ A brief without a runnable or visible "Done when" is not ready to send.
 | `.claude/agents/builder.md` | Haiku worker: writes code to a brief, runs the check |
 | `.claude/agents/reviewer.md` | Haiku worker: lists where a diff fails its brief |
 | `.claude/skills/reflect/SKILL.md` | End-of-session reflection skill |
+| `app/` | Reused from the author's existing AI math tutor: per-topic verifiers (task registry in `app/worker.py`), `safe_parse.py`, `sandbox.py`, offline samplers. `pipeline.py` and `main.py` do not import yet (missing `catalog`, `verify`, `llm`, `strategies`). Do not edit it without a brief; it differs from the plan's input limits (see `docs/known-issues.md`) |
+| `scripts/audit_bank.py` | Bank audit: decides which bank problems are eligible (writes `build/audit_report.json`) |
+| `tests/` | pytest tests for `scripts/` |

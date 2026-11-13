@@ -93,7 +93,7 @@ The checker runs **on the laptop itself**, so it never depends on the internet.
 - **Coverage is a measured number.** Before submitting we report how many topics are Echo-checked and how many bank problems they cover, and we say how many bank problems we left out and why (for example, problems that refer to a figure we do not have).
 - **Levels were rated by one tutor.** A second rater has not checked them.
 - **Hints are written by AI and are not checked.** Only answer keys are.
-- **When it was built:** the problem bank, the written plan, and the code were prepared before the event. The organizer approved writing code beforehand, as long as the final submission is made before the deadline.
+- **When it was built, and what is reused:** the problem bank, the written plan, and the code were prepared before the event. The checking code in the `app/` folder (the per-topic checkers, the safe math reader, and the sandbox) comes from the author's existing AI math tutor, built earlier. The organizer approved writing code beforehand, as long as the final submission is made before the deadline. What is new for this event is Echo itself: the photo-to-topic flow, the chat, the bank audit and the test gate, and the labeled fallback. The status table below shows what exists right now.
 - **Echo covers Calculus I and II only.** It was not tested on other kinds of math.
 
 ## What we chose not to build
@@ -136,4 +136,6 @@ Run instructions will be added here when the app exists.
 | [`PLAN-REVIEW-LOG.md`](PLAN-REVIEW-LOG.md) | The record of a second AI reviewing the plan and what we changed because of it |
 | [`docs/verified_problems.json`](docs/verified_problems.json) | The problem bank: 3,510 problems in 90 calculus topics. Echo uses levels 1 to 4 (3,450 problems), minus any problem that fails our audit |
 | [`docs/`](docs/) | Notes on progress, decisions, and known problems |
+| [`app/`](app/) | The checking code: per-topic checkers, the safe math reader, the sandbox, and sample problem generators. Reused from the author's existing AI math tutor |
+| [`scripts/`](scripts/) and [`tests/`](tests/) | The bank audit script and its tests |
 | [`CLAUDE.md`](CLAUDE.md) | Instructions for the AI coding assistant used to build this |
