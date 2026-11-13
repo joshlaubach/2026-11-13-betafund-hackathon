@@ -25,6 +25,8 @@ _SENTENCE_ASK = r"(?:state|give)\s+(?:(?:your|a|an|one|in|complete)\s+)*(?:sente
 _WRITING_CLAUSE = re.compile(
     r"[,.;]?\s*(?:and\s+)?(?:" + _WRITING_VERB + "|" + _SENTENCE_ASK + r").*$", re.IGNORECASE
 )
+_VERB_LED = re.compile(r"[,.;]?\s*(?:and\s+)?" + _WRITING_VERB, re.IGNORECASE)
+_ASK_VERB_WORD = re.compile(r"\b" + ASK_VERBS + r"\b", re.IGNORECASE)
 # Anything in a removed clause that asks for mathematics: such a clause is never stripped.
 _MATH_REQUEST = re.compile(
     r"[<>=\u2264\u2265\u2260]|\\(?:le|leq|ge|geq|ne|neq|frac|int|lim|sqrt)\b|\d|[A-Za-z]'"
@@ -145,9 +147,13 @@ def restricted_names(context: str) -> frozenset[str]:
 def _without_writing(text: str) -> str:
     """The text without a trailing writing instruction, unless the removed clause also asks for math."""
     match = _WRITING_CLAUSE.search(text)
-    if match is None or _MATH_REQUEST.search(match.group(0)):
+    if match is None:
         return text
-    return text[: match.start()]
+    clause = match.group(0)
+    if _VERB_LED.match(clause):
+        # "Write a sentence explaining v(0)" mentions math but asks for words; only a second ask verb keeps it.
+        return text if _ASK_VERB_WORD.search(clause) else text[: match.start()]
+    return text if _MATH_REQUEST.search(clause) else text[: match.start()]
 
 
 def split_asks(statement: str) -> tuple[str, ...]:

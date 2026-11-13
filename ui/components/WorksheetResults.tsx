@@ -158,7 +158,10 @@ function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProp
 
 // True only when there is at least one item and every item is "Not marked".
 function allNotMarked(graded: GradedItem[]): boolean {
-  return graded.length > 0 && graded.every((entry) => entry.grade.method === "not_graded");
+  return (
+    graded.length > 0 &&
+    graded.every((entry) => entry.grade.method === "not_graded" || entry.grade.reason === "reading")
+  );
 }
 
 function NotMarkedBanner({ notes }: { notes: string }) {
