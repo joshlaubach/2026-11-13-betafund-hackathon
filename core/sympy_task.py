@@ -64,6 +64,9 @@ ROUNDING_REL_TOLERANCE = 1e-3  # a decimal this close to an exact answer is a ro
 SOURCE_PHRASE = "SymPy's computed answer"
 CROSS_CHECK_AGREES = "An independent AI solve agreed with SymPy's answer."
 NO_CROSS_CHECK = "No independent AI cross-check was available, so SymPy's mark stands alone."
+UNPARSABLE_CROSS_CHECK = (
+    "An independent AI solve was written in a form Echo could not compare, so it did not cross-check this mark."
+)
 CROSS_CHECK_DISAGREES = (
     "SymPy computed {computed}, but an independent AI solve gave {ai}. The problem may have been "
     "read wrongly, so this mark is unsure."
@@ -491,17 +494,54 @@ def deterministic_mark(statement: str, student: str, context: str = "") -> Optio
     return None if computed is None else computed.mark
 
 
+AGREES = "agrees"
+DIFFERS = "differs"
+UNPARSABLE = "unparsable"
+
+
 def _reply_parts(reply: str, count: int) -> Optional[tuple[str, ...]]:
     """The cross-check reply split into one answer per task, or None when the counts differ."""
     if count == 1:
-        return (strip_label(reply),)
-    parts = tuple(strip_label(piece) for piece in reply.split(";"))
+        return (reply.strip(),)
+    parts = tuple(piece.strip() for piece in reply.split(";"))
     return parts if len(parts) == count and all(parts) else None
 
 
-def _agrees(task: Task, value: sp.Basic, reply: str) -> bool:
-    expr = _read_in_x(reply, task.variable)
-    return expr is not None and compare_expressions(value, expr).status == EQUAL
+def _reply_candidates(reply: str) -> tuple[str, ...]:
+    """The segments of one reply to try, last first: "v(0)=1-e^{0}=0" gives "0", then "1-e^{0}"; "x=2" gives "2", then "x"."""
+    segments = [segment.strip() for segment in strip_label(reply).split("=")]
+    return tuple(segment for segment in reversed(segments) if segment)
+
+
+def _reply_value(task: Task, reply: str) -> Optional[sp.Basic]:
+    """The last segment of the reply that reads in the task's variable, or None when none does."""
+    for candidate in _reply_candidates(reply):
+        expr = _read_in_x(candidate, task.variable)
+        if expr is not None:
+            return expr
+    return None
+
+
+def _cross_check_outcome(task: Task, value: sp.Basic, reply: str) -> str:
+    """AGREES or DIFFERS when the reply parses; UNPARSABLE when no segment of it reads at all."""
+    expr = _reply_value(task, reply)
+    if expr is None:
+        return UNPARSABLE
+    return AGREES if compare_expressions(value, expr).status == EQUAL else DIFFERS
+
+
+def _agreed(mark: Mark) -> Mark:
+    return mark._replace(explanation=f"{mark.explanation} {CROSS_CHECK_AGREES}")
+
+
+def _unparsable(mark: Mark) -> Mark:
+    """The SymPy mark unchanged: the AI reply could not be compared, so it confirms nothing and changes nothing."""
+    return mark._replace(explanation=f"{mark.explanation} {UNPARSABLE_CROSS_CHECK}")
+
+
+def _disagreed(mark: Mark, ai_answer: str) -> Mark:
+    explanation = CROSS_CHECK_DISAGREES.format(computed=mark.reference, ai=ai_answer)
+    return Mark(UNSURE, SYMPY_METHOD, explanation, mark.reference)
 
 
 def _cross_check(full: str, computed: Computed, fast: AnswerSolver, ledger: CallLedger) -> Mark:
@@ -511,12 +551,14 @@ def _cross_check(full: str, computed: Computed, fast: AnswerSolver, ledger: Call
         return mark._replace(explanation=f"{mark.explanation} {NO_CROSS_CHECK}")
     replies = _reply_parts(attempt.answer, len(computed.tasks))
     if replies is None:
-        return mark._replace(explanation=f"{mark.explanation} {NO_CROSS_CHECK}")
-    pairs = zip(computed.tasks, computed.values, replies)
-    if all(_agrees(task, value, reply) for task, value, reply in pairs):
-        return mark._replace(explanation=f"{mark.explanation} {CROSS_CHECK_AGREES}")
-    explanation = CROSS_CHECK_DISAGREES.format(computed=mark.reference, ai=attempt.answer)
-    return Mark(UNSURE, SYMPY_METHOD, explanation, mark.reference)
+        return _unparsable(mark)
+    outcomes = {
+        _cross_check_outcome(task, value, reply)
+        for task, value, reply in zip(computed.tasks, computed.values, replies)
+    }
+    if DIFFERS in outcomes:
+        return _disagreed(mark, attempt.answer)
+    return _agreed(mark) if outcomes == {AGREES} else _unparsable(mark)
 
 
 def sympy_mark(
@@ -570,8 +612,9 @@ def compute_kind(spec: object) -> Optional[sp.Basic]:
 
 
 def _reply_text(spec: object, answer: str) -> str:
-    """The AI's answer as its kind module reads it: a solution-set reply loses LaTeX spacing commands first."""
-    return solution_sets.without_spacing(answer) if solution_sets.owns(spec) else answer
+    """The AI's answer as its kind module reads it: equation and set replies lose LaTeX spacing commands first."""
+    plain_reply = solution_sets.owns(spec) or equations.owns(spec)
+    return solution_sets.without_spacing(answer) if plain_reply else answer
 
 
 def _kind_cross_check(
@@ -584,10 +627,13 @@ def _kind_cross_check(
     module = _kind_module(spec)
     reply_answers = (_reply_text(spec, attempt.answer),)
     reply = None if module is None else module.mark_spec(spec, value, reply_answers)
+    # A reply the module cannot read leaves the SymPy mark alone, except for solution sets:
+    # test_set_crosscheck_unreadable_ai_reply_stays_unsure pins that an unreadable set reply stays unsure.
+    if reply is None and not solution_sets.owns(spec):
+        return _unparsable(mark)
     if reply is not None and reply.verdict == "correct":
-        return mark._replace(explanation=f"{mark.explanation} {CROSS_CHECK_AGREES}")
-    explanation = CROSS_CHECK_DISAGREES.format(computed=mark.reference, ai=attempt.answer)
-    return Mark(UNSURE, SYMPY_METHOD, explanation, mark.reference)
+        return _agreed(mark)
+    return _disagreed(mark, attempt.answer)
 
 
 def _kind_mark(
