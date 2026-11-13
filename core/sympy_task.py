@@ -65,9 +65,17 @@ class Computed(NamedTuple):
     mark: Mark
 
 
+_TEXT_WRAPPER = re.compile(r"\\(?:text|mathrm|textbf)\{([^{}]*)\}")
+
+
 def _cleaned_limit_text(statement: str) -> str:
-    """Drop the $ signs and \\displaystyle, and collapse whitespace, so the limit shape is one pattern."""
-    return " ".join(statement.replace("$", " ").replace("\\displaystyle", " ").split())
+    """Drop $ signs, \\displaystyle and \\text{...} wrappers, and collapse whitespace.
+
+    The reading model sometimes wraps the words of a statement in \\text{...} and sometimes
+    delimits the math with $; both must reach the same plain shape.
+    """
+    unwrapped = _TEXT_WRAPPER.sub(r" \1 ", statement.replace("$", " ").replace("\\displaystyle", " "))
+    return " ".join(unwrapped.split())
 
 
 _ASK = r"(?:Find|Compute|Determine|Calculate|Evaluate)"

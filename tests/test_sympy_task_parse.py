@@ -23,6 +23,22 @@ def test_worksheet_wordings_become_tasks(statement: str, expected: Task) -> None
 
 
 @pytest.mark.parametrize(
+    "statement, expected",
+    [
+        ("\\text{Find } f'(x) \\text{ if } f(x) = 3x^4 + 2x", Task(DERIVATIVE, "3x^4 + 2x", None)),
+        ("\\text{Find } f'(x) \\text{ for } f(x) = x^5 - 4x^2", Task(DERIVATIVE, "x^5 - 4x^2", None)),
+        (
+            "\\text{Evaluate } \\lim_{x\\to 3} \\frac{x^2 - 9}{x - 3}",
+            Task(LIMIT, "\\frac{x^2 - 9}{x - 3}", "3"),
+        ),
+        ("\\mathrm{Differentiate } f(x) = 4x^3", Task(DERIVATIVE, "4x^3", None)),
+    ],
+)
+def test_text_wrapped_statements_become_tasks(statement: str, expected: Task) -> None:
+    assert parse_task(statement) == expected
+
+
+@pytest.mark.parametrize(
     "statement",
     [
         "Solve $2x + 3 = 7$.",
