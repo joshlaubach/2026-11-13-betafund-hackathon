@@ -21,6 +21,8 @@ BuildDir = Union[str, Path]
 
 UNKNOWN = "unknown"
 METHOD_BANK_KEY = "bank_key"
+METHOD_SYMPY_COMPUTED = "sympy_computed"
+VERIFIED_METHODS = (METHOD_BANK_KEY, METHOD_SYMPY_COMPUTED)
 VERDICT_CORRECT = "correct"
 VERDICT_INCORRECT = "incorrect"
 
@@ -72,7 +74,7 @@ class _Tally:
             correct=self.correct + int(verdict == VERDICT_CORRECT),
             incorrect=self.incorrect + int(verdict == VERDICT_INCORRECT),
             unsure=self.unsure + int(verdict not in (VERDICT_CORRECT, VERDICT_INCORRECT)),
-            verified=self.verified + int(graded.grade.method == METHOD_BANK_KEY),
+            verified=self.verified + int(graded.grade.method in VERIFIED_METHODS),
         )
 
 

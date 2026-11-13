@@ -166,9 +166,9 @@ def test_bank_match_ignores_dollar_signs_displaystyle_and_spacing():
     assert grade.verdict == "correct"
 
 
-def test_bank_match_with_wrong_topic_guess_falls_to_ai_tier():
+def test_bank_match_with_wrong_topic_guess_falls_to_sympy_tier():
     grade = grade_item(item(LA01_STATEMENT, "-\\frac{1}{8}", topic="power_rule"), FakeSolver())
-    assert grade.method == "ai_judgment"
+    assert grade.method == "sympy_computed"
     assert grade.bank_id is None
 
 
@@ -213,12 +213,12 @@ def test_two_different_constants_are_different_not_plus_c():
 # ---------------------------------------------------------------------------
 
 
-def test_no_bank_match_with_solver_answer_is_ai_solve_sympy():
+def test_no_bank_match_with_solver_answer_is_ai_ladder():
     solver = FakeSolver({SOLVER_STATEMENT: "x^{2}+2x"})
     grade = grade_item(item(SOLVER_STATEMENT, "2x+x^{2}"), solver)
     assert grade.verdict == "correct"
-    assert grade.method == "ai_solve_sympy"
-    assert grade.label == GRADE_LABELS["ai_solve_sympy"]
+    assert grade.method == "ai_ladder"
+    assert grade.label == GRADE_LABELS["ai_ladder"]
     assert grade.reference_answer_latex == "x^{2}+2x"
     assert grade.bank_id is None and grade.bank_topic is None
 
@@ -227,14 +227,14 @@ def test_ai_solve_wrong_student_answer_is_incorrect():
     solver = FakeSolver({SOLVER_STATEMENT: "x^{2}+2x"})
     grade = grade_item(item(SOLVER_STATEMENT, "x^{2}"), solver)
     assert grade.verdict == "incorrect"
-    assert grade.method == "ai_solve_sympy"
+    assert grade.method == "ai_ladder"
 
 
 def test_ai_solve_constant_only_difference_is_unsure_with_plus_c_explanation():
     solver = FakeSolver({SOLVER_STATEMENT: "x^{2}+2x"})
     grade = grade_item(item(SOLVER_STATEMENT, "x^{2}+2x+3"), solver)
     assert grade.verdict == "unsure"
-    assert grade.method == "ai_solve_sympy"
+    assert grade.method == "ai_ladder"
     assert grade.explanation == CONSTANT_EXPLANATION
 
 
@@ -274,7 +274,8 @@ def test_blank_student_answer_counts_as_no_answer():
 def test_solver_never_receives_the_student_answer():
     solver = FakeSolver({SOLVER_STATEMENT: "x^{2}"})
     grade_item(item(SOLVER_STATEMENT, SECRET_STUDENT_ANSWER), solver)
-    assert solver.solve_calls == ((SOLVER_STATEMENT, None),)
+    # The ladder asks a fast and a mid solve, so the statement is sent twice and never the answer.
+    assert solver.solve_calls == ((SOLVER_STATEMENT, None), (SOLVER_STATEMENT, None))
     assert all(SECRET_STUDENT_ANSWER not in str(call) for call in solver.solve_calls)
 
 
@@ -307,7 +308,7 @@ def test_grade_worksheet_grades_each_item_in_order():
     )
     graded = grade_worksheet(reading, FakeSolver({SOLVER_STATEMENT: "x^{2}+2x"}))
     assert [entry.item.number for entry in graded] == [1, 2]
-    assert [entry.grade.method for entry in graded] == ["bank_key", "ai_solve_sympy"]
+    assert [entry.grade.method for entry in graded] == ["bank_key", "ai_ladder"]
 
 
 # ---------------------------------------------------------------------------

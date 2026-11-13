@@ -12,14 +12,16 @@ from pydantic import BaseModel, ConfigDict
 
 Confidence = Literal["low", "medium", "high"]
 Verdict = Literal["correct", "incorrect", "unsure"]
-GradeMethod = Literal["bank_key", "ai_solve_sympy", "ai_judgment"]
+GradeMethod = Literal["bank_key", "sympy_computed", "ai_ladder", "ai_solve_sympy", "ai_judgment"]
 SkillStatus = Literal["solid", "shaky", "weak", "not_enough_data"]
 
 # Plain-words labels shown to the user next to every mark. One place, so the page and the
 # server never disagree about what a mark claims.
 GRADE_LABELS: dict[str, str] = {
     "bank_key": "Marked against a verified bank answer, compared by SymPy",
-    "ai_solve_sympy": "AI-graded: an independent AI solve, compared by SymPy. Not verified by Echo",
+    "sympy_computed": "Marked by Echo's checker: SymPy computed the answer itself",
+    "ai_ladder": "AI-graded: independent AI solves agree. SymPy only compared answers; the AI's answer is unchecked. Not verified by Echo",
+    "ai_solve_sympy": "AI-graded: an AI solved it and SymPy compared the two answers. SymPy did not check the AI's answer. Not verified by Echo",
     "ai_judgment": "AI-graded: AI judgment only. Not verified by Echo",
 }
 GRADE_DISCLAIMER = (

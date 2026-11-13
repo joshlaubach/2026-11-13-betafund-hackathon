@@ -4,7 +4,9 @@ import type { GradeResponse, ProblemsResponse, ReadResponse } from "./types";
 
 export const LABELS = {
   bank_key: "Marked against a verified bank answer, compared by SymPy",
-  ai_solve_sympy: "AI-graded: an independent AI solve, compared by SymPy. Not verified by Echo",
+  sympy_computed: "Marked by Echo's checker: SymPy computed the answer itself",
+  ai_ladder: "AI-graded: independent AI solves agree. SymPy only compared answers; the AI's answer is unchecked. Not verified by Echo",
+  ai_solve_sympy: "AI-graded: an AI solved it and SymPy compared the two answers. SymPy did not check the AI's answer. Not verified by Echo",
   ai_judgment: "AI-graded: AI judgment only. Not verified by Echo",
 } as const;
 
@@ -45,7 +47,7 @@ export const fixtureGrade: GradeResponse = {
   graded: [
     { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[0], grade: { verdict: "correct", method: "bank_key", label: LABELS.bank_key, reference_answer_latex: "12x^{3} + 2", explanation: "The student's answer equals the verified answer at 10 test points.", bank_topic: "power_rule", bank_id: "PR05" } },
     { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[1], grade: { verdict: "incorrect", method: "bank_key", label: LABELS.bank_key, reference_answer_latex: "5x^{4} - 8x", explanation: "At x = 0.3137 the verified answer is -2.50 but the student's answer gives -1.25.", bank_topic: "power_rule", bank_id: "PR09" } },
-    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[2], grade: { verdict: "correct", method: "ai_solve_sympy", label: LABELS.ai_solve_sympy, reference_answer_latex: "4", explanation: "An independent AI solve gave 4, and the student's answer is 4.", bank_topic: null, bank_id: null } },
+    { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[2], grade: { verdict: "correct", method: "sympy_computed", label: LABELS.sympy_computed, reference_answer_latex: "4", explanation: "SymPy computed the limit as 4, and the student's answer matches it.", bank_topic: null, bank_id: null } },
     { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[3], grade: { verdict: "incorrect", method: "ai_solve_sympy", label: LABELS.ai_solve_sympy, reference_answer_latex: "6", explanation: "An independent AI solve gave 6, but the student wrote 0.", bank_topic: null, bank_id: null } },
     { regraded: false, changed_on_regrade: false, item: fixtureRead.reading!.items[4], grade: { verdict: "incorrect", method: "ai_judgment", label: LABELS.ai_judgment, reference_answer_latex: null, explanation: "The answer leaves out the factor 2 from the inner function.", bank_topic: null, bank_id: null } },
   ],

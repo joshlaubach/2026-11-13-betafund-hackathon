@@ -1,7 +1,12 @@
 // Mirrors core/worksheet_types.py and the dicts from core/entry.py. Keep in sync by hand.
 
 export type Verdict = "correct" | "incorrect" | "unsure";
-export type GradeMethod = "bank_key" | "ai_solve_sympy" | "ai_judgment";
+export type GradeMethod =
+  | "bank_key"
+  | "sympy_computed"
+  | "ai_ladder"
+  | "ai_solve_sympy"
+  | "ai_judgment";
 export type SkillStatus = "solid" | "shaky" | "weak" | "not_enough_data";
 export type Mode = "live" | "replay" | "fake" | "bank";
 

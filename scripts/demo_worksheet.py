@@ -20,12 +20,11 @@ sys.path.insert(0, str(REPO_ROOT))
 from dotenv import load_dotenv  # noqa: E402
 
 from core.drafter import DEFAULT_EFFORT, DEFAULT_MODEL, SOURCE_FAKE  # noqa: E402
+from core.ladder import Rungs, fake_rungs, live_rungs  # noqa: E402
+from core.solvers import LiveSolver  # noqa: E402
 from core.worksheet import (  # noqa: E402
     STATUS_OK,
-    AnswerSolver,
-    FakeSolver,
     FakeWorksheetSource,
-    LiveSolver,
     LiveWorksheetSource,
     ReplayWorksheetSource,
     WorksheetSource,
@@ -68,21 +67,22 @@ def build_source(mode: str, replay_path: Path | None) -> WorksheetSource:
     return FakeWorksheetSource()
 
 
-def build_solver(mode: str) -> AnswerSolver:
+def build_solver(mode: str) -> Rungs:
     """Only live mode may reach the network for grading."""
     if mode == MODE_LIVE:
-        return LiveSolver(os.environ.get(ENV_MODEL, DEFAULT_MODEL), os.environ.get(ENV_EFFORT, DEFAULT_EFFORT))
-    return FakeSolver()
+        return live_rungs(os.environ.get(ENV_EFFORT, DEFAULT_EFFORT))
+    return fake_rungs()
 
 
-def source_line(source: WorksheetSource, solver: AnswerSolver) -> str:
+def source_line(source: WorksheetSource, solver: Rungs) -> str:
     if isinstance(source, LiveWorksheetSource):
         reading = f"source: LIVE ({source.model}, effort {source.effort})"
     elif isinstance(source, ReplayWorksheetSource):
         reading = f"source: REPLAY of a {source.source.upper()} reading (saved {source.saved_at})"
     else:
         reading = "source: FAKE (scripted reading, no model call)"
-    grading = "grading: LIVE solver" if isinstance(solver, LiveSolver) else "grading: FAKE solver (no model call)"
+    is_live = isinstance(solver.mid, LiveSolver)
+    grading = "grading: LIVE solver" if is_live else "grading: FAKE solver (no model call)"
     return f"{reading}; {grading}"
 
 

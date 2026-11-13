@@ -5,90 +5,72 @@ ReplayWorksheetSource (a saved reading matched by image SHA-256; the image is ne
 saved), and FakeWorksheetSource (scripted). read_worksheet() checks the image bytes
 before any source runs and never raises for a source failure.
 
-Grading tries three tiers in order. bank_key: the statement matches an eligible bank
-problem, and the student's answer is compared with the verified key by SymPy.
-ai_solve_sympy: an independent solver answers the statement without ever seeing the
-student's answer, and SymPy compares the two answers. ai_judgment: a model judges the
-written answer when neither answer can be read by SymPy. Every answer is read by
-core.latex_reader only.
+Grading tries these in order. bank_key: the statement matches an eligible bank problem, and the
+student's answer is compared with the verified key by SymPy. sympy_computed: a derivative or limit
+statement is computed by SymPy (core/sympy_task.py) with one blind AI cross-check. ai_ladder: Haiku
+and Sonnet solve blind and Opus breaks a tie (core/ladder.py). ai_judgment: a model judges the
+written answer when neither answer can be read by SymPy. Every answer is read by core.latex_reader
+only.
 """
 
 from __future__ import annotations
 
 import base64
 import json
-import math
-import os
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import NamedTuple, Optional, TypeVar
+from typing import Optional
 
-import anthropic
-import sympy as sp
-from pydantic import BaseModel
-
+import anthropic  # noqa: F401 - tests patch worksheet.anthropic.Anthropic
 from core.bank_fallback import BANK_PATH
-from core.derivative_checker import (
-    ABS_FLOOR,
-    MIN_COMPARABLE_POINTS,
-    REL_TOLERANCE,
-    SAMPLE_POINTS,
-    X,
+from core.drafter import DEFAULT_EFFORT, DEFAULT_MODEL, SOURCE_FAKE, SOURCE_LIVE
+from core.ladder import (  # noqa: F401 - REGRADE_EFFORT and Rungs are re-exported
+    REGRADE_EFFORT,
+    Rungs,
+    as_rungs,
+    grade_unmatched,
+    regrade_mark,
 )
-from core.drafter import (
-    AUTH_MESSAGE,
-    DEFAULT_EFFORT,
-    DEFAULT_MODEL,
-    MAX_TOKENS,
-    OUTPUT_CONFIG_ARG,
-    SOURCE_FAKE,
-    SOURCE_LIVE,
-)
-from core.input_boundary import BoundaryError
-from core.latex_reader import read_latex
-from core.photo_reader import (
-    SHA256_HEX_PATTERN,
-    bank_topic_ids,
-    check_image,
-    sha256_hex,
+from core.photo_reader import SHA256_HEX_PATTERN, bank_topic_ids, check_image, sha256_hex
+from core.solvers import (  # noqa: F401 - re-exported for callers and tests
+    CONSTANT_EXPLANATION,
+    JUDGE_FAILED_EXPLANATION,
+    UNCOMPARED_EXPLANATION,
+    AnswerSolver,
+    CallBudget,
+    CallLedger,
+    FakeSolver,
+    LiveSolver,
+    Mark,
+    SourceError,
+    answers_equivalent,
+    call_model,
+    compare_answers,
+    comparison_mark,
 )
 from core.worksheet_types import (
     GRADE_LABELS,
     Grade,
     GradedItem,
     GradeMethod,
-    Verdict,
     WorksheetItem,
     WorksheetReading,
 )
 from scripts.audit_bank import classify, load_bank
 
 MAX_ITEMS = 20
-REGRADE_EFFORT = "high"
-ENV_API_KEY = "ANTHROPIC_API_KEY"
 STATUS_OK = "ok"
 STATUS_ERROR = "error"
 STATUS_UNREADABLE = "unreadable"
 READING_SOURCES = (SOURCE_LIVE, SOURCE_FAKE)
 BANK_METHOD: GradeMethod = "bank_key"
-SOLVE_METHOD: GradeMethod = "ai_solve_sympy"
+SYMPY_METHOD: GradeMethod = "sympy_computed"
 JUDGE_METHOD: GradeMethod = "ai_judgment"
-EQUAL = "equal"
-DIFFERENT = "different"
-UNKNOWN = "unknown"
+DETERMINISTIC_METHODS = (BANK_METHOD, SYMPY_METHOD)
 NO_ANSWER_EXPLANATION = "no answer written"
-CONSTANT_EXPLANATION = "answers differ by a constant; check for + C"
-UNCOMPARED_EXPLANATION = (
-    "SymPy could not compare the student's answer with the verified key, so this mark is unsure."
-)
-JUDGE_FAILED_EXPLANATION = "the AI judge could not give a verdict, so this mark is unsure."
 DIFFERENT_PHOTO_MESSAGE = "saved reading is for a different photo"
 UNREADABLE_MESSAGE = "no problems were read from the worksheet"
-REFUSAL_MESSAGE = "the model declined to read the worksheet"
-EMPTY_MESSAGE = "the model returned no reading"
-RATE_LIMIT_MESSAGE = "rate limited by the model service; try again later"
-CONNECTION_MESSAGE = "could not reach the model service"
 ITEM_CAP_NOTE = "the worksheet has {total} problems; only the first {kept} were kept"
 BLANK_DROPPED_NOTE = "{count} blank problem(s) dropped"
 TOPIC_CLEARED_NOTE = "topic guess {guess!r} is not a bank topic, so it was cleared"
@@ -102,55 +84,6 @@ WORKSHEET_SYSTEM_PROMPT = (
     "confidence. Choose topic_guess only from the topic ids given in the request, or null if "
     "none fits. Return only the structured output requested."
 )
-SOLVE_SYSTEM_PROMPT = (
-    "You solve calculus problems for Echo. Give the final answer only, as LaTeX that uses only "
-    "digits, x, + and -, ^ for powers (write x^{3}), \\frac{a}{b}, \\sqrt{...}, \\sqrt[n]{...}, "
-    "\\ln, \\sin, \\cos, \\tan, \\exp, \\pi, braces, and parentheses. Do not write '+ C'. "
-    "Return only the structured output requested."
-)
-JUDGE_SYSTEM_PROMPT = (
-    "You judge a student's written answer to a calculus problem for Echo. Reply correct or "
-    "incorrect only when you are sure; reply unsure when you cannot tell. "
-    "Return only the structured output requested."
-)
-
-ModelT = TypeVar("ModelT", bound=BaseModel)
-
-
-class SolveReply(BaseModel):
-    final_answer_latex: str
-
-
-class JudgeReply(BaseModel):
-    verdict: Verdict
-
-
-class SourceError(Exception):
-    """A reading source or a solver could not answer. The message is shown to the user."""
-
-
-class Comparison(NamedTuple):
-    status: str  # EQUAL, DIFFERENT, or UNKNOWN
-    points: int = 0
-    constant_offset: bool = False
-
-
-# ---------------------------------------------------------------------------
-# Reading sources
-# ---------------------------------------------------------------------------
-
-
-class WorksheetSource:
-    """Base for worksheet sources. source is "live" or "fake"; name is for display."""
-
-    name: str = "source"
-    source: str = ""
-    last_usage: Optional[dict] = None
-
-    def get_reading(
-        self, image: bytes, media_type: str, topics: tuple[str, ...]
-    ) -> WorksheetReading:
-        raise NotImplementedError
 
 
 FAKE_READING = WorksheetReading(
@@ -175,6 +108,24 @@ FAKE_READING = WorksheetReading(
     ),
     notes="scripted reading; no model read this photo",
 )
+
+
+# ---------------------------------------------------------------------------
+# Reading sources
+# ---------------------------------------------------------------------------
+
+
+class WorksheetSource:
+    """Base for worksheet sources. source is "live" or "fake"; name is for display."""
+
+    name: str = "source"
+    source: str = ""
+    last_usage: Optional[dict] = None
+
+    def get_reading(
+        self, image: bytes, media_type: str, topics: tuple[str, ...]
+    ) -> WorksheetReading:
+        raise NotImplementedError
 
 
 class FakeWorksheetSource(WorksheetSource):
@@ -220,7 +171,7 @@ class LiveWorksheetSource(WorksheetSource):
         self, image: bytes, media_type: str, topics: tuple[str, ...]
     ) -> WorksheetReading:
         content = _image_content(image, media_type, build_worksheet_prompt(topics))
-        reading, self.last_usage = _call_model(
+        reading, self.last_usage = call_model(
             self.model, self.effort, WORKSHEET_SYSTEM_PROMPT, content, WorksheetReading
         )
         return reading
@@ -246,71 +197,6 @@ def build_worksheet_prompt(topics: tuple[str, ...]) -> str:
             "topic_guess must be one of these topic ids, or null: " + ", ".join(topics),
         ]
     )
-
-
-# ---------------------------------------------------------------------------
-# Model calls shared by the live reader and the live solver
-# ---------------------------------------------------------------------------
-
-
-def _model_error_message(error: anthropic.APIError) -> str:
-    if isinstance(error, anthropic.AuthenticationError):
-        return AUTH_MESSAGE
-    if isinstance(error, anthropic.RateLimitError):
-        return RATE_LIMIT_MESSAGE
-    if isinstance(error, anthropic.APIConnectionError):
-        return CONNECTION_MESSAGE
-    if isinstance(error, anthropic.APIStatusError):
-        return f"the model service returned HTTP {error.status_code}"
-    return "the model service could not complete the request"
-
-
-def _parse_once(client: anthropic.Anthropic, request: dict, effort: str) -> object:
-    """One structured call. Retries once without output_config on older SDKs."""
-    try:
-        return client.messages.parse(**request, output_config={"effort": effort})
-    except TypeError as error:
-        if OUTPUT_CONFIG_ARG not in str(error):
-            raise
-        return client.messages.parse(**request)
-
-
-def _usage_of(response: object) -> Optional[dict]:
-    usage = getattr(response, "usage", None)
-    if usage is None:
-        return None
-    return {
-        "input_tokens": getattr(usage, "input_tokens", None),
-        "output_tokens": getattr(usage, "output_tokens", None),
-    }
-
-
-def _call_model(
-    model: str,
-    effort: str,
-    system: str,
-    content: object,
-    output_model: type[ModelT],
-) -> tuple[ModelT, Optional[dict]]:
-    """Ask the model for a structured reply. Raises SourceError for every failure."""
-    if not os.environ.get(ENV_API_KEY, "").strip():
-        raise SourceError(AUTH_MESSAGE)
-    request = {
-        "model": model,
-        "max_tokens": MAX_TOKENS,
-        "system": system,
-        "messages": [{"role": "user", "content": content}],
-        "output_format": output_model,
-    }
-    try:
-        response = _parse_once(anthropic.Anthropic(), request, effort)
-    except anthropic.APIError as error:
-        raise SourceError(_model_error_message(error)) from error
-    if response.stop_reason == "refusal":  # type: ignore[attr-defined]
-        raise SourceError(REFUSAL_MESSAGE)
-    if response.parsed_output is None:  # type: ignore[attr-defined]
-        raise SourceError(EMPTY_MESSAGE)
-    return response.parsed_output, _usage_of(response)  # type: ignore[attr-defined]
 
 
 # ---------------------------------------------------------------------------
@@ -445,184 +331,6 @@ def load_worksheet_reading(path: Path | str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Solvers
-# ---------------------------------------------------------------------------
-
-
-class AnswerSolver:
-    """Base for solvers. solve() never sees a student's answer; judge() does.
-
-    effort None means the solver's own default. source is "live" or "fake".
-    """
-
-    name: str = "solver"
-    source: str = ""
-    last_usage: Optional[dict] = None
-
-    def solve(self, statement: str, effort: Optional[str] = None) -> str:
-        raise NotImplementedError
-
-    def judge(
-        self, statement: str, student_answer: str, effort: Optional[str] = None
-    ) -> JudgeReply:
-        raise NotImplementedError
-
-
-class LiveSolver(AnswerSolver):
-    source = SOURCE_LIVE
-
-    def __init__(self, model: str = DEFAULT_MODEL, effort: str = DEFAULT_EFFORT) -> None:
-        self.model = model
-        self.effort = effort
-        self.name = f"live ({model}, effort {effort})"
-
-    def solve(self, statement: str, effort: Optional[str] = None) -> str:
-        reply, self.last_usage = _call_model(
-            self.model,
-            effort or self.effort,
-            SOLVE_SYSTEM_PROMPT,
-            f"Problem: {statement}\nGive the final answer only.",
-            SolveReply,
-        )
-        return reply.final_answer_latex
-
-    def judge(
-        self, statement: str, student_answer: str, effort: Optional[str] = None
-    ) -> JudgeReply:
-        prompt = (
-            f"Problem: {statement}\n"
-            f"Student's written answer: {student_answer}\n"
-            "Reply with a verdict: correct, incorrect, or unsure."
-        )
-        reply, self.last_usage = _call_model(
-            self.model, effort or self.effort, JUDGE_SYSTEM_PROMPT, prompt, JudgeReply
-        )
-        return reply
-
-
-class FakeSolver(AnswerSolver):
-    """Scripted solver for tests and fake mode. Records every call; never touches the network."""
-
-    name = "fake"
-    source = SOURCE_FAKE
-
-    def __init__(
-        self,
-        answers: Optional[Mapping[str, str]] = None,
-        verdict: Verdict = "unsure",
-        error: Optional[str] = None,
-    ) -> None:
-        self._answers = dict(answers or {})
-        self._verdict = verdict
-        self._error = error
-        self._solve_calls: list[tuple[str, Optional[str]]] = []
-        self._judge_calls: list[tuple[str, str, Optional[str]]] = []
-
-    @property
-    def solve_calls(self) -> tuple[tuple[str, Optional[str]], ...]:
-        """Each solve call as (statement, effort). The student's answer is never passed."""
-        return tuple(self._solve_calls)
-
-    @property
-    def judge_calls(self) -> tuple[tuple[str, str, Optional[str]], ...]:
-        return tuple(self._judge_calls)
-
-    def solve(self, statement: str, effort: Optional[str] = None) -> str:
-        self._solve_calls.append((statement, effort))
-        if self._error is not None:
-            raise SourceError(self._error)
-        if statement not in self._answers:
-            raise SourceError("no scripted answer for this statement")
-        return self._answers[statement]
-
-    def judge(
-        self, statement: str, student_answer: str, effort: Optional[str] = None
-    ) -> JudgeReply:
-        self._judge_calls.append((statement, student_answer, effort))
-        if self._error is not None:
-            raise SourceError(self._error)
-        return JudgeReply(verdict=self._verdict)
-
-
-# ---------------------------------------------------------------------------
-# SymPy equivalence check
-# ---------------------------------------------------------------------------
-
-
-def _real_value(expr: sp.Basic) -> Optional[float]:
-    """Return expr as a finite real float, or None if it is not one."""
-    try:
-        value = complex(sp.N(expr))
-    except (TypeError, ValueError, ArithmeticError):
-        return None
-    if value.imag != 0 or not math.isfinite(value.real):
-        return None
-    return value.real
-
-
-def _value_at(expr: sp.Basic, point: float) -> Optional[float]:
-    try:
-        return _real_value(expr.subs(X, sp.Float(point)))
-    except (TypeError, ValueError, ArithmeticError):
-        return None
-
-
-def _values_agree(left: float, right: float) -> bool:
-    scale = max(abs(left), abs(right))
-    return abs(left - right) <= REL_TOLERANCE * scale + ABS_FLOOR
-
-
-def _depends_on_x(expr: sp.Basic) -> bool:
-    return any(symbol.name == X.name for symbol in expr.free_symbols)
-
-
-def _comparable_pairs(reference: sp.Basic, student: sp.Basic) -> list[tuple[float, float]]:
-    pairs: list[tuple[float, float]] = []
-    for point in SAMPLE_POINTS:
-        reference_value = _value_at(reference, point)
-        student_value = _value_at(student, point)
-        if reference_value is not None and student_value is not None:
-            pairs.append((reference_value, student_value))
-    return pairs
-
-
-def _is_constant_offset(pairs: list[tuple[float, float]]) -> bool:
-    """True when student minus reference is the same nonzero number at every sample point."""
-    first = pairs[0][0] - pairs[0][1]
-    if _values_agree(first, 0.0):
-        return False
-    return all(_values_agree(reference - student, first) for reference, student in pairs)
-
-
-def compare_answers(reference_latex: str, student_latex: str) -> Comparison:
-    """Compare two LaTeX answers at fixed non-grid points in x, with the derivative checker's tolerance.
-
-    Needs MIN_COMPARABLE_POINTS comparable points. A nonzero constant difference is reported as
-    constant_offset when an answer depends on x (the "+ C" case); two constants that differ are
-    simply different.
-    """
-    try:
-        reference = read_latex(reference_latex)
-        student = read_latex(student_latex)
-    except BoundaryError:
-        return Comparison(UNKNOWN)
-    pairs = _comparable_pairs(reference, student)
-    if len(pairs) < MIN_COMPARABLE_POINTS:
-        return Comparison(UNKNOWN, len(pairs))
-    if all(_values_agree(reference_value, student_value) for reference_value, student_value in pairs):
-        return Comparison(EQUAL, len(pairs))
-    depends = _depends_on_x(reference) or _depends_on_x(student)
-    if depends and _is_constant_offset(pairs):
-        return Comparison(UNKNOWN, len(pairs), constant_offset=True)
-    return Comparison(DIFFERENT, len(pairs))
-
-
-def answers_equivalent(a_latex: str, b_latex: str) -> str:
-    """Return "equal", "different", or "unknown" for two LaTeX answers. See compare_answers."""
-    return compare_answers(a_latex, b_latex).status
-
-
-# ---------------------------------------------------------------------------
 # Grading
 # ---------------------------------------------------------------------------
 
@@ -659,112 +367,47 @@ def _answer_text(item: WorksheetItem) -> Optional[str]:
     return text or None
 
 
-def _grade(
-    verdict: Verdict,
-    method: GradeMethod,
-    explanation: str,
-    reference: Optional[str] = None,
-    bank_problem: Optional[dict] = None,
-) -> Grade:
+def _grade_from_mark(mark: Mark, bank_problem: Optional[dict] = None) -> Grade:
     return Grade(
-        verdict=verdict,
-        method=method,
-        label=GRADE_LABELS[method],
-        reference_answer_latex=reference,
-        explanation=explanation,
+        verdict=mark.verdict,
+        method=mark.method,
+        label=GRADE_LABELS[mark.method],
+        reference_answer_latex=mark.reference,
+        explanation=mark.explanation,
         bank_topic=bank_problem["topic"] if bank_problem is not None else None,
         bank_id=str(bank_problem["id"]) if bank_problem is not None else None,
     )
 
 
-def _from_comparison(
-    comparison: Comparison,
-    student: str,
-    reference: str,
-    method: GradeMethod,
-    source_phrase: str,
-    bank_problem: Optional[dict] = None,
-) -> Optional[Grade]:
-    """A grade from a comparison, or None when SymPy could not compare the answers."""
-    if comparison.constant_offset:
-        return _grade("unsure", method, CONSTANT_EXPLANATION, reference, bank_problem)
-    if comparison.status == EQUAL:
-        explanation = (
-            f"The student's answer {student} matches {source_phrase} {reference} "
-            f"at {comparison.points} sample points, checked by SymPy."
-        )
-        return _grade("correct", method, explanation, reference, bank_problem)
-    if comparison.status == DIFFERENT:
-        explanation = (
-            f"The student's answer {student} does not match {source_phrase} {reference}: "
-            "SymPy found different values at a sample point."
-        )
-        return _grade("incorrect", method, explanation, reference, bank_problem)
-    return None
-
-
 def _bank_grade(problem: dict, student: str) -> Grade:
     reference = _reference_latex(problem)
-    comparison = compare_answers(reference, student)
-    grade = _from_comparison(
-        comparison, student, reference, BANK_METHOD, "the verified key", problem
+    mark = comparison_mark(
+        compare_answers(reference, student), student, reference, BANK_METHOD, "the verified key"
     )
-    if grade is None:
-        return _grade("unsure", BANK_METHOD, UNCOMPARED_EXPLANATION, reference, problem)
-    return grade
+    if mark is None:
+        mark = Mark("unsure", BANK_METHOD, UNCOMPARED_EXPLANATION, reference)
+    return _grade_from_mark(mark, problem)
 
 
 def _no_answer_grade(problem: Optional[dict]) -> Grade:
     if problem is None:
-        return _grade("unsure", JUDGE_METHOD, NO_ANSWER_EXPLANATION)
-    return _grade(
-        "unsure", BANK_METHOD, NO_ANSWER_EXPLANATION, _reference_latex(problem), problem
+        return _grade_from_mark(Mark("unsure", JUDGE_METHOD, NO_ANSWER_EXPLANATION))
+    return _grade_from_mark(
+        Mark("unsure", BANK_METHOD, NO_ANSWER_EXPLANATION, _reference_latex(problem)), problem
     )
-
-
-def _solved_grade(
-    statement: str, student: str, solver: AnswerSolver, effort: Optional[str]
-) -> Optional[Grade]:
-    try:
-        reference = solver.solve(statement, effort)
-    except Exception:  # a solver failure falls to the judgment tier, never a crash
-        return None
-    comparison = compare_answers(reference, student)
-    return _from_comparison(
-        comparison, student, reference, SOLVE_METHOD, "the independent AI answer"
-    )
-
-
-def _judged_grade(
-    statement: str, student: str, solver: AnswerSolver, effort: Optional[str]
-) -> Grade:
-    try:
-        verdict = solver.judge(statement, student, effort).verdict
-    except Exception:  # a judge failure is an unsure mark, never a crash
-        return _grade("unsure", JUDGE_METHOD, JUDGE_FAILED_EXPLANATION)
-    explanation = (
-        f"The student's answer {student} could not be checked by SymPy, so the AI judge "
-        f"marked it {verdict} from the statement alone."
-    )
-    return _grade(verdict, JUDGE_METHOD, explanation)
-
-
-def _ai_grade(
-    statement: str, student: str, solver: AnswerSolver, effort: Optional[str]
-) -> Grade:
-    grade = _solved_grade(statement, student, solver, effort)
-    if grade is not None:
-        return grade
-    return _judged_grade(statement, student, solver, effort)
 
 
 def grade_item(
     item: WorksheetItem,
-    solver: AnswerSolver,
+    rungs: Rungs | AnswerSolver,
     bank: Optional[Sequence[dict]] = None,
     effort: Optional[str] = None,
+    budget: Optional[CallBudget] = None,
 ) -> Grade:
-    """Grade one item: bank_key, then ai_solve_sympy, then ai_judgment. Never raises for a solver failure."""
+    """Grade one item: bank_key, then sympy_computed or ai_ladder, then ai_judgment.
+
+    A single solver is used for every rung. Never raises for a solver failure.
+    """
     problems = _eligible_bank() if bank is None else tuple(bank)
     problem = _bank_match(item, problems)
     student = _answer_text(item)
@@ -772,29 +415,45 @@ def grade_item(
         return _no_answer_grade(problem)
     if problem is not None:
         return _bank_grade(problem, student)
-    return _ai_grade(item.statement_latex, student, solver, effort)
+    ledger = CallLedger(budget if budget is not None else CallBudget())
+    mark = grade_unmatched(item.statement_latex, student, as_rungs(rungs), ledger, effort)
+    return _grade_from_mark(mark)
 
 
 def grade_worksheet(
     reading: WorksheetReading,
-    solver: AnswerSolver,
+    rungs: Rungs | AnswerSolver,
     bank: Optional[Sequence[dict]] = None,
 ) -> list[GradedItem]:
+    """Grade every item. The whole worksheet shares one call budget."""
     problems = _eligible_bank() if bank is None else tuple(bank)
+    budget = CallBudget()
     return [
-        GradedItem(item=item, grade=grade_item(item, solver, bank=problems))
+        GradedItem(item=item, grade=grade_item(item, rungs, bank=problems, budget=budget))
         for item in reading.items
     ]
 
 
+def _regraded_grade(graded: GradedItem, rungs: Rungs, problems: tuple[dict, ...]) -> Grade:
+    item = graded.item
+    student = _answer_text(item)
+    if graded.grade.method == SYMPY_METHOD:
+        # The cross-check outcome cannot be re-derived without an AI call, so the mark is kept.
+        return graded.grade
+    if graded.grade.method == BANK_METHOD or student is None:
+        return grade_item(item, rungs, bank=problems)
+    return _grade_from_mark(regrade_mark(item.statement_latex, student, rungs))
+
+
 def regrade_item(
     graded: GradedItem,
-    solver: AnswerSolver,
+    rungs: Rungs | AnswerSolver,
     bank: Optional[Sequence[dict]] = None,
 ) -> GradedItem:
-    """Grade again. Bank grades are recomputed; AI grades get a fresh solve at REGRADE_EFFORT."""
-    fresh = grade_item(graded.item, solver, bank=bank, effort=REGRADE_EFFORT)
-    is_ai = graded.grade.method != BANK_METHOD
+    """Grade again. bank_key and sympy_computed never change; AI grades get one fresh Sonnet solve."""
+    problems = _eligible_bank() if bank is None else tuple(bank)
+    fresh = _regraded_grade(graded, as_rungs(rungs), problems)
+    is_ai = graded.grade.method not in DETERMINISTIC_METHODS
     changed = is_ai and fresh.verdict != graded.grade.verdict
     return GradedItem(
         item=graded.item,

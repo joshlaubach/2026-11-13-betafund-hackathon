@@ -1,6 +1,6 @@
 "use client";
 
-import type { GradedItem, Verdict } from "@/lib/types";
+import type { GradedItem, GradeMethod, Verdict } from "@/lib/types";
 import { MathText, Tex } from "./Tex";
 
 const VERDICT_WORDS: Record<Verdict, string> = {
@@ -9,6 +9,9 @@ const VERDICT_WORDS: Record<Verdict, string> = {
   unsure: "Unsure",
 };
 const VERDICT_GLYPH: Record<Verdict, string> = { correct: "✓", incorrect: "✗", unsure: "?" };
+// Verified marks come from the bank or from SymPy's own computation; AI marks may be regraded.
+const VERIFIED_METHODS: readonly GradeMethod[] = ["bank_key", "sympy_computed"];
+const AI_METHODS: readonly GradeMethod[] = ["ai_ladder", "ai_solve_sympy", "ai_judgment"];
 
 interface Props {
   graded: GradedItem[];
@@ -27,7 +30,10 @@ export function WorksheetResults({ graded, disclaimer, busyNumber, onRegrade }: 
       <ol className="rows">
         {graded.map((entry) => {
           const { item, grade } = entry;
-          const verified = grade.method === "bank_key";
+          const verified = VERIFIED_METHODS.includes(grade.method);
+          const aiBased = AI_METHODS.includes(grade.method);
+          const referenceHeading =
+            grade.method === "bank_key" ? "Verified answer" : verified ? "SymPy's answer" : "AI's answer";
           return (
             <li key={item.number} className={`row ${verified ? "row-verified" : "row-ai"}`}>
               <div className="row-head">
@@ -46,7 +52,7 @@ export function WorksheetResults({ graded, disclaimer, busyNumber, onRegrade }: 
                 </div>
                 {grade.reference_answer_latex && (
                   <div>
-                    <dt>{verified ? "Verified answer" : "AI's answer"}</dt>
+                    <dt>{referenceHeading}</dt>
                     <dd>
                       <Tex latex={grade.reference_answer_latex} />
                     </dd>
@@ -60,7 +66,7 @@ export function WorksheetResults({ graded, disclaimer, busyNumber, onRegrade }: 
                   This mark changed when regraded. Treat it with extra care.
                 </p>
               )}
-              {!verified && (
+              {aiBased && (
                 <button className="quiet" onClick={() => onRegrade(entry)} disabled={busyNumber === item.number}>
                   {busyNumber === item.number ? "Regrading…" : "Regrade"}
                 </button>
