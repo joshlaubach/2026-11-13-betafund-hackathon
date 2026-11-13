@@ -8,6 +8,7 @@ Standard library and repo modules only. This module does not load .env; the call
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from typing import Optional, Union
@@ -33,6 +34,8 @@ from core.drafter import (
     ReplaySource,
     generate,
 )
+
+logger = logging.getLogger(__name__)
 
 MODE_LIVE = "live"
 MODE_REPLAY = "replay"
@@ -163,7 +166,8 @@ def _draft_problems(
     try:
         source = _build_source(mode, replay_path)
     except (OSError, ValueError) as error:
-        return [], [f"{mode} source failed: could not open the saved run ({error})"]
+        logger.error("could not load saved %s run: %s: %s", mode, type(error).__name__, error)
+        return [], [f"{mode} source failed: the saved run could not be loaded"]
     result = generate(
         topic, level, source, count=count, n_drafts=DRAFTS_PER_REQUEST, build_dir=build_dir
     )

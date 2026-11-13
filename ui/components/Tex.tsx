@@ -4,7 +4,15 @@ import katex from "katex";
 import { useMemo } from "react";
 
 function render(latex: string, display: boolean): string {
-  return katex.renderToString(latex, { throwOnError: false, displayMode: display, output: "html", strict: "ignore" });
+  return katex.renderToString(latex, {
+    throwOnError: false,
+    displayMode: display,
+    output: "html",
+    strict: "ignore",
+    trust: false,
+    maxSize: 10,
+    maxExpand: 200,
+  });
 }
 
 // Bare LaTeX, such as an answer key.

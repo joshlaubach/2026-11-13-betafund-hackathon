@@ -48,6 +48,7 @@ UNGRADED_TEXT = "this mark could not be checked, so it is unsure."
 REPLAY_PREFIX_LENGTH = 12
 SAVED_NOTE = "saved in test"
 TOO_MANY = MAX_ITEMS + 1
+LOCAL_BASE_URL = "http://127.0.0.1:8000"  # the guard only accepts localhost Host headers
 
 
 def make_item(number: int, statement: str, answer: str | None, topic: str | None = None) -> WorksheetItem:
@@ -121,7 +122,7 @@ def client(monkeypatch, tmp_path):
     monkeypatch.delenv("ECHO_SAVE_REPLAYS", raising=False)
     monkeypatch.setattr(app_module, "BUILD_DIR", tmp_path / "build")
     monkeypatch.setattr(worksheet_api, "WORKSHEET_REPLAY_DIR", tmp_path / "replay")
-    return TestClient(app_module.app)
+    return TestClient(app_module.app, base_url=LOCAL_BASE_URL)
 
 
 @pytest.fixture
@@ -309,10 +310,10 @@ def test_grade_replay_uses_saved_grades_file_when_present(client, replay_dir):
 def test_grade_unexpected_item_failure_does_not_crash_others(client, monkeypatch):
     real_grade_item = worksheet_api.grade_item
 
-    def flaky(item, solver, bank=None, effort=None):
+    def flaky(item, solver, bank=None, effort=None, budget=None):
         if item.number == 2:
             raise RuntimeError("boom")
-        return real_grade_item(item, solver, bank=bank, effort=effort)
+        return real_grade_item(item, solver, bank=bank, effort=effort, budget=budget)
 
     monkeypatch.setattr(worksheet_api, "grade_item", flaky)
     response = grade_request(client, standard_reading(), "fake")

@@ -22,6 +22,7 @@ from core import bank_fallback
 from core.entry import request_problems
 from core.photo_reader import TOO_LARGE_MESSAGE
 from server import photo_api, worksheet_api
+from server.guard import LocalGuard
 from server.topics import topic_tree
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ def _too_large() -> JSONResponse:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Echo API")
+    app.add_middleware(LocalGuard, allowed_origins=CORS_ORIGINS)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(CORS_ORIGINS),

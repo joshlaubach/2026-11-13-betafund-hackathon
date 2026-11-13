@@ -135,6 +135,8 @@ What the gate does and does not show: it shows the checker agrees with the bank'
 
 ### Running it
 
+The API has no login, so run it on localhost only and never expose its port to a network.
+
 You need Python 3.10 or newer. All commands run from this folder. Install the packages first:
 
 ```bash
@@ -170,3 +172,23 @@ The `build/` folder is not committed, so the gate script must be run once before
 | [`replay/`](replay/) | Saved runs for offline demos (one live, one scripted) |
 | [`scripts/`](scripts/) and [`tests/`](tests/) | The audit, gate and demo scripts, and their tests |
 | [`CLAUDE.md`](CLAUDE.md) | Instructions for the AI coding assistant used to build this |
+
+### Running with Docker
+
+Docker runs both halves: the API on port 8000 and the page on port 3000. You need Docker with Compose v2.
+
+```bash
+docker build -t echo-api .            # API image: installs requirements.txt and runs the gate once
+docker build -t echo-ui ui            # page image: builds the Next.js standalone server
+docker compose up -d --wait           # starts both and waits for the health checks
+```
+
+Then open http://localhost:3000. Stop with `docker compose down`.
+
+**Localhost only.** The API has no authentication and any caller can spend model tokens, so the ports are published on 127.0.0.1 only. Do not expose this stack to a network, and do not change the port mappings to bind to other addresses.
+
+- **Replay is the default.** `ECHO_MODE` defaults to `replay`, so no key and no internet are needed. Drafts come from the saved runs in `replay/`, which are mounted from the host.
+- **Live mode needs a key.** Copy `.env.example` to `.env` (git ignores it), set `ANTHROPIC_API_KEY`, and set `ECHO_MODE=live`. Compose reads `.env` at start-up and passes it to the API container at run time only. The key is never written into an image.
+- **Saving a live run as a replay.** Set `ECHO_SAVE_REPLAYS=1` in `.env` or the host environment, and run live. Good runs are written into the host's `replay/` folder through the volume mount.
+- **The API image runs the gate during the build.** `scripts/gate_power_rule.py` writes `build/gate_power_rule.json` bound to the bank's SHA-256, and the build fails unless it prints `GATE: ENABLED`. Rebuild the API image after any change to `docs/verified_problems.json`.
+- The page's browser calls the API at `NEXT_PUBLIC_API_BASE` (default `http://127.0.0.1:8000`). This is set at build time, so change it with `--build-arg` if the API runs elsewhere.

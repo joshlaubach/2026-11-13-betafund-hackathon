@@ -10,6 +10,7 @@ drafts are returned as accepted, and only they carry the Echo-checked label.
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,6 +21,8 @@ from pydantic import BaseModel
 
 from core.bank_fallback import BUILD_DIR, echo_checked_topics, serve
 from core.derivative_checker import ACCEPTED, check_derivative
+
+logger = logging.getLogger(__name__)
 
 TOPIC = "power_rule"
 DEFAULT_COUNT = 3
@@ -43,6 +46,7 @@ EMPTY_MESSAGE = "the model returned no drafts"
 UNSUPPORTED_MESSAGE = "only power_rule is supported, and only while its gate is enabled"
 OUTPUT_CONFIG_ARG = "output_config"
 NO_POINT_TEXT = frozenset({"", "null", "none"})
+GENERIC_SOURCE_MESSAGE = "the source failed; see the server log"
 
 SYSTEM_PROMPT = (
     "You write calculus practice problems for Echo. Every answer key you write is "
@@ -327,8 +331,11 @@ def generate(
         return _fail(result, STATUS_ERROR, f"level must be one of {LEVELS}, got {level!r}", count)
     try:
         drafts = list(source.get_drafts(topic, level, n_drafts, avoid_list))[:n_drafts]
+    except DraftError as error:
+        return _fail(result, STATUS_ERROR, str(error) or GENERIC_SOURCE_MESSAGE, count)
     except Exception as error:  # a draft-source failure must not crash the caller
-        return _fail(result, STATUS_ERROR, str(error) or type(error).__name__, count)
+        logger.error("draft source failed: %s: %s", type(error).__name__, error)
+        return _fail(result, STATUS_ERROR, GENERIC_SOURCE_MESSAGE, count)
     result["tokens"] = dict(source.last_usage) if source.last_usage else None
     result["drafted"] = len(drafts)
     result["drafts"] = [draft.model_dump() for draft in drafts]

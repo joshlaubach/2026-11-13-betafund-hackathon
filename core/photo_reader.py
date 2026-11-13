@@ -13,6 +13,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import logging
 import os
 import re
 from collections.abc import Sequence
@@ -28,6 +29,7 @@ from core.drafter import (
     AUTH_MESSAGE,
     DEFAULT_EFFORT,
     DEFAULT_MODEL,
+    GENERIC_SOURCE_MESSAGE,
     MAX_TOKENS,
     SOURCE_FAKE,
     SOURCE_LIVE,
@@ -35,6 +37,8 @@ from core.drafter import (
 from core.input_boundary import BoundaryError
 from core.latex_reader import MAX_LATEX_LENGTH, read_latex
 from scripts.audit_bank import load_bank
+
+logger = logging.getLogger(__name__)
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MEGABYTE = 1024 * 1024
@@ -351,8 +355,11 @@ def read_photo(
         raw = PhotoReading.model_validate(
             source.get_reading(bytes(image), media_type, allowed)
         )
+    except PhotoSourceError as error:
+        return _result(STATUS_ERROR, source.name, digest, error=str(error) or GENERIC_SOURCE_MESSAGE)
     except Exception as error:  # a photo-source failure must not crash the caller
-        return _result(STATUS_ERROR, source.name, digest, error=str(error) or type(error).__name__)
+        logger.error("photo source failed: %s: %s", type(error).__name__, error)
+        return _result(STATUS_ERROR, source.name, digest, error=GENERIC_SOURCE_MESSAGE)
     reading, topic_valid = _normalized(raw, allowed)
     problem = reading.problem_latex
     checker = _checker_verdict(problem)

@@ -167,7 +167,8 @@ def test_power_rule_without_gate_file_is_unsupported(empty_dir):
 def test_source_runtime_error_gives_error_status_without_crash(gated_dir):
     result = generate("power_rule", 2, RaisingSource(RuntimeError("boom")), build_dir=gated_dir)
     assert result["status"] == STATUS_ERROR
-    assert result["error"] == "boom"
+    assert result["error"] == "the source failed; see the server log"
+    assert "boom" not in result["error"]
     assert result["accepted"] == []
     assert result["drafted"] == 0
 
@@ -177,7 +178,7 @@ def test_anthropic_authentication_error_from_source_gives_error_status(gated_dir
     error = anthropic.AuthenticationError("API key missing or invalid", response=response, body=None)
     result = generate("power_rule", 2, RaisingSource(error), build_dir=gated_dir)
     assert result["status"] == STATUS_ERROR
-    assert result["error"] == "API key missing or invalid"
+    assert result["error"] == "the source failed; see the server log"
 
 
 def test_live_source_without_key_gives_error_and_no_network(gated_dir, monkeypatch):

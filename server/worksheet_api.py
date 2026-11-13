@@ -24,8 +24,10 @@ from starlette.concurrency import run_in_threadpool
 
 from core.bank_fallback import BANK_PATH, REPO_ROOT
 from core.drafter import SOURCE_LIVE
+from core.ladder import Rungs
 from core.photo_reader import SHA256_HEX_PATTERN, sha256_hex
 from core.skills import build_profile, recommend, summarize
+from core.solvers import CallBudget
 from core.worksheet import (
     BANK_METHOD,
     MAX_ITEMS,
@@ -74,6 +76,12 @@ NO_SAVED_GRADE_EXPLANATION = (
 )
 UNGRADED_EXPLANATION = "this mark could not be checked, so it is unsure."
 TOO_MANY_ITEMS_MESSAGE = f"a worksheet can have at most {MAX_ITEMS} problems"
+MAX_STATEMENT_CHARS = 2000
+MAX_ANSWER_CHARS = 1000
+MAX_NOTES_CHARS = 500
+STATEMENT_TOO_LONG_MESSAGE = f"statement_latex can have at most {MAX_STATEMENT_CHARS} characters"
+ANSWER_TOO_LONG_MESSAGE = f"student_answer_latex can have at most {MAX_ANSWER_CHARS} characters"
+NOTES_TOO_LONG_MESSAGE = f"notes can have at most {MAX_NOTES_CHARS} characters"
 UNSURE = "unsure"
 AI_JUDGMENT_METHOD = "ai_judgment"
 
@@ -88,6 +96,17 @@ def _check_item_count(items: Sequence[object]) -> None:
         raise ValueError(TOO_MANY_ITEMS_MESSAGE)
 
 
+def _check_text_lengths(items: Sequence[WorksheetItem]) -> None:
+    """Reject over-long statements, answers, and notes. Each violation becomes HTTP 422."""
+    for item in items:
+        if len(item.statement_latex) > MAX_STATEMENT_CHARS:
+            raise ValueError(STATEMENT_TOO_LONG_MESSAGE)
+        if item.student_answer_latex is not None and len(item.student_answer_latex) > MAX_ANSWER_CHARS:
+            raise ValueError(ANSWER_TOO_LONG_MESSAGE)
+        if len(item.notes) > MAX_NOTES_CHARS:
+            raise ValueError(NOTES_TOO_LONG_MESSAGE)
+
+
 class GradeRequest(BaseModel):
     reading: WorksheetReading
     mode: Mode = DEFAULT_MODE
@@ -96,6 +115,9 @@ class GradeRequest(BaseModel):
     @classmethod
     def _limit_items(cls, reading: WorksheetReading) -> WorksheetReading:
         _check_item_count(reading.items)
+        _check_text_lengths(reading.items)
+        if len(reading.notes) > MAX_NOTES_CHARS:
+            raise ValueError(NOTES_TOO_LONG_MESSAGE)
         return reading
 
 
@@ -106,12 +128,19 @@ class ProfileRequest(BaseModel):
     @classmethod
     def _limit_items(cls, graded: tuple[GradedItem, ...]) -> tuple[GradedItem, ...]:
         _check_item_count(graded)
+        _check_text_lengths([entry.item for entry in graded])
         return graded
 
 
 class RegradeRequest(BaseModel):
     graded: GradedItem
     mode: Mode = DEFAULT_MODE
+
+    @field_validator("graded")
+    @classmethod
+    def _limit_text(cls, graded: GradedItem) -> GradedItem:
+        _check_text_lengths([graded.item])
+        return graded
 
 
 # ---------------------------------------------------------------------------
@@ -276,9 +305,14 @@ def _unsure(explanation: str) -> Grade:
     )
 
 
-def _grade_one(item: WorksheetItem, solver: AnswerSolver, problems: tuple[dict, ...]) -> GradedItem:
+def _grade_one(
+    item: WorksheetItem,
+    solver: Rungs | AnswerSolver,
+    problems: tuple[dict, ...],
+    budget: CallBudget | None = None,
+) -> GradedItem:
     try:
-        return GradedItem(item=item, grade=grade_item(item, solver, bank=problems))
+        return GradedItem(item=item, grade=grade_item(item, solver, bank=problems, budget=budget))
     except Exception as error:  # one item's failure must not crash the others
         logger.error("grading one worksheet item failed: %s", type(error).__name__)
         return GradedItem(item=item, grade=_unsure(UNGRADED_EXPLANATION))
@@ -324,7 +358,8 @@ def grade_reading(body: GradeRequest, build_dir: Path) -> dict[str, Any]:
             graded = _grade_all(body.reading.items, lambda item: _replay_item(item, problems))
         return grade_payload(graded, build_dir)
     solver = build_solver(body.mode)
-    graded = _grade_all(body.reading.items, lambda item: _grade_one(item, solver, problems))
+    budget = CallBudget()  # one budget for the whole worksheet, shared by its items
+    graded = _grade_all(body.reading.items, lambda item: _grade_one(item, solver, problems, budget))
     if body.mode == MODE_LIVE:
         _save_live_grades(digest, graded)
     return grade_payload(graded, build_dir)

@@ -31,6 +31,7 @@ FAKE_TOPIC = "power_rule"
 BANK_TOPIC = "u_substitution"
 PICKER_TOPICS = 90
 CHECKER_KEYS = ("checker_readable", "checker_reason")
+LOCAL_BASE_URL = "http://127.0.0.1:8000"  # the guard only accepts localhost Host headers
 
 
 def write_gate(build_dir: Path, topic: str = FAKE_TOPIC, bank_hash: str | None = None) -> None:
@@ -56,7 +57,7 @@ def client(monkeypatch, tmp_path):
     monkeypatch.delenv("ECHO_MODE", raising=False)
     monkeypatch.setattr(app_module, "BUILD_DIR", tmp_path / "build")
     monkeypatch.setattr(photo_api, "PHOTO_REPLAY_DIR", tmp_path / "replay")
-    return TestClient(app_module.app)
+    return TestClient(app_module.app, base_url=LOCAL_BASE_URL)
 
 
 @pytest.fixture
