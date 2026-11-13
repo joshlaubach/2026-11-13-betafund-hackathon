@@ -19,9 +19,10 @@ from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import UploadFile
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ValidationError, field_validator
 from starlette.concurrency import run_in_threadpool
 
+from core.ask import AskError, RowContext, answer
 from core.bank_fallback import BANK_PATH, REPO_ROOT
 from core.clarify import ClarifyError, propose
 from core.drafter import SOURCE_LIVE
@@ -442,3 +443,36 @@ def clarify_text(body: ClarifyRequest) -> dict[str, Any]:
     except ClarifyError as error:
         return {"status": CLARIFY_STATUS_ERROR, "error": str(error)}
     return {"status": CLARIFY_STATUS_OK, "latex": proposal.latex, "notes": proposal.notes}
+
+
+# ---------------------------------------------------------------------------
+# Ask Echo: explain one already-marked row. Read-only: it never changes a mark.
+# ---------------------------------------------------------------------------
+
+ASK_ROW_INVALID_MESSAGE = "this marked row is too long or malformed to explain"
+
+
+class AskRequest(BaseModel):
+    question: str  # length and control characters are checked by core/ask.py, not here
+    statement_latex: str = ""
+    student_answer_latex: str = ""
+    reference_answer_latex: str = ""
+    method: str = ""
+    verdict: str = ""
+    reason: str = ""
+    explanation: str = ""
+    label: str = ""
+    mode: Mode = DEFAULT_MODE
+
+
+def ask_row(body: AskRequest) -> dict[str, Any]:
+    """A plain-words explanation of one marked row, or {"status": "error"} with the reason."""
+    try:
+        row = RowContext.model_validate(body.model_dump(exclude={"question", "mode"}))
+    except ValidationError:
+        return {"status": CLARIFY_STATUS_ERROR, "error": ASK_ROW_INVALID_MESSAGE}
+    try:
+        text = answer(body.question, row, body.mode)
+    except AskError as error:
+        return {"status": CLARIFY_STATUS_ERROR, "error": str(error)}
+    return {"status": CLARIFY_STATUS_OK, "answer": text}

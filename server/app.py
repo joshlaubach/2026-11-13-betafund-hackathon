@@ -1,7 +1,9 @@
 """The FastAPI app the chat page calls. It wraps core/entry, core/photo_reader and core/bank_fallback.
 
 Routes: GET /api/health, GET /api/topics, POST /api/read-photo, POST /api/problems,
-POST /api/worksheet/read, /grade, /regrade, /profile, /clarify (server/worksheet_api.py).
+POST /api/worksheet/read, /grade, /regrade, /profile, /clarify, /ask (server/worksheet_api.py),
+POST /api/practice/steps and /api/practice/check (server/practice_api.py, core/practice.py),
+POST /api/tutor/chat (server/tutor_api.py, core/tutor.py).
 Nothing here echoes environment variables, tracebacks, or the API key. Unexpected
 errors return HTTP 500 {"error": "internal error"} and are logged by type and message.
 """
@@ -18,10 +20,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from core import bank_fallback
+from core import bank_fallback, practice
 from core.entry import request_problems
 from core.photo_reader import TOO_LARGE_MESSAGE
-from server import photo_api, worksheet_api
+from server import photo_api, practice_api, tutor_api, worksheet_api
 from server.guard import LocalGuard
 from server.topics import topic_tree
 
@@ -150,6 +152,36 @@ def create_app() -> FastAPI:
             return worksheet_api.clarify_text(body)
         except Exception as error:
             return _internal_error("worksheet-clarify", error)
+
+    @app.post("/api/worksheet/ask", response_model=None)
+    def worksheet_ask_route(body: worksheet_api.AskRequest) -> Any:
+        try:
+            return worksheet_api.ask_row(body)
+        except Exception as error:
+            return _internal_error("worksheet-ask", error)
+
+    @app.post("/api/practice/steps", response_model=None)
+    def practice_steps_route(body: practice_api.StepsRequest) -> Any:
+        try:
+            return practice.get_steps(body.topic, body.problem_id)
+        except Exception as error:
+            return _internal_error("practice-steps", error)
+
+    @app.post("/api/practice/check", response_model=None)
+    def practice_check_route(body: practice_api.CheckRequest) -> Any:
+        try:
+            return practice.check_answer(
+                body.topic, body.problem_id, body.answer_latex, body.reference_latex
+            )
+        except Exception as error:
+            return _internal_error("practice-check", error)
+
+    @app.post("/api/tutor/chat", response_model=None)
+    def tutor_chat_route(body: tutor_api.TutorRequest) -> Any:
+        try:
+            return tutor_api.chat_turn(body)
+        except Exception as error:
+            return _internal_error("tutor-chat", error)
 
     return app
 
