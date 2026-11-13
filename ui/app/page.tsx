@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { ApiError, gradeWorksheet, profileWorksheet, readWorksheet, regradeItem, requestProblems } from "@/lib/api";
-import type { GradedItem, GradeResponse, Mode, ProblemsResponse } from "@/lib/types";
+import { correctItem, firstReadOf } from "@/lib/correction";
+import type {
+  ClarifyField,
+  FirstRead,
+  GradedItem,
+  GradeResponse,
+  Mode,
+  ProblemsResponse,
+  WorksheetReading,
+} from "@/lib/types";
 import { Practice } from "@/components/Practice";
 import { SkillPicture } from "@/components/SkillPicture";
 import { WorksheetResults } from "@/components/WorksheetResults";
@@ -40,6 +49,8 @@ export default function Home() {
   const [busyNumber, setBusyNumber] = useState<number | null>(null);
   const [practiced, setPracticed] = useState<Practiced | null>(null);
   const [practiceBusy, setPracticeBusy] = useState(false);
+  // What Echo first read for each corrected row, keyed by part number. Kept so it is never overwritten.
+  const [firstReads, setFirstReads] = useState<Record<number, FirstRead>>({});
 
   useEffect(() => {
     if (!file) {
@@ -56,6 +67,7 @@ export default function Home() {
     setError(null);
     setResult(null);
     setPracticed(null);
+    setFirstReads({});
     setStage("reading");
     try {
       const read = await readWorksheet(file, mode);
@@ -82,6 +94,31 @@ export default function Home() {
       const updated = await regradeItem(entry, mode);
       const graded = result.graded.map((current) => (current.item.number === updated.item.number ? updated : current));
       const profile = await profileWorksheet(graded);
+      setResult({ ...profile, graded });
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setBusyNumber(null);
+    }
+  }
+
+  // The student confirmed a clarified reading: grade only this part, then merge it and recompute the profile.
+  async function handleCorrect(entry: GradedItem, field: ClarifyField, latex: string) {
+    if (!result) return;
+    const number = entry.item.number;
+    const corrected = correctItem(entry.item, field, latex);
+    const reading: WorksheetReading = { items: [corrected], notes: "", shared_context: setup };
+    setError(null);
+    setBusyNumber(number);
+    try {
+      const response = await gradeWorksheet(reading, mode);
+      const fresh = response.graded.find((current) => current.item.number === number) ?? response.graded[0];
+      if (!fresh) throw new ApiError("Echo could not mark the corrected part. Try again.");
+      const graded = result.graded.map((current) => (current.item.number === number ? fresh : current));
+      const profile = await profileWorksheet(graded);
+      setFirstReads((previous) =>
+        previous[number] ? previous : { ...previous, [number]: firstReadOf(entry.item, field) },
+      );
       setResult({ ...profile, graded });
     } catch (caught) {
       setError(errorText(caught));
@@ -180,7 +217,10 @@ export default function Home() {
             notes={readingNotes}
             disclaimer={result.disclaimer}
             busyNumber={busyNumber}
+            mode={mode}
+            firstReads={firstReads}
             onRegrade={(entry) => void handleRegrade(entry)}
+            onCorrect={(entry, field, latex) => void handleCorrect(entry, field, latex)}
           />
           <SkillPicture
             result={result}

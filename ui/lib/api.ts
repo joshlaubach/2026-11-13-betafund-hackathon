@@ -2,7 +2,9 @@
 import {
   UNMARKED_FILE_TAG,
   UNMARKED_NOTES,
+  fixtureClarify,
   fixtureGrade,
+  fixtureGradeCorrected,
   fixtureGradeUnmarked,
   fixtureProblems,
   fixtureRead,
@@ -10,6 +12,8 @@ import {
 } from "./fixtures";
 import { UNPREPARED_MESSAGE, prepareUpload } from "./photo";
 import type {
+  ClarifyField,
+  ClarifyResponse,
   GradedItem,
   GradeResponse,
   Mode,
@@ -63,8 +67,17 @@ export async function readWorksheet(file: File, mode: Mode): Promise<ReadRespons
 }
 
 export function gradeWorksheet(reading: WorksheetReading, mode: Mode): Promise<GradeResponse> {
-  if (USE_FIXTURES) return pause(reading.notes === UNMARKED_NOTES ? fixtureGradeUnmarked : fixtureGrade);
+  if (USE_FIXTURES) {
+    if (reading.items.some((item) => item.corrected_by_user)) return pause(fixtureGradeCorrected(reading));
+    return pause(reading.notes === UNMARKED_NOTES ? fixtureGradeUnmarked : fixtureGrade);
+  }
   return send<GradeResponse>("/api/worksheet/grade", jsonBody({ reading, mode }));
+}
+
+// Echo's reading of the student's words as LaTeX. Nothing is graded here.
+export function clarifyText(field: ClarifyField, text: string, mode: Mode): Promise<ClarifyResponse> {
+  if (USE_FIXTURES) return pause(fixtureClarify(text));
+  return send<ClarifyResponse>("/api/worksheet/clarify", jsonBody({ field, text, mode }));
 }
 
 export function regradeItem(graded: GradedItem, mode: Mode): Promise<GradedItem> {

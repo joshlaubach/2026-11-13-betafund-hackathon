@@ -62,7 +62,8 @@ test("happy path: marks show verified and AI rows, AI rows can be regraded", asy
   const aiCount = await aiRows.count();
   expect(aiCount).toBeGreaterThan(0);
   for (let index = 0; index < aiCount; index += 1) {
-    await expect(aiRows.nth(index).locator("button")).toHaveCount(1);
+    // Unsure AI rows also carry the clarify controls, so only the Regrade button is counted here.
+    await expect(aiRows.nth(index).getByRole("button", { name: "Regrade" })).toHaveCount(1);
   }
   await expect(marks.locator(".row-verified button")).toHaveCount(0);
 
@@ -106,7 +107,8 @@ test("skill picture lists recommendations and opens practice with a checker rece
 
 test("regrade shows a busy state, then returns without an error", async ({ page }) => {
   await markWorksheet(page);
-  const regradeButton = marksRegion(page).locator(".row-ai button").first();
+  // Anchored on the first AI row, so the button stays the same element while its label reads "Regrading…".
+  const regradeButton = marksRegion(page).locator(".row-ai").first().locator("button");
   await expect(regradeButton).toBeEnabled();
 
   await regradeButton.click();

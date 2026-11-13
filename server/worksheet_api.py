@@ -23,9 +23,10 @@ from pydantic import BaseModel, field_validator
 from starlette.concurrency import run_in_threadpool
 
 from core.bank_fallback import BANK_PATH, REPO_ROOT
+from core.clarify import ClarifyError, propose
 from core.drafter import SOURCE_LIVE
 from core.ladder import Rungs
-from core.photo_reader import SHA256_HEX_PATTERN, sha256_hex
+from core.photo_reader import SHA256_HEX_PATTERN, bank_topic_ids, sha256_hex
 from core.skills import build_profile, recommend, summarize
 from core.solvers import CallBudget, log_failure
 from core.worksheet import (
@@ -90,6 +91,8 @@ FINAL_ANSWERS_TOO_MANY_MESSAGE = f"final_answers_latex can have at most {MAX_FIN
 FINAL_ANSWER_TOO_LONG_MESSAGE = f"each final answer can have at most {MAX_ANSWER_CHARS} characters"
 UNSURE = "unsure"
 AI_JUDGMENT_METHOD = "ai_judgment"
+CLARIFY_STATUS_OK = "ok"
+CLARIFY_STATUS_ERROR = "error"
 
 
 # ---------------------------------------------------------------------------
@@ -418,3 +421,24 @@ def regrade_graded(body: RegradeRequest) -> dict[str, Any]:
         unchanged = body.graded.model_copy(update={"regraded": True, "changed_on_regrade": False})
         return unchanged.model_dump(mode="json")
     return regrade_item(body.graded, build_solver(body.mode)).model_dump(mode="json")
+
+
+# ---------------------------------------------------------------------------
+# Clarify: the student says what a row means, Echo shows its reading
+# ---------------------------------------------------------------------------
+
+
+class ClarifyRequest(BaseModel):
+    field: Literal["problem", "answer"]
+    text: str  # length and control characters are checked by core/clarify.py, not here
+    mode: Mode = DEFAULT_MODE
+
+
+def clarify_text(body: ClarifyRequest) -> dict[str, Any]:
+    """A reading of the student's text as LaTeX, or {"status": "error"} with the reason."""
+    topics = ", ".join(bank_topic_ids()) if body.mode == MODE_LIVE else ""
+    try:
+        proposal = propose(body.field, body.text, topics, body.mode)
+    except ClarifyError as error:
+        return {"status": CLARIFY_STATUS_ERROR, "error": str(error)}
+    return {"status": CLARIFY_STATUS_OK, "latex": proposal.latex, "notes": proposal.notes}

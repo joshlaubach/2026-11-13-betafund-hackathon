@@ -57,6 +57,7 @@ class WorksheetItem(Frozen):
     context_latex: str = ""
     final_answers_latex: tuple[str, ...] = ()
     explanation_text: str = ""
+    corrected_by_user: bool = False  # True when the student confirmed a clarified statement or answer
 
 
 class WorksheetReading(Frozen):

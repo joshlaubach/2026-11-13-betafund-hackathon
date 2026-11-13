@@ -1,6 +1,7 @@
 "use client";
 
-import type { GradedItem, GradeMethod, GradeReason, Verdict } from "@/lib/types";
+import type { ClarifyField, FirstRead, GradedItem, GradeMethod, GradeReason, Mode, Verdict } from "@/lib/types";
+import { ClarifyBox } from "./ClarifyBox";
 import { MathText, Tex } from "./Tex";
 
 const VERDICT_WORDS: Record<Verdict, string> = {
@@ -20,6 +21,13 @@ const REASON_LINES: Partial<Record<GradeReason, string>> = {
   disagreement: "Independent AI solves disagreed. Check this one yourself or try Regrade.",
   no_verdict: "The AI gave no answer for this part. Try Regrade.",
 };
+// A SymPy-marked row has no Regrade button, so its disagreement line does not mention one.
+const DISAGREEMENT_WITHOUT_REGRADE = "Independent AI solves disagreed. Check this one yourself.";
+
+function reasonText(reason: GradeReason, canRegrade: boolean): string | undefined {
+  if (reason === "disagreement" && !canRegrade) return DISAGREEMENT_WITHOUT_REGRADE;
+  return REASON_LINES[reason];
+}
 
 const NOT_MARKED_FALLBACK =
   "It may not be a calculus worksheet, or the photo may be too unclear to read. Try a clearer, closer photo.";
@@ -30,13 +38,19 @@ interface Props {
   notes: string;
   disclaimer: string;
   busyNumber: number | null;
+  mode: Mode;
+  firstReads: Readonly<Record<number, FirstRead>>;
   onRegrade: (item: GradedItem) => void;
+  onCorrect: (entry: GradedItem, field: ClarifyField, latex: string) => void;
 }
 
 interface RowProps {
   entry: GradedItem;
   busy: boolean;
+  mode: Mode;
+  firstRead: FirstRead | undefined;
   onRegrade: (item: GradedItem) => void;
+  onCorrect: (entry: GradedItem, field: ClarifyField, latex: string) => void;
 }
 
 // The student's final answers, or their whole written line when no final answer was read.
@@ -46,12 +60,22 @@ function studentAnswers(entry: GradedItem): string[] {
   return item.student_answer_latex ? [item.student_answer_latex] : [];
 }
 
-function MarkRow({ entry, busy, onRegrade }: RowProps) {
+function FirstReadLine({ read }: { read: FirstRead }) {
+  return (
+    <p className="first-read">
+      Echo first read:{" "}
+      {read.field === "problem" ? <MathText text={read.text} /> : <Tex latex={read.text} />}
+    </p>
+  );
+}
+
+function MarkRow({ entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProps) {
   const { item, grade } = entry;
   const verifiedMethod = VERIFIED_METHODS.includes(grade.method);
   // An unsure mark is never shown as verified, even when its method is a verified one.
   const verified = verifiedMethod && grade.verdict !== "unsure";
   const aiBased = AI_METHODS.includes(grade.method);
+  const unsure = grade.verdict === "unsure" || grade.method === "not_graded";
   const referenceHeading =
     grade.method === "bank_key" ? "Verified answer" : verifiedMethod ? "SymPy's answer" : "AI's answer";
   const tagText = verified
@@ -62,13 +86,11 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
         ? "Not verified"
         : "AI-graded";
   const answers = studentAnswers(entry);
-  const reasonLine = grade.verdict === "unsure" && grade.reason ? REASON_LINES[grade.reason] : undefined;
   // Only AI-graded rows get the AI edge. A SymPy or unmarked row that is not verified keeps the plain edge.
   const edgeClass = verified ? "row-verified" : aiBased ? "row-ai" : "row-plain";
-  // Regrade is offered for AI rows, and for unsure rows where no answer came back or the solves disagreed.
-  const retryableUnsure =
-    grade.verdict === "unsure" && (grade.reason === "no_verdict" || grade.reason === "disagreement");
-  const offerRegrade = aiBased || retryableUnsure;
+  // Regrade asks an AI again, so it is offered only for AI-method rows. SymPy marks are never regraded.
+  const offerRegrade = aiBased;
+  const reasonLine = grade.verdict === "unsure" && grade.reason ? reasonText(grade.reason, offerRegrade) : undefined;
   return (
     <li className={`row ${edgeClass}`}>
       <div className="row-head">
@@ -77,10 +99,12 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
         </span>
         {item.part_label && <span className="part-label">Part {item.part_label}</span>}
         <span className="source-tag">{tagText}</span>
+        {item.corrected_by_user && <span className="corrected-tag">Corrected by you</span>}
       </div>
       <p className="statement">
         <MathText text={item.statement_latex} />
       </p>
+      {firstRead && <FirstReadLine read={firstRead} />}
       <dl className="answers">
         <div>
           <dt>Student&apos;s answer</dt>
@@ -114,6 +138,15 @@ function MarkRow({ entry, busy, onRegrade }: RowProps) {
           This mark changed when regraded. Treat it with extra care.
         </p>
       )}
+      {unsure && (
+        // Keyed by the corrected flag, so a box for a row that was just corrected starts empty.
+        <ClarifyBox
+          key={item.corrected_by_user ? "corrected" : "original"}
+          mode={mode}
+          busy={busy}
+          onUse={(field, latex) => onCorrect(entry, field, latex)}
+        />
+      )}
       {offerRegrade && (
         <button className="quiet" onClick={() => onRegrade(entry)} disabled={busy}>
           {busy ? "Regrading…" : "Regrade"}
@@ -137,7 +170,17 @@ function NotMarkedBanner({ notes }: { notes: string }) {
   );
 }
 
-export function WorksheetResults({ graded, setup, notes, disclaimer, busyNumber, onRegrade }: Props) {
+export function WorksheetResults({
+  graded,
+  setup,
+  notes,
+  disclaimer,
+  busyNumber,
+  mode,
+  firstReads,
+  onRegrade,
+  onCorrect,
+}: Props) {
   const rows = (
     <ol className="rows">
       {graded.map((entry) => (
@@ -145,7 +188,10 @@ export function WorksheetResults({ graded, setup, notes, disclaimer, busyNumber,
           key={entry.item.number}
           entry={entry}
           busy={busyNumber === entry.item.number}
+          mode={mode}
+          firstRead={firstReads[entry.item.number]}
           onRegrade={onRegrade}
+          onCorrect={onCorrect}
         />
       ))}
     </ol>

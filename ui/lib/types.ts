@@ -24,7 +24,22 @@ export interface WorksheetItem {
   context_latex: string;
   final_answers_latex: string[];
   explanation_text: string;
+  // Optional so saved replays from before this field still load. The server always sends it.
+  corrected_by_user?: boolean;
 }
+
+// Which part of a row the student clarified: the problem, or their answer.
+export type ClarifyField = "problem" | "answer";
+
+// What the page showed the student before a correction, kept so it is never silently overwritten.
+export interface FirstRead {
+  field: ClarifyField;
+  text: string;
+}
+
+export type ClarifyResponse =
+  | { status: "ok"; latex: string; notes: string }
+  | { status: "error"; error: string };
 
 export interface WorksheetReading {
   items: WorksheetItem[];

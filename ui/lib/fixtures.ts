@@ -1,6 +1,7 @@
 // Fake data for design work and for running the page without the Python server.
 // Labels here are copied from core/worksheet_types.py so the page shows the same words.
 import type {
+  ClarifyResponse,
   GradedItem,
   GradeMethod,
   GradeReason,
@@ -8,6 +9,7 @@ import type {
   ProblemsResponse,
   ReadResponse,
   WorksheetItem,
+  WorksheetReading,
 } from "./types";
 
 export const LABELS = {
@@ -103,6 +105,8 @@ const REASON_ROWS: GradedItem[] = [
     "the AI judge could not give a verdict, so this mark is unsure."),
   reasonRow(9, "i", "Find the antiderivative of 3.", "3x", "sympy_computed", "rule",
     "answers differ by a constant; check for + C"),
+  reasonRow(10, "j", "Find the slope of the curve at x = 1.", "5", "sympy_computed", "disagreement",
+    "SymPy computed 2, and the AI cross-check gave 3, so this mark is unsure."),
 ];
 
 export const fixtureGrade: GradeResponse = {
@@ -227,3 +231,49 @@ export const fixtureGradeUnmarked: GradeResponse = {
     },
   })),
 };
+
+// Fixture mode understands a few phrases. Anything else is shown as plain text, with a note.
+const CLARIFY_PHRASES: Record<string, string> = {
+  "derivative of x squared": "\\frac{d}{dx}\\left(x^{2}\\right)",
+};
+const FIXTURE_CLARIFY_NOTE = "scripted: fixture mode understands only a few phrases";
+const CORRECTED_REFERENCE = "2x";
+
+export function fixtureClarify(text: string): ClarifyResponse {
+  const latex = CLARIFY_PHRASES[text.trim().toLowerCase()];
+  if (latex) return { status: "ok", latex, notes: "" };
+  const plain = text.replace(/[{}\\]/g, "");
+  return { status: "ok", latex: "\\text{" + plain + "}", notes: FIXTURE_CLARIFY_NOTE };
+}
+
+// A corrected row gets a verified-looking mark: SymPy computes the reference, so the method is
+// sympy_computed. The fixture's reference is 2x, and the student's answer is compared with it.
+function fixtureCorrectedGrade(item: WorksheetItem): GradedItem {
+  const answer = (item.final_answers_latex.join("; ") || item.student_answer_latex || "").trim();
+  const matches = answer.replace(/\s/g, "") === CORRECTED_REFERENCE;
+  const verdict = matches ? "correct" : "incorrect";
+  const comparison = matches ? "matches" : "does not match";
+  return {
+    regraded: false,
+    changed_on_regrade: false,
+    item,
+    grade: {
+      verdict,
+      method: "sympy_computed",
+      label: LABELS.sympy_computed,
+      reference_answer_latex: CORRECTED_REFERENCE,
+      explanation: `The student's answer ${answer} ${comparison} SymPy's computed answer ${CORRECTED_REFERENCE}, checked by SymPy. The statement was confirmed by you.`,
+      bank_topic: null,
+      bank_id: null,
+      reason: null,
+    },
+  };
+}
+
+// The grade for a reading that holds only corrected items, as the server returns it for one part.
+export function fixtureGradeCorrected(reading: WorksheetReading): GradeResponse {
+  return {
+    ...fixtureGrade,
+    graded: reading.items.map((item) => fixtureCorrectedGrade(item)),
+  };
+}
