@@ -9,9 +9,11 @@ confirm the SymPy mark or make it unsure.
 
 from __future__ import annotations
 
+import math
 import multiprocessing
 import queue
 import re
+import time
 from typing import Any, NamedTuple, Optional
 
 import sympy as sp
@@ -32,6 +34,9 @@ from core.worksheet_types import GradeMethod
 
 SYMPY_TIMEOUT_S = 5.0  # hard limit on the SymPy computation itself, after the child is ready
 STARTUP_TIMEOUT_S = 60.0  # bound on a child that never starts; interpreter start-up is not timed
+POLL_INTERVAL_S = 0.05  # how often the parent checks that the child is still alive
+LIMIT_PROBE = sp.Rational(1, 10**6)  # distance either side of a limit point where f must be real
+NOT_DIFFERENTIABLE = (sp.sign, sp.Abs, sp.Piecewise, sp.Heaviside, sp.DiracDelta)
 READY = "ready"
 SYMPY_METHOD: GradeMethod = "sympy_computed"
 UNSURE = "unsure"
@@ -128,15 +133,46 @@ def _finite_or_none(result: object) -> Optional[sp.Basic]:
     return result
 
 
+def _real_at(expr: sp.Basic, value: sp.Basic) -> bool:
+    """True when expr is a finite real number at value."""
+    try:
+        number = complex(sp.N(expr.subs(X, value)))
+    except (TypeError, ValueError, ArithmeticError):
+        return False
+    return number.imag == 0 and math.isfinite(number.real)
+
+
+def _real_on_both_sides(function: sp.Basic, point: sp.Basic) -> bool:
+    return all(_real_at(function, point + side * LIMIT_PROBE) for side in (-1, 1))
+
+
+def _limit(function: sp.Basic, point: sp.Basic) -> Optional[sp.Basic]:
+    """The two-sided limit, or None when the function is not real on both sides or the sides disagree."""
+    if not _real_on_both_sides(function, point):
+        return None  # e.g. sqrt(x) at 0: SymPy's left limit is not a real value
+    try:
+        return sp.limit(function, X, point, dir="+-")
+    except ValueError:  # SymPy raises when the left and right limits do not agree
+        return None
+
+
+def _derivative(function: sp.Basic, point_latex: Optional[str]) -> Optional[sp.Basic]:
+    """f'(x) or f'(a), or None when f has a kink or jump, where a derivative value is not defined."""
+    derivative = sp.diff(function, X)
+    if derivative.has(*NOT_DIFFERENTIABLE):
+        return None  # e.g. f = |x| gives sign(x), whose value at 0 is not f'(0)
+    if point_latex is None:
+        return derivative
+    return derivative.subs(X, read_latex(point_latex))
+
+
 def compute_task(task: Task) -> Optional[sp.Basic]:
     """SymPy's answer for a task, or None when it is not a finite value or expression."""
     function = read_latex(task.function_latex)
     if task.kind == LIMIT:
-        result = sp.limit(function, X, read_latex(task.point_latex or ""))
+        result = _limit(function, read_latex(task.point_latex or ""))
     else:
-        result = sp.diff(function, X)
-        if task.point_latex is not None:
-            result = result.subs(X, read_latex(task.point_latex))
+        result = _derivative(function, task.point_latex)
     return _finite_or_none(result)
 
 
@@ -156,19 +192,35 @@ def _stop(child: Any) -> None:
     child.join()
 
 
+def _await_message(child: Any, outbox: Any, timeout_s: float) -> Any:
+    """The child's next message. Raises queue.Empty on timeout, or once the child has exited with nothing queued."""
+    deadline = time.monotonic() + timeout_s
+    while True:
+        wait = min(POLL_INTERVAL_S, deadline - time.monotonic())
+        try:
+            return outbox.get(timeout=max(wait, 0.0))
+        except queue.Empty:
+            if deadline - time.monotonic() <= 0:
+                raise
+            if not child.is_alive():
+                return outbox.get(timeout=POLL_INTERVAL_S)  # a message sent just before exit still counts
+
+
 def compute_answer(task: Task) -> Optional[sp.Basic]:
-    """SymPy's answer, computed in a child process. None on timeout, error, or a non-finite result."""
+    """SymPy's answer, computed in a child process. None on timeout, child exit, error, or a non-finite result."""
     outbox = _CONTEXT.Queue()
     child = _CONTEXT.Process(target=_child_compute, args=(task, outbox), daemon=True)
     child.start()
     try:
-        if outbox.get(timeout=STARTUP_TIMEOUT_S) != READY:
+        if _await_message(child, outbox, STARTUP_TIMEOUT_S) != READY:
             return None
-        answer = outbox.get(timeout=SYMPY_TIMEOUT_S)
-    except queue.Empty:  # the child never started, or the computation ran past its limit
+        answer = _await_message(child, outbox, SYMPY_TIMEOUT_S)
+    except queue.Empty:  # the child never started, exited silently, or ran past its limit
         return None
     finally:
         _stop(child)
+        outbox.close()
+        outbox.join_thread()
     return answer if isinstance(answer, sp.Basic) else None
 
 
@@ -197,11 +249,9 @@ def deterministic_mark(statement: str, student: str) -> Optional[Mark]:
 def _cross_check(
     statement: str, computed: Computed, fast: AnswerSolver, ledger: CallLedger
 ) -> Optional[Mark]:
-    attempt = ask_solve(fast, statement, ledger, None)
-    if attempt.refusal is not None:
-        return None  # the AI ladder reports the same refusal for this item
     mark = computed.mark
-    if attempt.answer is None:
+    attempt = ask_solve(fast, statement, ledger, None)
+    if attempt.refusal is not None or attempt.answer is None:  # no cross-check ran: keep the SymPy mark
         return mark._replace(explanation=f"{mark.explanation} {NO_CROSS_CHECK}")
     if compare_to_expression(computed.answer, attempt.answer).status == EQUAL:
         return mark._replace(explanation=f"{mark.explanation} {CROSS_CHECK_AGREES}")

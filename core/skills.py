@@ -25,6 +25,7 @@ METHOD_SYMPY_COMPUTED = "sympy_computed"
 VERIFIED_METHODS = (METHOD_BANK_KEY, METHOD_SYMPY_COMPUTED)
 VERDICT_CORRECT = "correct"
 VERDICT_INCORRECT = "incorrect"
+DETERMINATE_VERDICTS = (VERDICT_CORRECT, VERDICT_INCORRECT)  # an unsure mark is never verified
 
 STATUS_SOLID: SkillStatus = "solid"
 STATUS_SHAKY: SkillStatus = "shaky"
@@ -70,11 +71,12 @@ class _Tally:
 
     def add(self, graded: GradedItem) -> "_Tally":
         verdict = graded.grade.verdict
+        is_determinate = verdict in DETERMINATE_VERDICTS
         return _Tally(
             correct=self.correct + int(verdict == VERDICT_CORRECT),
             incorrect=self.incorrect + int(verdict == VERDICT_INCORRECT),
-            unsure=self.unsure + int(verdict not in (VERDICT_CORRECT, VERDICT_INCORRECT)),
-            verified=self.verified + int(graded.grade.method in VERIFIED_METHODS),
+            unsure=self.unsure + int(not is_determinate),
+            verified=self.verified + int(graded.grade.method in VERIFIED_METHODS and is_determinate),
         )
 
 

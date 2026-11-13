@@ -30,17 +30,20 @@ export function WorksheetResults({ graded, disclaimer, busyNumber, onRegrade }: 
       <ol className="rows">
         {graded.map((entry) => {
           const { item, grade } = entry;
-          const verified = VERIFIED_METHODS.includes(grade.method);
+          const verifiedMethod = VERIFIED_METHODS.includes(grade.method);
+          // An unsure mark is never shown as verified, even when its method is a verified one.
+          const verified = verifiedMethod && grade.verdict !== "unsure";
           const aiBased = AI_METHODS.includes(grade.method);
           const referenceHeading =
-            grade.method === "bank_key" ? "Verified answer" : verified ? "SymPy's answer" : "AI's answer";
+            grade.method === "bank_key" ? "Verified answer" : verifiedMethod ? "SymPy's answer" : "AI's answer";
+          const tagText = verified ? "Verified mark" : verifiedMethod ? "Not verified" : "AI-graded";
           return (
             <li key={item.number} className={`row ${verified ? "row-verified" : "row-ai"}`}>
               <div className="row-head">
                 <span className={`verdict verdict-${grade.verdict}`}>
                   <span aria-hidden="true">{VERDICT_GLYPH[grade.verdict]}</span> {VERDICT_WORDS[grade.verdict]}
                 </span>
-                <span className="source-tag">{verified ? "Verified mark" : "AI-graded"}</span>
+                <span className="source-tag">{tagText}</span>
               </div>
               <p className="statement">
                 <MathText text={item.statement_latex} />

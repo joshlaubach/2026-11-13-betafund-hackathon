@@ -8,6 +8,7 @@ item with no bank match: SymPy first (core.sympy_task), then the AI ladder, then
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import NamedTuple, Optional
 
@@ -26,10 +27,12 @@ from core.solvers import (
     compare_answers,
     comparison_mark,
     is_readable,
+    log_failure,
 )
 from core.sympy_task import sympy_mark
 from core.worksheet_types import GradeMethod
 
+logger = logging.getLogger(__name__)
 ENV_MODEL_FAST = "ECHO_MODEL_FAST"
 ENV_MODEL_MID = "ECHO_MODEL_MID"
 ENV_MODEL_TOP = "ECHO_MODEL_TOP"
@@ -111,7 +114,8 @@ def _judge(
         return Mark("unsure", JUDGE, refusal)
     try:
         verdict = rung.judge(statement, student, effort).verdict
-    except Exception:  # a judge failure is an unsure mark, never a crash
+    except Exception as error:  # a judge failure is an unsure mark, never a crash
+        log_failure(logger, "judge call failed", error)
         return Mark("unsure", JUDGE, JUDGE_FAILED_EXPLANATION)
     return Mark(verdict, JUDGE, JUDGED.format(student=student, verdict=verdict))
 

@@ -397,6 +397,20 @@ def _no_answer_grade(problem: Optional[dict]) -> Grade:
     )
 
 
+def bank_match_grade(item: WorksheetItem, bank: Sequence[dict]) -> Optional[Grade]:
+    """The bank_key grade for an item that matches an eligible bank problem, else None.
+
+    Runs no SymPy computation and no model call, so replay can grade bank matches cheaply.
+    """
+    problem = _bank_match(item, tuple(bank))
+    if problem is None:
+        return None
+    student = _answer_text(item)
+    if student is None:
+        return _no_answer_grade(problem)
+    return _bank_grade(problem, student)
+
+
 def grade_item(
     item: WorksheetItem,
     rungs: Rungs | AnswerSolver,

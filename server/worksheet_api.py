@@ -27,15 +27,14 @@ from core.drafter import SOURCE_LIVE
 from core.ladder import Rungs
 from core.photo_reader import SHA256_HEX_PATTERN, sha256_hex
 from core.skills import build_profile, recommend, summarize
-from core.solvers import CallBudget
+from core.solvers import CallBudget, log_failure
 from core.worksheet import (
-    BANK_METHOD,
     MAX_ITEMS,
     STATUS_OK,
     AnswerSolver,
-    FakeSolver,
     ReplayWorksheetSource,
     WorksheetSource,
+    bank_match_grade,
     grade_item,
     read_worksheet,
     regrade_item,
@@ -314,16 +313,23 @@ def _grade_one(
     try:
         return GradedItem(item=item, grade=grade_item(item, solver, bank=problems, budget=budget))
     except Exception as error:  # one item's failure must not crash the others
-        logger.error("grading one worksheet item failed: %s", type(error).__name__)
+        log_failure(logger, "grading one worksheet item failed", error)
         return GradedItem(item=item, grade=_unsure(UNGRADED_EXPLANATION))
 
 
 def _replay_item(item: WorksheetItem, problems: tuple[dict, ...]) -> GradedItem:
-    """Bank matches are graded deterministically; anything else needs a saved AI grade."""
-    graded = _grade_one(item, FakeSolver(), problems)
-    if graded.grade.method == BANK_METHOD:
-        return graded
-    return GradedItem(item=item, grade=_unsure(NO_SAVED_GRADE_EXPLANATION))
+    """Bank matches are graded deterministically; anything else needs a saved AI grade.
+
+    Only the bank match runs here, so replay never starts a SymPy child process or calls a model.
+    """
+    try:
+        grade = bank_match_grade(item, problems)
+    except Exception as error:  # one item's failure must not crash the others
+        log_failure(logger, "grading one worksheet item failed", error)
+        return GradedItem(item=item, grade=_unsure(UNGRADED_EXPLANATION))
+    if grade is None:
+        return GradedItem(item=item, grade=_unsure(NO_SAVED_GRADE_EXPLANATION))
+    return GradedItem(item=item, grade=grade)
 
 
 def _grade_all(
