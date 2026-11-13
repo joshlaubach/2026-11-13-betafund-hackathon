@@ -38,3 +38,4 @@ build
 # Docs: keep only the bank file the API reads (docs/* then re-include)
 docs/*
 !docs/verified_problems.json
+!docs/echo_checked_problems.json
