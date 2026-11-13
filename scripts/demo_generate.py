@@ -25,6 +25,7 @@ from core.drafter import (  # noqa: E402
     SOURCE_LIVE,
     TOPIC,
     Draft,
+    FAKE_DRAFTS,
     DraftSource,
     FakeSource,
     LiveSource,
@@ -40,20 +41,6 @@ DEFAULT_REPLAY = REPO_ROOT / "replay" / "power_rule_L2.json"
 N_DRAFTS = 6  # the fake batch holds 6 drafts; every mode asks for the same number
 COUNT = 3
 SAMPLE_WIDTH = 6
-
-FAKE_DRAFTS = [
-    Draft(function_latex="3x^{4} + 2x", evaluate_at=None, key_latex="12 x^{3} + 2"),
-    Draft(function_latex="5x^{3} - x", evaluate_at=None, key_latex="15 x^{2}"),
-    Draft(
-        function_latex="\\sqrt{x} + 4x^{3}",
-        evaluate_at=None,
-        key_latex="\\frac{1}{2 \\sqrt{x}} + 12 x^{2}",
-    ),
-    Draft(function_latex="3x^{4}   +  2x", evaluate_at=None, key_latex="12 x^{3} + 2"),
-    Draft(function_latex="2x^{5} - 7x^{2} + 1", evaluate_at=None, key_latex="10x^{4} + 14x"),
-    Draft(function_latex="x^{3} - 4x", evaluate_at="2", key_latex="8"),
-]
-
 
 def check_gate() -> int | None:
     """Return an exit code when the power_rule gate is missing or not trusted, else None."""

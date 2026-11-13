@@ -70,6 +70,21 @@ class DraftBatch(BaseModel):
     drafts: list[Draft]
 
 
+# Scripted drafts for fake mode. Two keys are wrong on purpose (rejected by the checker).
+FAKE_DRAFTS = [
+    Draft(function_latex="3x^{4} + 2x", evaluate_at=None, key_latex="12 x^{3} + 2"),
+    Draft(function_latex="5x^{3} - x", evaluate_at=None, key_latex="15 x^{2}"),
+    Draft(
+        function_latex="\\sqrt{x} + 4x^{3}",
+        evaluate_at=None,
+        key_latex="\\frac{1}{2 \\sqrt{x}} + 12 x^{2}",
+    ),
+    Draft(function_latex="3x^{4}   +  2x", evaluate_at=None, key_latex="12 x^{3} + 2"),
+    Draft(function_latex="2x^{5} - 7x^{2} + 1", evaluate_at=None, key_latex="10x^{4} + 14x"),
+    Draft(function_latex="x^{3} - 4x", evaluate_at="2", key_latex="8"),
+]
+
+
 class DraftError(Exception):
     """A draft source could not produce drafts. The message is shown to the user."""
 
