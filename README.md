@@ -4,6 +4,33 @@ Echo turns a photo of a finished calculus worksheet into targeted practice. It r
 
 Scope: Calculus I and II. Built for the 2026-11-13 BetaFund hackathon.
 
+## Try it yourself
+
+You need Docker with Compose v2. From the top of this folder:
+
+```bash
+docker build -t echo-api .
+docker build -t echo-ui ui
+docker compose up -d --wait
+```
+
+Open http://localhost:3000. Stop with `docker compose down`. No API key is needed for the first run.
+
+1. Choose **Settings** in the top bar and set **Where marks come from** to **Saved replay (works offline)**. Close Settings.
+2. Upload `images/01-drone-mistake.jpeg` (drag it onto the dropzone) and click **Analyze worksheet**. Part (b) is marked **Incorrect**, with **Echo verified** beside it.
+3. Click **Start streak** on part (b). Answer the first problem (click **Hint** if you are stuck), then get one wrong on purpose to see the streak reset. Each problem is labeled.
+4. Click **Ask the tutor** and type "Explain how to find total distance".
+
+Replay mode works only for photos with a saved reading: `01-drone-mistake.jpeg`, `03-implicit-curve.jpeg`, `04-edge-cases-clear.jpeg`, `07-parametric-stray-work.jpeg`, and `08-greek-exam-not-math.jpeg`, all in `images/`. For any other photo, choose **Scripted demo data**: it needs no key and gives scripted marks, not a real reading.
+
+**Live AI** reads and grades any photo with a model. It needs internet and your own `ANTHROPIC_API_KEY` in an untracked `.env` file (see `.env.example`).
+
+Without Docker, the page runs alone with scripted data:
+
+```bash
+cd ui && npm ci && NEXT_PUBLIC_FIXTURES=1 npm run dev
+```
+
 ## The idea in one paragraph
 
 Most AI tutors sound equally sure whether they computed an answer or guessed it. Echo keeps those apart. A math program (SymPy) computes or checks what it can, and those marks are labeled as checked. Anything an AI had to judge on its own is labeled that way, and the tutor is told the difference: it will not tell a student they are wrong unless a program confirmed it. When Echo cannot tell, it says so and asks the student to check a step with it.
@@ -46,7 +73,7 @@ Each mark records two separate things: what was found (correct, incorrect, unsur
 - **Streak.** After a wrong or unsure part, the tutor offers a streak: a progress bar of correct answers in a row on the same concept. Each answer is checked against the bank's verified key. A wrong answer resets the bar; using the solution ends the streak. The length (3 to 6, default 5) is set in **Settings**, next to the theme and the marks source. If only a few different problems exist, the streak is shortened and says so.
 - Problem difficulty levels are never shown to the student.
 
-Only `power_rule` has Echo-checked generated practice problems. Every other topic with usable problems serves audited bank problems labeled **"bank-verified, not Echo-checked"**.
+Echo-checked practice problems are generated ahead of time for chain rule, quotient rule, and net change / total distance (118 problems in all). A model proposes an answer, writes a problem for it, and SymPy verifies that problem before it is saved (`scripts/generate_echo_problems.py`, see `docs/generated-problems.md`). Each problem is labeled **"Echo-checked: key verified by the checker"**. Other topics serve audited bank problems labeled **"bank-verified, not Echo-checked"**.
 
 ## Running it
 
@@ -72,7 +99,7 @@ cd ui && npm ci && NEXT_PUBLIC_FIXTURES=1 npm run dev
 
 ## Tests
 
-As of 2026-11-13: backend `pytest` 1570 passed, 9 skipped; browser `cd ui && npx playwright test` 140 passed. Install backend test tools with `pip install -r requirements-dev.txt`.
+As of 2026-11-13: backend `pytest` 1607 passed, 9 skipped; browser `cd ui && npx playwright test` 143 passed. Install backend test tools with `pip install -r requirements-dev.txt`.
 
 ## What to be honest about
 
