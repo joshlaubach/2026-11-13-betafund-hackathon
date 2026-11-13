@@ -77,6 +77,17 @@ function CheckResult({ result, isBank }: { result: PracticeCheckOk; isBank: bool
   );
 }
 
+// The source labels for one practice problem. The streak card uses it too, so both show the same words.
+export function SourceTags({ problem }: { problem: PracticeProblem }) {
+  const echoChecked = problem.origin !== "bank_fallback";
+  return (
+    <>
+      <span className="source-tag">{echoChecked ? "Echo verified" : "Bank confirmed"}</span>
+      {problem.origin === "replay_echo_checked" && <span className="source-tag">Replay of a saved run</span>}
+    </>
+  );
+}
+
 export function PracticeCard({ problem, topic, mode, index, onAskTutor, onActivity, command }: PracticeCardProps) {
   const inputId = useId();
   const [answer, setAnswer] = useState("");
@@ -161,8 +172,7 @@ export function PracticeCard({ problem, topic, mode, index, onAskTutor, onActivi
     <StaggerItem index={index} className={`row ${echoChecked ? "row-verified" : "row-ai"}`}>
       <div className="practice-card" onClick={() => report(attempts, hintsShown)}>
         <div className="row-head">
-          <span className="source-tag">{echoChecked ? "Echo verified" : "Bank confirmed"}</span>
-          {problem.origin === "replay_echo_checked" && <span className="source-tag">Replay of a saved run</span>}
+          <SourceTags problem={problem} />
         </div>
         <p className="statement">
           <MathText text={problem.statement} />

@@ -88,6 +88,7 @@ interface Props {
   firstReads: Readonly<Record<number, FirstRead>>;
   onRegrade: (item: GradedItem) => void;
   onCorrect: (entry: GradedItem, field: ClarifyField, latex: string) => void;
+  onStartStreak?: (entry: GradedItem) => void;
 }
 
 interface RowProps {
@@ -98,6 +99,7 @@ interface RowProps {
   firstRead: FirstRead | undefined;
   onRegrade: (item: GradedItem) => void;
   onCorrect: (entry: GradedItem, field: ClarifyField, latex: string) => void;
+  onStartStreak?: (entry: GradedItem) => void;
 }
 
 // The student's final answers, or their whole written line when no final answer was read.
@@ -131,7 +133,7 @@ function FirstReadLine({ read }: { read: FirstRead }) {
   );
 }
 
-function MarkRow({ index, entry, busy, mode, firstRead, onRegrade, onCorrect }: RowProps) {
+function MarkRow({ index, entry, busy, mode, firstRead, onRegrade, onCorrect, onStartStreak }: RowProps) {
   const { item, grade } = entry;
   const verifiedMethod = VERIFIED_METHODS.includes(grade.method);
   // An unsure mark is never shown as verified, even when its method is a verified one.
@@ -156,6 +158,8 @@ function MarkRow({ index, entry, busy, mode, firstRead, onRegrade, onCorrect }: 
   const edgeClass = verified ? "row-verified" : aiBased ? "row-ai" : "row-plain";
   // Regrade asks an AI again, so it is offered only for AI-method rows. SymPy marks are never regraded.
   const offerRegrade = aiBased;
+  // A streak practises the part's topic. Not-marked parts (not_graded, or a low-confidence read) never offer one.
+  const offerStreak = grade.verdict !== "correct" && grade.method !== "not_graded" && item.confidence !== "low";
   const reasonLine = grade.verdict === "unsure" && grade.reason ? reasonText(grade.reason, offerRegrade) : undefined;
   return (
     <StaggerItem index={index} className={`row ${edgeClass}`}>
@@ -259,6 +263,11 @@ function MarkRow({ index, entry, busy, mode, firstRead, onRegrade, onCorrect }: 
           {busy ? "Regrading…" : "Regrade"}
         </button>
       )}
+      {offerStreak && onStartStreak && (
+        <button className="quiet" onClick={() => onStartStreak(entry)}>
+          Start streak
+        </button>
+      )}
     </StaggerItem>
   );
 }
@@ -290,6 +299,7 @@ export function WorksheetResults({
   firstReads,
   onRegrade,
   onCorrect,
+  onStartStreak,
 }: Props) {
   const rows = (
     <ol className="rows">
@@ -303,6 +313,7 @@ export function WorksheetResults({
           firstRead={firstReads[entry.item.number]}
           onRegrade={onRegrade}
           onCorrect={onCorrect}
+          onStartStreak={onStartStreak}
         />
       ))}
     </ol>

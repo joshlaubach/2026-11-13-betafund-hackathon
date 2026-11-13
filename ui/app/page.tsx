@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, gradeWorksheet, profileWorksheet, readWorksheet, regradeItem, requestProblems } from "@/lib/api";
 import { correctItem, firstReadOf } from "@/lib/correction";
 import type {
@@ -15,17 +15,18 @@ import type {
 } from "@/lib/types";
 import { Practice } from "@/components/Practice";
 import { SkillPicture } from "@/components/SkillPicture";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SettingsPanel } from "@/components/SettingsPanel";
 import { AnalysisProgress } from "@/components/AnalysisProgress";
 import { SplitWorkspace } from "@/components/SplitWorkspace";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { WorksheetPreview } from "@/components/WorksheetPreview";
-import { TutorPanel } from "@/components/TutorPanel";
+import { TutorPanel, type StreakRequest } from "@/components/TutorPanel";
 import type { PracticeActivity, PracticeCommand } from "@/lib/practice-types";
 import type { TutorAction } from "@/lib/tutor-types";
 import { buildTutorContext, planAction } from "@/lib/tutor-wiring";
 import { WorksheetResults } from "@/components/WorksheetResults";
 import { useIsDesktop } from "@/lib/use-desktop";
+import { STREAK_DEFAULT_LENGTH, browserStorage, readStreakLength, writeStreakLength } from "@/lib/streak";
 
 type Stage = "idle" | "reading" | "grading" | "done";
 interface Practiced {
@@ -36,12 +37,6 @@ interface Practiced {
 
 const READING_DISCLAIMER =
   "Echo reads handwriting with AI and can misread it, especially unclear writing. If a problem or answer is read wrongly, its mark will be wrong too. Compare each problem below with the worksheet.";
-
-const MODES: { value: Mode; label: string }[] = [
-  { value: "live", label: "Live AI (needs internet)" },
-  { value: "replay", label: "Saved replay (works offline)" },
-  { value: "fake", label: "Scripted demo data" },
-];
 
 // The three kinds of mark, in the same colors the rows use, so a first-time visitor can read a result.
 const MARK_KINDS: { className: string; title: string; text: string }[] = [
@@ -124,7 +119,17 @@ export default function Home() {
   const [command, setCommand] = useState<PracticeCommand | undefined>(undefined);
   // What Echo first read for each corrected row, keyed by part number. Kept so it is never overwritten.
   const [firstReads, setFirstReads] = useState<Record<number, FirstRead>>({});
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsButton = useRef<HTMLButtonElement>(null);
+  // The practice streak the tutor panel runs, if one was started from a worksheet part.
+  const [streakRequest, setStreakRequest] = useState<StreakRequest | null>(null);
+  // Held in page state so the current view uses the chosen length even when storage cannot be written.
+  const [streakLength, setStreakLength] = useState(STREAK_DEFAULT_LENGTH);
   const isDesktop = useIsDesktop();
+
+  useEffect(() => {
+    setStreakLength(readStreakLength(browserStorage()));
+  }, []);
 
   useEffect(() => {
     if (!file) {
@@ -229,6 +234,42 @@ export default function Home() {
     setMobileView("worksheet");
   }
 
+  // Escape and the Close button both return focus to the Settings button.
+  function chooseStreakLength(length: number) {
+    setStreakLength(length);
+    writeStreakLength(browserStorage(), length);
+  }
+
+  function closeSettings() {
+    setSettingsOpen(false);
+    settingsButton.current?.focus();
+  }
+
+  // A wrong or unsure part starts a streak on its topic, at the level Echo suggests for that topic.
+  function handleStartStreak(entry: GradedItem) {
+    const topic = entry.item.topic_guess ?? entry.grade.bank_topic ?? fallbackTopic?.topic ?? null;
+    if (!topic) {
+      setError("Echo could not tell which topic this part is on, so no streak can start.");
+      return;
+    }
+    const rec = result?.recommendations.find((current) => current.topic === topic);
+    const title = rec?.title ?? (fallbackTopic?.topic === topic ? fallbackTopic.title : topic);
+    openTutor();
+    setStreakRequest({ topic, title, mistakeLevel: rec?.suggested_level ?? 2, nonce: Date.now() });
+  }
+
+  function backToWorksheet() {
+    setStreakRequest(null);
+    setMobileView("worksheet");
+    // The button that was focused is removed with the streak; move focus to the worksheet so keyboard users keep their place.
+    requestAnimationFrame(() => {
+      const worksheet = document.querySelector<HTMLElement>("main.workspace");
+      if (!worksheet) return;
+      worksheet.setAttribute("tabindex", "-1");
+      worksheet.focus({ preventScroll: false });
+    });
+  }
+
   // The student asked the tutor about one problem: that problem becomes active and the tutor opens with a prompt.
   function handleAskTutor(problem: PracticeProblem) {
     setActivity((previous) =>
@@ -281,8 +322,25 @@ export default function Home() {
           >
             Ask the tutor
           </button>
-          <ThemeToggle />
+          <button
+            ref={settingsButton}
+            type="button"
+            className="quiet settings-launch"
+            aria-label="Settings"
+            aria-haspopup="dialog"
+            aria-expanded={settingsOpen}
+            onClick={() => (settingsOpen ? closeSettings() : setSettingsOpen(true))}
+          >
+            <span aria-hidden="true">⚙</span> Settings
+          </button>
         </div>
+        {settingsOpen && <SettingsPanel
+            mode={mode}
+            onModeChange={setMode}
+            streakLength={streakLength}
+            onStreakLengthChange={chooseStreakLength}
+            onClose={closeSettings}
+          />}
       </div>
     </header>
   );
@@ -318,20 +376,6 @@ export default function Home() {
                 {working ? "Analyzing…" : "Analyze worksheet"}
               </button>
             </div>
-            {/* The data source stays visible in the summary; changing it is an advanced option. */}
-            <details className="advanced">
-              <summary>Marks come from: {MODES.find((option) => option.value === mode)?.label}</summary>
-              <div className="field">
-                <label htmlFor="mode">Where marks come from</label>
-                <select id="mode" value={mode} onChange={(event) => setMode(event.target.value as Mode)}>
-                  {MODES.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </details>
             {previewUrl && <WorksheetPreview src={previewUrl} alt="The worksheet photo you selected" />}
           </form>
         </section>
@@ -362,6 +406,7 @@ export default function Home() {
             firstReads={firstReads}
             onRegrade={(entry) => void handleRegrade(entry)}
             onCorrect={(entry, field, latex) => void handleCorrect(entry, field, latex)}
+            onStartStreak={handleStartStreak}
           />
           <SkillPicture
             result={result}
@@ -401,6 +446,9 @@ export default function Home() {
         onAction={handleTutorAction}
         prompt={tutorPrompt}
         contextLabel={tutorLabel}
+        streak={streakRequest ?? undefined}
+        streakLength={streakLength}
+        onBackToWorksheet={backToWorksheet}
       />
         }
       />

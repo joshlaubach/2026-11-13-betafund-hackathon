@@ -131,10 +131,10 @@ test("empty state: submit stays disabled until a file is chosen", async ({ page 
   await expect(submit).toBeEnabled();
 });
 
-test("keyboard: tab reaches the file input, the analyze button and the advanced options, each with a visible outline", async ({ page }) => {
+test("keyboard: tab reaches the file input and the analyze button, each with a visible outline", async ({ page }) => {
   await page.locator('input[type="file"]').setInputFiles(pngPath);
   // Clicking the intro text moves the sequential focus starting point to just before the form
-  // (the theme toggle in the masthead comes earlier in the tab order).
+  // (the Settings button in the masthead comes earlier in the tab order).
   await page.locator(".intro").click();
 
   const outlineOfFocused = (): Promise<string> =>
@@ -151,11 +151,6 @@ test("keyboard: tab reaches the file input, the analyze button and the advanced 
     if (await submitButton(page).evaluate((button) => button === document.activeElement)) break;
   }
   await expect(submitButton(page)).toBeFocused();
-
-  // The data source sits behind the Advanced summary, which is the next stop.
-  await page.keyboard.press("Tab");
-  await expect(page.locator("details.advanced > summary")).toBeFocused();
-  expect(await outlineOfFocused()).not.toBe("none");
 });
 
 test("reduced motion: receipt rows have no animation", async ({ page }) => {

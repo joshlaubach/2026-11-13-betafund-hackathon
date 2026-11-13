@@ -114,7 +114,9 @@ export function profileWorksheet(graded: GradedItem[]): Promise<GradeResponse> {
   return send<GradeResponse>("/api/worksheet/profile", jsonBody({ graded }));
 }
 
-export function requestProblems(topic: string, level: number, mode: Mode): Promise<ProblemsResponse> {
+// count is sent only when given; the server keeps its default of 3 otherwise.
+export function requestProblems(topic: string, level: number, mode: Mode, count?: number): Promise<ProblemsResponse> {
   if (USE_FIXTURES) return pause({ ...fixtureProblems, topic, level });
-  return send<ProblemsResponse>("/api/problems", jsonBody({ topic, level, mode }));
+  const body = count === undefined ? { topic, level, mode } : { topic, level, mode, count };
+  return send<ProblemsResponse>("/api/problems", jsonBody(body));
 }

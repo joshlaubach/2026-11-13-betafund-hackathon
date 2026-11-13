@@ -938,3 +938,47 @@ td {
 [hidden] {
   display: none !important;
 }
+
+/* Settings panel: opens as a card under the masthead tools (SettingsPanel). Tokens only, so both themes work. */
+.settings-panel {
+  flex: 1 1 100%;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.settings-panel:focus {
+  outline: 3px solid var(--pen);
+  outline-offset: 2px;
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+}
+
+.settings-length {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settings-length input[type="range"] {
+  flex: 1 1 auto;
+  accent-color: var(--pen);
+}
