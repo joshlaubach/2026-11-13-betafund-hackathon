@@ -134,7 +134,13 @@ What the gate does and does not show: it shows the checker agrees with the bank'
 
 ### Running it
 
-You need Python 3.10 or newer and these packages: `sympy`, `pydantic`, `python-dotenv`, `pytest`, and `anthropic` (only for live mode). There is no `requirements.txt` yet. All commands run from this folder.
+You need Python 3.10 or newer. All commands run from this folder. Install the packages first:
+
+```bash
+pip install -r requirements-dev.txt       # runtime packages plus pytest (requirements.txt alone skips pytest)
+```
+
+The versions are pinned to the ones the tests passed on. A fresh virtual environment with only these packages passes all 560 tests.
 
 ```bash
 python -m pytest tests -q                 # 560 tests, all offline

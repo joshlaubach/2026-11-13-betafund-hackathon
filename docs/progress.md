@@ -13,7 +13,8 @@
 - Single entry point `core/entry.py`: `request_problems(topic, level, mode)`. Checker-accepted drafts first, any shortfall filled from the bank with the bank label, "unsupported" notice when nothing is usable, source failures fall back with a note. Demo: `scripts/demo_entry.py`. 560 tests pass, 9 skipped.
 - `.env.example` added; `.env` (holds the real key) is git-ignored.
 - Teammate task list: `docs/partner-tasks.md`.
-- README status table and "Running it" brought up to date (this commit).
+- README status table and "Running it" brought up to date.
+- `requirements.txt` (runtime) and `requirements-dev.txt` (adds pytest), pinned. Checked in a fresh virtual environment: 560 passed, 9 skipped. `app/api` needs `fastapi` and `sqlalchemy`, but Echo does not use that folder, so they are left out.
 
 **Not built yet**
 - Photo reading and topic matching, level check, chat screens, worksheet, backup video.
