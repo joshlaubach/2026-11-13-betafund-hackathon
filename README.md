@@ -37,13 +37,21 @@ Most AI tutors sound equally sure whether they computed an answer or guessed it.
 
 ## Screenshots
 
-Saved replay of a real photo (the drone worksheet), at 1440 pixels wide. Light and dark themes are the same layout.
+All three are the saved replay of the drone worksheet, at 1440 by 900 pixels. Each mark shows its label, and the reading source is shown above the marks.
 
-| The marks | The tutor | A checked answer |
-|---|---|---|
-| ![Marks with Echo-verified and AI-graded labels](docs/screens/results-light.png) | ![Tutor answering with a hint and a question](docs/screens/tutor-light.png) | ![Practice answer marked Not yet with the check details](docs/screens/practice-check-light.png) |
+**The marks.** Part (a) is verified correct. Part (b) is marked Incorrect and is labeled Echo verified: SymPy computed the answer and compared it.
 
-Dark theme: [marks](docs/screens/results-dark.png), [tutor](docs/screens/tutor-dark.png), [checked answer](docs/screens/practice-check-dark.png).
+![The marks for the drone worksheet, with Echo verified labels](docs/screens/marks-light.png)
+
+**A practice streak.** Starting a streak on part (b) gives a generated, Echo-checked problem with a progress bar.
+
+![A streak on Net Change Total Distance, with an Echo-checked problem](docs/screens/streak-light.png)
+
+**A wrong answer resets the streak.** The check is shown with how it was made.
+
+![A wrong answer resets the streak, with the check details open](docs/screens/check-light.png)
+
+Dark theme: [marks](docs/screens/marks-dark.png), [streak](docs/screens/streak-dark.png), [wrong answer](docs/screens/check-dark.png).
 
 ## How a mark is made
 
