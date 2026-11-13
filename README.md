@@ -51,6 +51,7 @@ Open http://localhost:3000. Fixture mode serves sample readings, marks, and prac
 - The profile endpoint trusts the marks sent by the page. This design is suitable only for the local demo, where the API is bound to localhost and checks Host, Origin on writes, and request body size. It has no login.
 - Only one topic has Echo-checked generated problems. A bank label means the problem came from the audited bank; it does not mean Echo checked a new AI draft for that topic.
 - An AI cross-check can confirm a SymPy mark or make it unsure. It cannot reverse the verdict.
+- Voice input uses your browser's built-in speech recognition. Chrome and Edge may send the audio to the browser vendor. It never reaches Echo's server, and typing works without it. Typed or spoken text is turned into LaTeX by a small AI call, and Echo grades nothing until you confirm its reading.
 - Echo's upload code strips image metadata, including location data, before reading supported photos. It keeps photo bytes in memory and does not save them in replay files. Saved replays contain readings and marks.
 
 ## Status
@@ -62,6 +63,7 @@ Open http://localhost:3000. Fixture mode serves sample readings, marks, and prac
 | Skill picture and practice | Built: topic counts, ranked recommendations, and labeled practice problems |
 | Echo-checked generated practice | `power_rule` only; other usable topics use labeled bank problems |
 | Browser page and Docker | Built: upload, results, Regrade, practice, and local API and page containers |
-| Typed or voice correction of a reading | Planned; no correction control on the page yet |
+| Typed or voice correction of a reading | Built: on an unsure or unmarked part, type or speak what it says, confirm Echo's understanding, then the corrected part is graded and tagged "Corrected by you" |
+| Why a mark is unsure | Built: each unsure mark says whether the reading, the form of the answers, a disagreement between solves, a missing AI answer, or a known rule is the cause |
 
 The bank and reused `app/` checking code predate this worksheet flow. See [progress](docs/progress.md), [decisions](docs/decisions.md), and [known issues](docs/known-issues.md) for current notes.

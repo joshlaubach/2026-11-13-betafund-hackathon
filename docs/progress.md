@@ -24,3 +24,12 @@ Submission deadline: Friday 2026-11-13, 4:00 PM Pacific.
 - The Calculus I and II bank, bank audit, strict reader, and `power_rule` practice checker were already in place. The gate enables the checker only when it matches the current bank hash.
 - The drafting entry point supports live, replay, fake, and bank sources. Bank problems carry the label “bank-verified, not Echo-checked.”
 - The checking code in `app/` was reused from the author's earlier math tutor. The worksheet marking routes use `core/` instead.
+
+## 2026-11-13 (overnight)
+
+- **Built:** reason codes for unsure marks (reading, format, disagreement, no_verdict, rule); clarify by typing or voice with a confirm step; photo metadata stripped on upload and large photos downscaled in the browser (live reads only); a banner when nothing on a photo can be marked.
+- **Grading fixes from an independent Codex review** (`docs/review-grading.md`): a restricted definition ("for x>0") no longer grades by SymPy, a second ask after "and state" is no longer dropped, a contradictory chain of equal signs is unsure, a decimal where "exact" was asked is unsure, and a non-real interval endpoint no longer crashes.
+- **Regression found and fixed on the real page:** replay needs the photo's original bytes, so the browser only re-encodes photos in live mode. A writing ask that mentions math ("Write a sentence explaining v(0)") is still stripped.
+- **Replays saved** for five demo photos (`replay/`), each replayed once with no model calls.
+- **Probe:** `scripts/gate_topics.py` shows `chain_rule` (95%) and `quotient_rule` (90%) would meet the `power_rule` bar; nothing has been enabled.
+- **Next:** design pass, demo script and backup video, rehearsal with wifi off, make the repo visible to judges before 4:00 PM Pacific.
