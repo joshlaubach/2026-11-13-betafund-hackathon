@@ -569,6 +569,11 @@ def compute_kind(spec: object) -> Optional[sp.Basic]:
     return None if module is None else module.compute_spec(spec)
 
 
+def _reply_text(spec: object, answer: str) -> str:
+    """The AI's answer as its kind module reads it: a solution-set reply loses LaTeX spacing commands first."""
+    return solution_sets.without_spacing(answer) if solution_sets.owns(spec) else answer
+
+
 def _kind_cross_check(
     full: str, spec: object, value: sp.Basic, mark: Mark, fast: AnswerSolver, ledger: CallLedger
 ) -> Mark:
@@ -577,7 +582,8 @@ def _kind_cross_check(
     if attempt.refusal is not None or attempt.answer is None:
         return mark._replace(explanation=f"{mark.explanation} {NO_CROSS_CHECK}")
     module = _kind_module(spec)
-    reply = None if module is None else module.mark_spec(spec, value, (attempt.answer,))
+    reply_answers = (_reply_text(spec, attempt.answer),)
+    reply = None if module is None else module.mark_spec(spec, value, reply_answers)
     if reply is not None and reply.verdict == "correct":
         return mark._replace(explanation=f"{mark.explanation} {CROSS_CHECK_AGREES}")
     explanation = CROSS_CHECK_DISAGREES.format(computed=mark.reference, ai=attempt.answer)

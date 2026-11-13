@@ -46,6 +46,7 @@ _INTERVAL_OPEN = "(["
 _INTERVAL_CLOSE = ")]"
 _PM = "\\pm"
 _ENDPOINTS = {"\\infty": sp.oo, "-\\infty": -sp.oo}
+_SPACING_COMMAND = re.compile(r"\\(?:[,;:! ]|qquad|quad)")
 
 
 class SetSpec(NamedTuple):
@@ -203,6 +204,14 @@ def read_student_set(answers: tuple[str, ...]) -> Optional[sp.Basic]:
     if not parts or any(part is None for part in parts):
         return None
     return sp.Union(*[part for part in parts if part is not None])
+
+
+def without_spacing(text: str) -> str:
+    """The text with LaTeX spacing commands (\\, \\; \\  \\quad) turned into plain spaces, as an AI reply writes them.
+
+    The AI reply "x=0,\\ x=2" reads as "x=0, x=2" only after this; a student's answer is never changed.
+    """
+    return _SPACING_COMMAND.sub(" ", text)
 
 
 # ---------------------------------------------------------------------------
