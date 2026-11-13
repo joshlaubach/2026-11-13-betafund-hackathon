@@ -9,6 +9,11 @@ import { Swap } from "./Motion";
 // backend notes that only repeat each problem's own badge (one of them names a raw topic id).
 const LEVEL_NOTE = /\blevel\b|is not Echo-checked yet; showing bank problems|bank problem\(s\), labeled/i;
 
+// The notes a student sees for a set of problems. Shared with the streak card.
+export function visibleNotes(notes: string[]): string[] {
+  return notes.filter((note) => !LEVEL_NOTE.test(note));
+}
+
 const noop = (): void => {};
 
 interface PracticeProps {
@@ -34,7 +39,7 @@ export function Practice({
   return (
     <section aria-labelledby="practice-heading">
       <h2 id="practice-heading">New problems: {title}</h2>
-      {result.notes.filter((note) => !LEVEL_NOTE.test(note)).map((note) => (
+      {visibleNotes(result.notes).map((note) => (
         <p key={note} className="note">
           {note}
         </p>

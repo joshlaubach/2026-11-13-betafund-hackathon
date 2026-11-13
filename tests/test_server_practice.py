@@ -157,3 +157,21 @@ def test_check_route_internal_failure_returns_generic_500(client, monkeypatch):
     assert response.status_code == 500
     assert response.json() == {"error": "internal error"}
     assert "secret" not in response.text
+
+
+PROBLEMS_ROUTE = "/api/problems"
+
+
+def test_problems_route_count_returns_that_many_problems(client):
+    body = client.post(PROBLEMS_ROUTE, json={"topic": LA_TOPIC, "level": 2, "mode": "fake", "count": 7}).json()
+
+    assert body["status"] == "ok"
+    assert len(body["problems"]) == 7
+
+
+@pytest.mark.parametrize("count", [0, "x", True])
+def test_problems_route_invalid_count_returns_an_error_status(client, count):
+    response = client.post(PROBLEMS_ROUTE, json={"topic": LA_TOPIC, "level": 2, "mode": "fake", "count": count})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "error"

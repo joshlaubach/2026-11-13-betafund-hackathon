@@ -42,10 +42,12 @@ INTERNAL_ERROR_BODY = {"error": "internal error"}
 
 
 class ProblemRequest(BaseModel):
-    """Topic and level pass through to request_problems, which returns error statuses for bad values."""
+    """Topic, level and count pass through to request_problems, which returns error statuses for bad values."""
 
     topic: Any
     level: Any
+    # Any, not int, so a bad count reaches request_problems and returns its error status, as topic and level do.
+    count: Any = None
     mode: Optional[Literal["live", "replay", "fake", "bank"]] = None
 
 
@@ -108,8 +110,10 @@ def create_app() -> FastAPI:
     @app.post("/api/problems", response_model=None)
     def problems(body: ProblemRequest) -> Any:
         mode = body.mode or _default_mode()
+        # count is passed only when the client sends one, so request_problems keeps its default of 3.
+        extra = {} if body.count is None else {"count": body.count}
         try:
-            return request_problems(body.topic, body.level, mode=mode, build_dir=BUILD_DIR)
+            return request_problems(body.topic, body.level, mode=mode, build_dir=BUILD_DIR, **extra)
         except Exception as error:
             return _internal_error("problems", error)
 

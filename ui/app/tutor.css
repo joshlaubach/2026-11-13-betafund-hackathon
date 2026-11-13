@@ -487,3 +487,81 @@
   color: var(--graphite);
   font-size: 0.8rem;
 }
+
+/* Practice streak, shown inside the tutor panel (StreakCard). Tokens only, so both themes work. */
+.streak {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  margin: 0 0 0.75rem;
+  border: 1px solid var(--rule);
+  border-left: var(--edge) solid var(--pen);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.streak-kicker {
+  margin: 0;
+  color: var(--graphite);
+  font-size: var(--text-sm);
+}
+
+.streak-bar {
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+
+.streak-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--pen);
+}
+
+.streak-count,
+.streak-nearby {
+  margin: 0;
+  color: var(--graphite);
+  font-size: var(--text-sm);
+}
+
+.streak-note {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--pen-wash);
+  color: var(--ink);
+}
+
+.streak-answer {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.streak-answer input {
+  min-height: 2.5rem;
+}
+
+.streak-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.streak-complete {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.streak-complete h3 {
+  margin: 0;
+  color: var(--pen);
+}
+
+.streak-complete p {
+  margin: 0;
+}

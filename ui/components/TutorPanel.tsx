@@ -19,7 +19,17 @@ import type {
 import type { Mode } from "@/lib/types";
 import { useIsDesktop } from "@/lib/use-desktop";
 import { Presence, Reveal, StaggerItem } from "./Motion";
+import { StreakCard } from "./StreakCard";
+import { STREAK_DEFAULT_LENGTH } from "@/lib/streak";
 import { MathText } from "./Tex";
+
+// A request to run a practice streak in this panel. A new nonce means a new streak.
+export interface StreakRequest {
+  topic: string;
+  title: string;
+  mistakeLevel: number;
+  nonce: number;
+}
 
 export type TutorPanelProps = {
   open: boolean;
@@ -35,6 +45,10 @@ export type TutorPanelProps = {
   layout?: "docked" | "overlay";
   // Called when "/" is pressed outside a text field while the tutor is closed.
   onRequestOpen?: () => void;
+  // The practice streak to run in this panel, if any.
+  streak?: StreakRequest;
+  streakLength?: number;
+  onBackToWorksheet?: () => void;
 };
 
 interface Chip {
@@ -204,6 +218,9 @@ export function TutorPanel({
   contextLabel,
   layout = "overlay",
   onRequestOpen,
+  streak,
+  streakLength = STREAK_DEFAULT_LENGTH,
+  onBackToWorksheet,
 }: TutorPanelProps) {
   const isOverlay = layout === "overlay";
   const titleId = useId();
@@ -220,6 +237,8 @@ export function TutorPanel({
   const [error, setError] = useState<string | null>(null);
   const reduceMotion = Boolean(useReducedMotion());
   const isDesktop = useIsDesktop();
+  const streakActiveRef = useRef(false);
+  streakActiveRef.current = Boolean(streak);
 
   function appendMessage(role: TutorRole, text: string, response?: TutorOkResponse): void {
     const id = nextIdRef.current;
@@ -306,7 +325,10 @@ export function TutorPanel({
     // after this one, and focus on an inert or hidden element is silently ignored.
     let second = 0;
     const first = requestAnimationFrame(() => {
-      second = requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+      // A running streak owns focus: its answer field takes it, so the chat does not.
+      second = requestAnimationFrame(() => {
+        if (!streakActiveRef.current) inputRef.current?.focus({ preventScroll: true });
+      });
     });
     return () => {
       cancelAnimationFrame(first);
@@ -373,6 +395,18 @@ export function TutorPanel({
           {"Close"}
         </button>
       </header>
+
+      {streak && (
+        <StreakCard
+          key={streak.nonce}
+          topic={streak.topic}
+          title={streak.title}
+          mistakeLevel={streak.mistakeLevel}
+          mode={mode}
+          length={streakLength}
+          onBack={() => onBackToWorksheet?.()}
+        />
+      )}
 
       <div ref={logRef} role="log" aria-live="polite" aria-label="Tutor conversation" className="tutor-log">
         {messages.length === 0 && <p className="tutor-empty">Ask about this topic or problem.</p>}
