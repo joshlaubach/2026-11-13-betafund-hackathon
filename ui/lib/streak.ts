@@ -2,6 +2,8 @@
 import { MAX_LEVEL, MIN_LEVEL } from "./tutor-wiring";
 import type { PracticeProblem } from "./types";
 
+// The bank's per-level maximum. The pool holds this many distinct problems, so a wrong answer can restart the bar.
+export const STREAK_POOL_SIZE = 10;
 export const STREAK_DEFAULT_LENGTH = 5;
 export const STREAK_MIN_LENGTH = 3;
 export const STREAK_MAX_LENGTH = 6;
@@ -92,9 +94,9 @@ export function browserStorage(): StorageLike | null {
 }
 
 // Each problem's level is its own level when the server sends one, otherwise the level it was requested for.
-// Same-level problems come first. Neighbour-level problems are added only while the pool is short, and a problem
-// is never repeated (matched by statement). Levels outside the neighbours of this level are dropped.
-export function buildPool(level: number, length: number, sources: PoolSource[]): StreakProblem[] {
+// Same-level problems come first. Neighbour-level problems are added only while the pool is short of STREAK_POOL_SIZE,
+// and a problem is never repeated (matched by statement). Levels outside the neighbours of this level are dropped.
+export function buildPool(level: number, sources: PoolSource[]): StreakProblem[] {
   const tagged = sources.flatMap((source) =>
     source.problems.map((problem) => ({ problem, actual: problem.level ?? source.level })),
   );
@@ -102,19 +104,20 @@ export function buildPool(level: number, length: number, sources: PoolSource[]):
   const pool: StreakProblem[] = [];
   const add = (wanted: (actual: number) => boolean, nearby: boolean) => {
     for (const { problem, actual } of tagged) {
+      if (pool.length >= STREAK_POOL_SIZE) return;
       if (!wanted(actual) || seen.has(problem.statement)) continue;
       seen.add(problem.statement);
       pool.push({ problem, nearby });
     }
   };
   add((actual) => actual === level, false);
-  if (pool.length < length) add((actual) => isNeighbour(level, actual), true);
+  if (pool.length < STREAK_POOL_SIZE) add((actual) => isNeighbour(level, actual), true);
   return pool;
 }
 
-// Fill is needed when the own-level response has fewer distinct statements than the streak length.
-export function needsFill(own: PracticeProblem[], length: number): boolean {
-  return new Set(own.map((problem) => problem.statement)).size < length;
+// Fill is needed when the own-level response has fewer distinct statements than the pool size.
+export function needsFill(own: PracticeProblem[]): boolean {
+  return new Set(own.map((problem) => problem.statement)).size < STREAK_POOL_SIZE;
 }
 
 // The streak runs at most as long as the distinct problems allow, so the bar never promises more than can happen.

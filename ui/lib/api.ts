@@ -8,6 +8,7 @@ import {
   fixtureGradeCorrected,
   fixtureGradeUnmarked,
   fixtureProblems,
+  fixtureProblemsFor,
   fixtureRead,
   fixtureReadUnmarked,
 } from "./fixtures";
@@ -116,7 +117,7 @@ export function profileWorksheet(graded: GradedItem[]): Promise<GradeResponse> {
 
 // count is sent only when given; the server keeps its default of 3 otherwise.
 export function requestProblems(topic: string, level: number, mode: Mode, count?: number): Promise<ProblemsResponse> {
-  if (USE_FIXTURES) return pause({ ...fixtureProblems, topic, level });
+  if (USE_FIXTURES) return pause({ ...fixtureProblems, topic, level, problems: fixtureProblemsFor(count) });
   const body = count === undefined ? { topic, level, mode } : { topic, level, mode, count };
   return send<ProblemsResponse>("/api/problems", jsonBody(body));
 }

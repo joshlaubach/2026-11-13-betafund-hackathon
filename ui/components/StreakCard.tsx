@@ -6,6 +6,7 @@ import { ApiError, requestProblems } from "@/lib/api";
 import { motionTokens } from "@/lib/motion-tokens";
 import { checkPracticeAnswer } from "@/lib/practice-api";
 import {
+  STREAK_POOL_SIZE,
   answerCorrect,
   buildPool,
   currentProblem,
@@ -43,17 +44,17 @@ const motionEase = { duration: motionTokens.duration.normal, ease: motionTokens.
 
 // Own level first. Only when that is too short for the streak, the next level up or down fills the rest.
 // Returns the pool and the notes from every response it used, so the card can show the same notes as practice.
-async function loadPool(topic: string, level: number, length: number, mode: Mode) {
-  const own = await requestProblems(topic, level, mode, length);
+async function loadPool(topic: string, level: number, mode: Mode) {
+  const own = await requestProblems(topic, level, mode, STREAK_POOL_SIZE);
   const sources: PoolSource[] = [{ level, problems: own.problems }];
   let notes = own.notes;
-  // Decided by distinct statements, since duplicates in the response do not count toward the streak.
-  if (needsFill(own.problems, length)) {
-    const fill = await requestProblems(topic, nearbyLevel(level), mode, length);
+  // Decided by distinct statements, since duplicates in the response do not count toward the pool.
+  if (needsFill(own.problems)) {
+    const fill = await requestProblems(topic, nearbyLevel(level), mode, STREAK_POOL_SIZE);
     sources.push({ level: nearbyLevel(level), problems: fill.problems });
     notes = [...notes, ...fill.notes];
   }
-  return { pool: buildPool(level, length, sources), notes };
+  return { pool: buildPool(level, sources), notes };
 }
 
 function StreakBar({ correct, length, reduceMotion }: { correct: number; length: number; reduceMotion: boolean }) {
@@ -113,7 +114,7 @@ export function StreakCard({ topic, title, mistakeLevel, mode, length, onBack }:
     setBusy(false);
     setStreak(null);
     try {
-      const loaded = await loadPool(topic, level, length, mode);
+      const loaded = await loadPool(topic, level, mode);
       // The streak was ended or restarted while this load was pending (Strict Mode runs the mount effect twice).
       if (session !== sessionRef.current) return;
       if (loaded.pool.length === 0) {
